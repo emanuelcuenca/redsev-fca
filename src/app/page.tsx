@@ -92,7 +92,7 @@ export default function Dashboard() {
           </div>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
-            <h2 className="text-2xl md:text-5xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tighter leading-none">
+            <h2 className="text-xl md:text-3xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
               Estrategias para el Desarrollo Sustentable
             </h2>
             <p className="text-sm md:text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
