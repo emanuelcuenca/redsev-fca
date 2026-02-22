@@ -70,7 +70,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground text-[16px] md:text-[17px] leading-relaxed;
+    @apply bg-background text-foreground text-[17px] md:text-[18px] leading-relaxed;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
