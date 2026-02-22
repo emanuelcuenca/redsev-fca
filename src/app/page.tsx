@@ -59,26 +59,26 @@ export default function Dashboard() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
             <SidebarTrigger />
-            <h1 className="text-xs md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
+            <h1 className="text-sm md:text-base font-headline font-bold text-primary truncate uppercase tracking-tight">
               Secretaría de Extensión y Vinculación FCA - UNCA
             </h1>
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-2">
+          <div className="flex items-center gap-3 shrink-0 ml-2">
              {isAdmin && (
-               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-bold rounded-xl">
+               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-bold rounded-xl h-9">
                  <Link href="/upload" className="flex items-center gap-2">
                    <Plus className="w-4 h-4" /> Nuevo
                  </Link>
                </Button>
              )}
              <div className="flex items-center gap-2">
-               {isAdmin && <ShieldCheck className="w-4 h-4 text-primary hidden md:block" title="Perfil Secretaría" />}
-               <div className="w-8 h-8 rounded-full overflow-hidden border">
+               {isAdmin && <ShieldCheck className="w-5 h-5 text-primary hidden md:block" title="Perfil Secretaría" />}
+               <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary/20">
                  <Image 
                    src="https://picsum.photos/seed/prof1/100/100" 
                    alt="Avatar" 
-                   width={32} 
-                   height={32} 
+                   width={36} 
+                   height={36} 
                    className="object-cover" 
                  />
                </div>
@@ -86,33 +86,33 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-full mx-auto w-full">
-          <section className="mb-6 md:mb-10 text-center sm:text-left">
-            <h2 className="text-2xl md:text-3xl font-headline font-bold mb-1 md:mb-2">Bienvenido</h2>
-            <p className="text-muted-foreground text-sm md:text-lg">
+        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+          <section className="mb-8 md:mb-12 text-center sm:text-left">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-2 tracking-tight">Bienvenido</h2>
+            <p className="text-muted-foreground text-base md:text-xl font-medium">
               Gestión documental de Extensión y Vinculación.
             </p>
             {isAdmin && (
-              <Badge className="mt-2 bg-primary/10 text-primary border-primary/20 font-bold px-3 py-1 text-[10px] md:text-xs">
+              <Badge className="mt-3 bg-primary/10 text-primary border-primary/20 font-bold px-4 py-1.5 text-xs md:text-sm uppercase tracking-widest">
                 Perfil Administrador - Secretaría
               </Badge>
             )}
           </section>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-10">
             <div className="relative flex-1 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
               <Input 
-                placeholder="Buscar convenios..." 
-                className="pl-10 h-11 md:h-12 text-base md:text-lg rounded-xl shadow-sm border-muted-foreground/20 focus:border-primary focus:ring-primary/20 transition-all"
+                placeholder="Buscar por título, palabra clave..." 
+                className="pl-12 h-14 text-base md:text-lg rounded-2xl shadow-sm border-muted-foreground/20 focus:border-primary focus:ring-primary/10 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar">
               <Button 
                 variant={selectedType === null ? "default" : "outline"}
-                className="rounded-full h-10 md:h-12 px-4 md:px-6 transition-all text-xs md:text-sm"
+                className="rounded-full h-12 md:h-14 px-6 transition-all text-sm md:text-base font-bold"
                 onClick={() => setSelectedType(null)}
               >
                 Todos
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 <Button 
                   key={type}
                   variant={selectedType === type ? "default" : "outline"}
-                  className="rounded-full h-10 md:h-12 px-4 md:px-6 transition-all whitespace-nowrap text-xs md:text-sm"
+                  className="rounded-full h-12 md:h-14 px-6 transition-all whitespace-nowrap text-sm md:text-base font-bold"
                   onClick={() => setSelectedType(type)}
                 >
                   {type}
@@ -130,17 +130,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredDocuments.map((doc) => (
               <DocumentCard key={doc.id} document={doc} />
             ))}
           </div>
 
           {filteredDocuments.length === 0 && (
-            <div className="text-center py-12 md:py-20 bg-muted/30 rounded-2xl border-2 border-dashed border-muted">
-              <FileText className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg md:text-xl font-headline font-semibold mb-1">Sin resultados</h3>
-              <p className="text-xs md:text-sm text-muted-foreground">Intente con otros filtros.</p>
+            <div className="text-center py-20 md:py-32 bg-muted/30 rounded-3xl border-2 border-dashed border-muted">
+              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-30" />
+              <h3 className="text-xl md:text-2xl font-headline font-bold mb-2">Sin resultados</h3>
+              <p className="text-muted-foreground text-base">Intente ajustando los filtros de búsqueda.</p>
             </div>
           )}
         </main>
@@ -151,46 +151,46 @@ export default function Dashboard() {
 
 function DocumentCard({ document }: { document: AgriculturalDocument }) {
   return (
-    <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-card">
+    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl">
       <div className="relative aspect-video overflow-hidden">
         <Image 
           src={document.imageUrl} 
           alt={document.title} 
           fill 
-          className="object-cover group-hover:scale-105 transition-transform duration-500" 
+          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
           data-ai-hint="agriculture landscape"
         />
-        <div className="absolute top-2 left-2 md:top-3 md:left-3">
-          <Badge variant="secondary" className="bg-background/90 backdrop-blur text-primary shadow-sm font-semibold text-[10px] md:text-xs">
+        <div className="absolute top-4 left-4">
+          <Badge variant="secondary" className="bg-background/90 backdrop-blur text-primary shadow-sm font-bold text-xs px-3 py-1">
             {document.type}
           </Badge>
         </div>
       </div>
-      <CardHeader className="p-4 md:p-5 flex-grow">
-        <CardTitle className="text-base md:text-lg font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+      <CardHeader className="p-6 pb-4 flex-grow">
+        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
           {document.title}
         </CardTitle>
-        <CardDescription className="flex items-center gap-2 mt-2 font-medium text-xs md:text-sm">
-          <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5" /> {new Date(document.date).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
+        <CardDescription className="flex items-center gap-2 mt-3 font-semibold text-sm md:text-base">
+          <Calendar className="w-4 h-4 text-primary" /> {new Date(document.date).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-4 md:px-5 py-0 flex flex-col gap-2 md:gap-3">
-        <div className="flex items-center gap-2 text-[10px] md:text-sm text-muted-foreground">
-          <User className="w-3 h-3 md:w-3.5 md:h-3.5" />
+      <CardContent className="px-6 py-0 flex flex-col gap-4">
+        <div className="flex items-center gap-3 text-sm md:text-base text-muted-foreground font-medium">
+          <User className="w-4 h-4 text-primary/70 shrink-0" />
           <span className="truncate">{document.authors.join(', ')}</span>
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {document.keywords.map(tag => (
-            <Badge key={tag} variant="outline" className="text-[9px] md:text-[10px] uppercase tracking-wider py-0 font-bold border-muted-foreground/10">
+            <Badge key={tag} variant="outline" className="text-[10px] md:text-xs uppercase tracking-widest py-0.5 font-bold border-muted-foreground/20">
               {tag}
             </Badge>
           ))}
         </div>
       </CardContent>
-      <CardFooter className="p-4 md:p-5 mt-auto">
-        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-bold h-auto text-xs md:text-sm">
+      <CardFooter className="p-6 mt-auto">
+        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-bold h-auto text-base">
           <Link href={`/documents/${document.id}`} className="flex items-center gap-2">
-            Ver Detalles <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />
+            Ver Detalles <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
           </Link>
         </Button>
       </CardFooter>
