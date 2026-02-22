@@ -3,7 +3,7 @@ import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Repositorio Digital - Secretaría de Extensión y Vinculación FCA - UNCA',
+  title: 'Secretaría de Extensión y Vinculación FCA - UNCA',
   description: 'Sistema de gestión de documentos para convenios y proyectos de extensión agraria de la Facultad de Ciencias Agrarias - UNCA.',
 };
 

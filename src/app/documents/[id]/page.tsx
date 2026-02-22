@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -58,94 +57,94 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="w-5 h-5" />
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
-            <h1 className="text-xl font-headline font-semibold text-primary truncate max-w-[200px] md:max-w-md">
-              {doc.title}
+            <h1 className="text-xs md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
+              Secretaría de Extensión y Vinculación FCA - UNCA
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2">
-              <Share2 className="w-4 h-4" /> Compartir
+          <div className="flex items-center gap-1 md:gap-2 ml-2">
+            <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8">
+              <Share2 className="w-3.5 h-3.5" /> Compartir
             </Button>
-            <Button variant="default" size="sm" className="rounded-xl gap-2 bg-primary hover:bg-primary/90">
-              <Download className="w-4 h-4" /> Descargar
+            <Button variant="default" size="sm" className="rounded-xl gap-1 md:gap-2 bg-primary hover:bg-primary/90 h-8 text-[10px] md:text-xs">
+              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" /> Descargar
             </Button>
           </div>
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             
             {/* Left Column: Preview and Metadata */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6 md:space-y-8">
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-headline font-bold flex items-center gap-2">
-                    <Eye className="w-6 h-6 text-primary" /> Visualización de Documento
+                <div className="flex items-center justify-between mb-3 md:mb-4">
+                  <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2">
+                    <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
                   </h2>
                 </div>
-                <div className="relative aspect-[3/4] w-full bg-muted rounded-3xl overflow-hidden border-2 border-muted shadow-lg">
+                <div className="relative aspect-[3/4] w-full bg-muted rounded-2xl md:rounded-3xl overflow-hidden border-2 border-muted shadow-lg">
                   <Image 
-                    src={document.imageUrl} 
+                    src={doc.imageUrl} 
                     alt="Document preview" 
                     fill 
                     className="object-cover opacity-90" 
                     data-ai-hint="document report"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                  <div className="absolute bottom-6 left-6 right-6 text-white p-6 backdrop-blur-md bg-white/10 rounded-2xl border border-white/20">
-                    <h3 className="text-xl font-headline font-bold mb-2">{doc.title}</h3>
-                    <p className="text-sm opacity-90 line-clamp-3 leading-relaxed">{doc.content}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 text-white p-4 md:p-6 backdrop-blur-md bg-white/10 rounded-xl md:rounded-2xl border border-white/20">
+                    <h3 className="text-lg md:text-xl font-headline font-bold mb-1 md:mb-2 line-clamp-2">{doc.title}</h3>
+                    <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{doc.content}</p>
                   </div>
                 </div>
               </section>
 
-              <section className="bg-white p-8 rounded-3xl shadow-sm border border-muted space-y-6">
-                <h2 className="text-2xl font-headline font-bold">Metadatos del Documento</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <section className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-muted space-y-4 md:space-y-6">
+                <h2 className="text-xl md:text-2xl font-headline font-bold">Metadatos</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-secondary p-2 rounded-lg">
-                        <FileText className="w-5 h-5 text-primary" />
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <div className="bg-secondary p-2 rounded-lg shrink-0">
+                        <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo</p>
-                        <p className="font-semibold">{doc.type}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo</p>
+                        <p className="font-semibold text-sm md:text-base">{doc.type}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                      <div className="bg-secondary p-2 rounded-lg">
-                        <Calendar className="w-5 h-5 text-primary" />
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <div className="bg-secondary p-2 rounded-lg shrink-0">
+                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha</p>
-                        <p className="font-semibold">{new Date(doc.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha</p>
+                        <p className="font-semibold text-sm md:text-base">{new Date(doc.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-secondary p-2 rounded-lg">
-                        <User className="w-5 h-5 text-primary" />
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <div className="bg-secondary p-2 rounded-lg shrink-0">
+                        <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Autores</p>
-                        <p className="font-semibold">{doc.authors.join(', ')}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Autores</p>
+                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{doc.authors.join(', ')}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                      <div className="bg-secondary p-2 rounded-lg">
-                        <Tag className="w-5 h-5 text-primary" />
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <div className="bg-secondary p-2 rounded-lg shrink-0">
+                        <Tag className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Palabras Clave</p>
-                        <div className="flex flex-wrap gap-2 mt-1">
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Etiquetas</p>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
                           {doc.keywords.map(tag => (
-                            <Badge key={tag} variant="secondary" className="font-medium">{tag}</Badge>
+                            <Badge key={tag} variant="secondary" className="font-medium text-[9px] md:text-[10px]">{tag}</Badge>
                           ))}
                         </div>
                       </div>
@@ -156,67 +155,67 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Right Column: AI Tools */}
-            <div className="space-y-8">
-              <Card className="rounded-3xl border-none shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden">
-                <CardHeader className="p-8 pb-4">
-                  <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-xs mb-2">
-                    <Sparkles className="w-4 h-4" /> Inteligencia Artificial
+            <div className="space-y-6 md:space-y-8">
+              <Card className="rounded-2xl md:rounded-3xl border-none shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden">
+                <CardHeader className="p-6 md:p-8 pb-3 md:pb-4">
+                  <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-[10px] mb-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Inteligencia Artificial
                   </div>
-                  <CardTitle className="text-3xl font-headline font-bold">Resumen Inteligente</CardTitle>
+                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold">Resumen</CardTitle>
                 </CardHeader>
-                <CardContent className="p-8 pt-0">
-                  <p className="text-primary-foreground/80 mb-6 leading-relaxed">
-                    Extraiga los puntos clave y conclusiones principales de este documento instantáneamente.
+                <CardContent className="p-6 md:p-8 pt-0">
+                  <p className="text-primary-foreground/80 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
+                    Extraiga conclusiones clave instantáneamente.
                   </p>
                   
                   {summary ? (
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 animate-in fade-in slide-in-from-bottom-4">
-                      <p className="text-sm leading-relaxed text-white">
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 animate-in fade-in slide-in-from-bottom-4">
+                      <p className="text-xs md:text-sm leading-relaxed text-white">
                         {summary}
                       </p>
                       <Button 
                         variant="link" 
-                        className="p-0 h-auto text-white font-bold mt-4 hover:no-underline flex items-center gap-1 opacity-80"
+                        className="p-0 h-auto text-white font-bold mt-3 md:mt-4 hover:no-underline flex items-center gap-1 opacity-80 text-xs"
                         onClick={() => setSummary(null)}
                       >
-                        Limpiar resumen
+                        Limpiar
                       </Button>
                     </div>
                   ) : (
                     <Button 
-                      className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-lg shadow-lg shadow-accent/20 transition-all group"
+                      className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base md:text-lg shadow-lg shadow-accent/20 transition-all group"
                       onClick={handleSummarize}
                       disabled={isSummarizing}
                     >
                       {isSummarizing ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
                       ) : (
-                        <span className="flex items-center gap-2">Generar Resumen <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" /></span>
+                        <span className="flex items-center gap-2">Generar <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" /></span>
                       )}
                     </Button>
                   )}
                 </CardContent>
               </Card>
 
-              <section className="bg-secondary/30 p-8 rounded-3xl border border-secondary space-y-6">
-                <h3 className="text-xl font-headline font-bold text-primary">Información Adicional</h3>
-                <ul className="space-y-4">
-                  <li className="flex items-center justify-between group">
+              <section className="bg-secondary/30 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-secondary space-y-4 md:space-y-6">
+                <h3 className="text-lg md:text-xl font-headline font-bold text-primary">Info Adicional</h3>
+                <ul className="space-y-3 md:space-y-4">
+                  <li className="flex items-center justify-between group text-xs md:text-sm">
                     <span className="text-muted-foreground">ID Interno</span>
-                    <span className="font-mono text-sm font-bold">{doc.id}</span>
+                    <span className="font-mono font-bold truncate ml-2">{doc.id}</span>
                   </li>
-                  <li className="flex items-center justify-between group">
-                    <span className="text-muted-foreground">Proyecto Relacionado</span>
-                    <span className="font-bold text-right text-primary">{doc.project}</span>
+                  <li className="flex items-center justify-between group text-xs md:text-sm">
+                    <span className="text-muted-foreground">Proyecto</span>
+                    <span className="font-bold text-right text-primary truncate ml-2">{doc.project}</span>
                   </li>
-                  <li className="flex items-center justify-between group">
-                    <span className="text-muted-foreground">Nivel de Acceso</span>
-                    <Badge className="bg-green-600 text-white border-none">Autorizado</Badge>
+                  <li className="flex items-center justify-between group text-xs md:text-sm">
+                    <span className="text-muted-foreground">Acceso</span>
+                    <Badge className="bg-green-600 text-white border-none text-[9px] md:text-[10px]">Autorizado</Badge>
                   </li>
                 </ul>
                 <Separator className="bg-secondary" />
-                <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  Este documento es parte del repositorio oficial de la Secretaría de Extensión y Vinculación FCA - UNCA.
+                <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed italic">
+                  Documento oficial de la Secretaría de Extensión y Vinculación FCA - UNCA.
                 </p>
               </section>
             </div>
