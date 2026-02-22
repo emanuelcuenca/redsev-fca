@@ -13,7 +13,9 @@ import {
   LayoutDashboard,
   Handshake,
   Sprout,
-  ShieldCheck
+  ShieldCheck,
+  BookOpen,
+  Leaf
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -92,12 +94,56 @@ export default function Dashboard() {
           </div>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
-            <h2 className="text-xl md:text-3xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
-              Estrategias para el Desarrollo Sustentable
-            </h2>
-            <p className="text-sm md:text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
-              La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.
-            </p>
+            <div className="max-w-4xl">
+              <h2 className="text-xl md:text-3xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
+                Estrategias para el Desarrollo Sustentable
+              </h2>
+              <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight">
+                La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <div className="flex gap-4">
+                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
+                    <Sprout className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Extensión</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Transferencia de conocimiento técnico directamente al productor rural.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
+                    <Handshake className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Vinculación</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad, el estado y la empresa privada.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Formación</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Programas de capacitación continua para profesionales y técnicos.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
+                    <Leaf className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Sustentabilidad</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
