@@ -64,11 +64,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </Button>
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
+            <div className="flex flex-col items-center leading-none text-center">
+              <span className="text-[10px] md:text-sm font-headline text-primary uppercase tracking-tight whitespace-nowrap">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+              <span className="text-[10px] md:text-sm font-headline text-black uppercase tracking-tight">
                 FCA - UNCA
               </span>
             </div>

@@ -60,11 +60,11 @@ export default function Dashboard() {
             <SidebarTrigger />
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
+            <div className="flex flex-col items-center leading-none text-center">
+              <span className="text-[10px] md:text-sm font-headline text-primary uppercase tracking-tight whitespace-nowrap">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+              <span className="text-[10px] md:text-sm font-headline text-black uppercase tracking-tight">
                 FCA - UNCA
               </span>
             </div>
@@ -92,15 +92,15 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <section className="mb-8 md:mb-12">
-            <h2 className="text-xl md:text-3xl font-headline font-bold mb-2 tracking-tight">
+          <section className="mb-6 md:mb-10">
+            <h2 className="text-xl md:text-2xl font-headline font-bold mb-1 tracking-tight">
               Bienvenido{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
             </h2>
-            <p className="text-muted-foreground text-xs md:text-base font-bold max-w-2xl leading-snug">
+            <p className="text-muted-foreground text-[13px] md:text-base font-medium max-w-2xl leading-snug">
               Repositorio digital de gestión de Extensión y Vinculación de la Facultad.
             </p>
             {isAdmin && (
-              <Badge className="mt-4 bg-primary/10 text-primary border-primary/30 font-black px-4 py-1.5 text-[9px] md:text-xs uppercase tracking-[0.2em] rounded-xl">
+              <Badge className="mt-3 bg-primary/10 text-primary border-primary/30 font-black px-3 py-1 text-[9px] md:text-xs uppercase tracking-[0.2em] rounded-lg">
                 Perfil Administrador
               </Badge>
             )}

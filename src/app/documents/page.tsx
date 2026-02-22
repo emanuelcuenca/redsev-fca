@@ -92,11 +92,11 @@ export default function DocumentsListPage() {
             <SidebarTrigger />
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
+            <div className="flex flex-col items-center leading-none text-center">
+              <span className="text-[10px] md:text-sm font-headline text-primary uppercase tracking-tight whitespace-nowrap">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+              <span className="text-[10px] md:text-sm font-headline text-black uppercase tracking-tight">
                 FCA - UNCA
               </span>
             </div>
@@ -247,7 +247,7 @@ export default function DocumentsListPage() {
             <div className="py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
               <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
               <h3 className="text-lg font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
-              <p className="text-muted-foreground font-bold">Intente ajustando los filtros.</p>
+              <p className="text-muted-foreground font-bold">Intente ajustando los filtros de búsqueda.</p>
             </div>
           )}
         </main>
