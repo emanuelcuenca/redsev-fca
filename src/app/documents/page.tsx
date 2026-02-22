@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -13,7 +14,9 @@ import {
   Eye,
   Calendar,
   Handshake,
-  Sprout
+  Sprout,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -34,6 +37,13 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
@@ -41,6 +51,10 @@ import { doc } from "firebase/firestore";
 
 export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterVigente, setFilterVigente] = useState<string>("all");
+  const [filterYear, setFilterYear] = useState<string>("all");
+  const [filterType, setFilterType] = useState<string>("all");
+  
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   
@@ -55,33 +69,49 @@ export default function DocumentsListPage() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
+  const isConvenios = category === 'convenios';
+
   const filteredDocs = useMemo(() => {
     return MOCK_DOCUMENTS.filter(doc => {
+      // Filtro por categoría principal
+      if (isConvenios && doc.type !== 'Convenio') return false;
+      if (category === 'extension' && doc.type === 'Convenio') return false;
+
+      // Búsqueda por texto
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            doc.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                            (doc.counterpart && doc.counterpart.toLowerCase().includes(searchQuery.toLowerCase())) ||
                             doc.authors.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()));
       
       if (!matchesSearch) return false;
 
-      if (category === 'convenios') {
-        return doc.type === 'Convenio';
-      }
-      
-      if (category === 'extension') {
-        return doc.type !== 'Convenio';
+      // Filtros específicos de Convenios
+      if (isConvenios) {
+        if (filterVigente !== "all") {
+          const isVig = filterVigente === "vigente";
+          if (doc.isVigente !== isVig) return false;
+        }
+        if (filterYear !== "all" && doc.signingYear?.toString() !== filterYear) {
+          return false;
+        }
+        if (filterType !== "all" && doc.convenioSubType !== filterType) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [searchQuery, category]);
+  }, [searchQuery, category, isConvenios, filterVigente, filterYear, filterType]);
 
-  const pageTitle = category === 'convenios' ? 'Convenios Oficiales' : 
+  const pageTitle = isConvenios ? 'Convenios' : 
                     category === 'extension' ? 'Extensión Universitaria' : 
                     'Todos los Documentos';
 
-  const PageIcon = category === 'convenios' ? Handshake : 
+  const PageIcon = isConvenios ? Handshake : 
                    category === 'extension' ? Sprout : 
                    FileText;
+
+  const years = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.signingYear).filter(Boolean))).sort().reverse();
 
   return (
     <SidebarProvider>
@@ -116,19 +146,74 @@ export default function DocumentsListPage() {
             <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight">{pageTitle}</h2>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <Input 
-                placeholder="Buscar por título, proyecto o autor..." 
-                className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <div className="space-y-4 mb-8">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Input 
+                  placeholder={isConvenios ? "Buscar convenios..." : "Buscar por título, proyecto o autor..."} 
+                  className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              {!isConvenios && (
+                <Button variant="outline" className="h-14 rounded-2xl gap-2 text-xs md:text-sm font-black px-6 border-muted-foreground/20 uppercase tracking-widest text-primary">
+                  <Filter className="w-5 h-5" /> Filtros
+                </Button>
+              )}
             </div>
-            <Button variant="outline" className="h-14 rounded-2xl gap-2 text-xs md:text-sm font-black px-6 border-muted-foreground/20 uppercase tracking-widest text-primary">
-              <Filter className="w-5 h-5" /> Filtros
-            </Button>
+
+            {isConvenios && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Select value={filterVigente} onValueChange={setFilterVigente}>
+                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los Estados</SelectItem>
+                    <SelectItem value="vigente">Vigente</SelectItem>
+                    <SelectItem value="vencido">No Vigente</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterYear} onValueChange={setFilterYear}>
+                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Año de firma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Cualquier Año</SelectItem>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year!.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Marco o Específico</SelectItem>
+                    <SelectItem value="Marco">Marco</SelectItem>
+                    <SelectItem value="Específico">Específico</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setFilterVigente("all");
+                    setFilterYear("all");
+                    setFilterType("all");
+                    setSearchQuery("");
+                  }}
+                  className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground hover:text-primary"
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile View: Cards */}
@@ -137,9 +222,16 @@ export default function DocumentsListPage() {
               <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
-                      {doc.type}
-                    </Badge>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
+                        {doc.type}
+                      </Badge>
+                      {isConvenios && (
+                        <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${doc.isVigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                          {doc.isVigente ? 'Vigente' : 'Vencido'}
+                        </Badge>
+                      )}
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
@@ -149,7 +241,7 @@ export default function DocumentsListPage() {
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem asChild>
                           <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
-                            <Eye className="w-4 h-4" /> <span>Ver</span>
+                            <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
                           </Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -157,6 +249,12 @@ export default function DocumentsListPage() {
                   </div>
                   <h3 className="font-headline font-bold text-lg leading-tight mb-4">{doc.title}</h3>
                   <div className="space-y-3">
+                    {isConvenios && doc.counterpart && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground font-medium">Contraparte:</span>
+                        <span className="font-bold text-primary">{doc.counterpart}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="w-4 h-4 text-primary" />
                       <span className="font-bold truncate">{doc.authors.join(', ')}</span>
@@ -167,7 +265,7 @@ export default function DocumentsListPage() {
                     </div>
                   </div>
                   <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{doc.project}</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : doc.project}</span>
                     <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                       <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                     </Button>
@@ -183,8 +281,12 @@ export default function DocumentsListPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent border-none">
                   <TableHead className="font-black text-[12px] py-7 pl-12 uppercase tracking-[0.2em] text-muted-foreground/70">Documento</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Tipo</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Proyecto</TableHead>
+                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                    {isConvenios ? 'Contraparte' : 'Tipo'}
+                  </TableHead>
+                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                    {isConvenios ? 'Vigencia' : 'Proyecto'}
+                  </TableHead>
                   <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
                   <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
                 </TableRow>
@@ -206,12 +308,32 @@ export default function DocumentsListPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
-                        {doc.type}
-                      </Badge>
+                      {isConvenios ? (
+                        <div className="flex flex-col">
+                          <span className="font-black text-primary">{doc.counterpart}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
+                        </div>
+                      ) : (
+                        <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
+                          {doc.type}
+                        </Badge>
+                      )}
                     </TableCell>
-                    <TableCell className="font-bold text-muted-foreground/90">
-                      {doc.project}
+                    <TableCell>
+                      {isConvenios ? (
+                        <div className="flex items-center gap-2">
+                          {doc.isVigente ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-400" />
+                          )}
+                          <span className={`font-bold text-sm ${doc.isVigente ? 'text-green-700' : 'text-red-700'}`}>
+                            {doc.isVigente ? 'Vigente' : 'Vencido'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-bold text-muted-foreground/90">{doc.project}</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground font-bold">
                       {new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
