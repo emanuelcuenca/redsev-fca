@@ -57,15 +57,15 @@ export default function Dashboard() {
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1 overflow-hidden">
             <SidebarTrigger />
-            <h1 className="text-lg md:text-xl font-headline font-semibold text-primary truncate max-w-[200px] md:max-w-none">
-              Repositorio Digital FCA - UNCA
+            <h1 className="text-sm md:text-base font-headline font-bold text-primary truncate">
+              Repositorio Digital de la Secretaría de Extensión y Vinculación FCA - UNCA
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
              {isAdmin && (
-               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-bold">
+               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-bold rounded-xl">
                  <Link href="/upload" className="flex items-center gap-2">
                    <Plus className="w-4 h-4" /> Nuevo Documento
                  </Link>
@@ -90,7 +90,7 @@ export default function Dashboard() {
           <section className="mb-10 text-center sm:text-left">
             <h2 className="text-3xl font-headline font-bold mb-2">Bienvenido</h2>
             <p className="text-muted-foreground text-lg">
-              Secretaría de Extensión y Vinculación - Facultad de Ciencias Agrarias UNCA.
+              Sistema de gestión documental de la Secretaría de Extensión y Vinculación - FCA UNCA.
             </p>
             {isAdmin && (
               <Badge className="mt-2 bg-primary/10 text-primary border-primary/20 font-bold px-3 py-1">

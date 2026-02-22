@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -15,7 +14,7 @@ import {
   Eye,
   FileDown
 } from "lucide-react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,9 +34,21 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { MOCK_DOCUMENTS, AgriculturalDocument } from "@/lib/mock-data";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
 
   const filteredDocs = MOCK_DOCUMENTS.filter(doc => 
     doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,10 +61,17 @@ export default function DocumentsListPage() {
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-6">
-          <h1 className="text-xl font-headline font-semibold text-primary">Listado de Documentos</h1>
-          <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl">
-            <Link href="/upload">Cargar Nuevo</Link>
-          </Button>
+          <div className="flex items-center gap-4 flex-1 overflow-hidden">
+            <SidebarTrigger />
+            <h1 className="text-sm md:text-base font-headline font-bold text-primary truncate">
+              Repositorio Digital de la Secretaría de Extensión y Vinculación FCA - UNCA
+            </h1>
+          </div>
+          {isAdmin && (
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl">
+              <Link href="/upload">Cargar Nuevo</Link>
+            </Button>
+          )}
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">

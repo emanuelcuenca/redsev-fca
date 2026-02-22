@@ -55,11 +55,11 @@ export function MainSidebar() {
           <Leaf className="w-5 h-5" />
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-          <span className="font-headline font-bold text-base tracking-tight">
-            FCA - UNCA
-          </span>
-          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
+          <span className="font-headline font-bold text-sm tracking-tight uppercase text-primary">
             Extensión y Vinculación
+          </span>
+          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+            FCA - UNCA
           </span>
         </div>
       </SidebarHeader>
