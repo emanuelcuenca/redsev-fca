@@ -13,7 +13,7 @@ Para alojar esta aplicación en un servidor institucional, sigue estos pasos:
 
 ### 2. Preparación en el Servidor
 1.  **Clonar/Subir el código**: Copia los archivos del proyecto a una carpeta en el servidor.
-2.  **Variables de Entorno**: Crea un archivo `.env` en la raíz del proyecto con tu clave de API de Google Gemini (necesaria para los resúmenes con IA):
+2.  **Variables de Envío**: Crea un archivo `.env` en la raíz del proyecto con tu clave de API de Google Gemini (necesaria para los resúmenes con IA):
     ```env
     GEMINI_API_KEY=tu_clave_aqui
     ```
@@ -41,22 +41,31 @@ pm2 start npm --name "vinculo-agro" -- start
 ### 5. Configuración del Servidor Web (Proxy Inverso)
 Next.js corre por defecto en el puerto `3000`. Debes configurar el servidor web de la universidad (Nginx o Apache) para que actúe como proxy.
 
-**Ejemplo para Nginx:**
-```nginx
-server {
-    listen 80;
-    server_name vinculoagro.unca.edu.ar;
+---
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+## Mantenimiento y Actualizaciones
+
+Para realizar actualizaciones o brindar soporte técnico una vez que el sitio está en producción, el flujo de trabajo es el siguiente:
+
+### ¿Cómo aplicar cambios/mejoras?
+Cada vez que se necesite subir una nueva versión o corrección:
+1.  **Subir los nuevos archivos** al servidor (vía Git o SFTP).
+2.  **Actualizar dependencias** (si hubo cambios en el package.json):
+    ```bash
+    npm install
+    ```
+3.  **Re-construir el sitio**: Es vital generar una nueva versión optimizada para que los cambios se reflejen.
+    ```bash
+    npm run build
+    ```
+4.  **Reiniciar el servicio en PM2**: Para que el servidor empiece a usar la nueva versión sin tiempo de inactividad:
+    ```bash
+    pm2 reload vinculo-agro
+    ```
+
+### Soporte de Base de Datos e IA
+- **Firebase**: Los datos y documentos se gestionan desde la consola de Firebase. No requieren reinicio del servidor para actualizarse.
+- **Google Genkit/Gemini**: Si la IA deja de funcionar, verificar que la `GEMINI_API_KEY` siga vigente y que el servidor tenga salida a internet por los puertos estándar de API.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
