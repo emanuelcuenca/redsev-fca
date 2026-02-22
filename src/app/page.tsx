@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,8 @@ import {
   Calendar, 
   User, 
   ArrowRight,
-  Plus
+  Plus,
+  ShieldCheck
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,22 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { MOCK_DOCUMENTS, AgriculturalDocument } from "@/lib/mock-data";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
 
   const filteredDocuments = MOCK_DOCUMENTS.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -52,19 +64,24 @@ export default function Dashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-             <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-medium">
-               <Link href="/upload" className="flex items-center gap-2">
-                 <Plus className="w-4 h-4" /> Nuevo Documento
-               </Link>
-             </Button>
-             <div className="w-8 h-8 rounded-full overflow-hidden border">
-               <Image 
-                 src="https://picsum.photos/seed/prof1/100/100" 
-                 alt="Avatar" 
-                 width={32} 
-                 height={32} 
-                 className="object-cover" 
-               />
+             {isAdmin && (
+               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-bold">
+                 <Link href="/upload" className="flex items-center gap-2">
+                   <Plus className="w-4 h-4" /> Nuevo Documento
+                 </Link>
+               </Button>
+             )}
+             <div className="flex items-center gap-2">
+               {isAdmin && <ShieldCheck className="w-5 h-5 text-primary hidden md:block" title="Perfil Secretaría" />}
+               <div className="w-8 h-8 rounded-full overflow-hidden border">
+                 <Image 
+                   src="https://picsum.photos/seed/prof1/100/100" 
+                   alt="Avatar" 
+                   width={32} 
+                   height={32} 
+                   className="object-cover" 
+                 />
+               </div>
              </div>
           </div>
         </header>
@@ -73,8 +90,13 @@ export default function Dashboard() {
           <section className="mb-10 text-center sm:text-left">
             <h2 className="text-3xl font-headline font-bold mb-2">Bienvenido</h2>
             <p className="text-muted-foreground text-lg">
-              Secretaría de Extensión y Vinculación - Facultad de Ciencias Agrarias.
+              Secretaría de Extensión y Vinculación - Facultad de Ciencias Agrarias UNCA.
             </p>
+            {isAdmin && (
+              <Badge className="mt-2 bg-primary/10 text-primary border-primary/20 font-bold px-3 py-1">
+                Perfil Administrador - Secretaría
+              </Badge>
+            )}
           </section>
 
           <div className="flex flex-col md:flex-row gap-6 mb-8">

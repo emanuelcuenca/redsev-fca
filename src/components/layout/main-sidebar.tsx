@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -10,7 +9,8 @@ import {
   Search, 
   Settings, 
   LogOut,
-  Leaf
+  Leaf,
+  ShieldCheck
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,16 +22,31 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-
-const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Panel Principal", href: "/" },
-  { icon: FileText, label: "Documentos", href: "/documents" },
-  { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
-  { icon: Search, label: "Búsqueda Avanzada", href: "/search" },
-];
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export function MainSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
+
+  const NAV_ITEMS = [
+    { icon: LayoutDashboard, label: "Panel Principal", href: "/" },
+    { icon: FileText, label: "Documentos", href: "/documents" },
+    { icon: Search, label: "Búsqueda Avanzada", href: "/search" },
+  ];
+
+  const ADMIN_ITEMS = [
+    { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
+  ];
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -64,10 +79,41 @@ export function MainSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+
+          {isAdmin && (
+            <>
+              <SidebarSeparator className="my-2" />
+              <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-data-[collapsible=icon]:hidden">
+                Administración
+              </div>
+              {ADMIN_ITEMS.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                    className="text-primary font-medium"
+                  >
+                    <Link href={item.href} className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border">
         <SidebarMenu>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <div className="flex items-center gap-2 px-2 py-1 text-xs text-primary font-bold bg-primary/10 rounded-lg group-data-[collapsible=icon]:hidden">
+                <ShieldCheck className="w-3 h-3" /> Secretaría (Admin)
+              </div>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Ajustes">
               <Settings className="w-4 h-4" />
