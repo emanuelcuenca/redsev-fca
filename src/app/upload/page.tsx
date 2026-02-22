@@ -143,7 +143,6 @@ export default function UploadPage() {
                   <Label htmlFor="title" className="font-bold">Título del Documento</Label>
                   <Input id="title" placeholder="Ej: Convenio de Cooperación Interinstitucional..." className="h-12 rounded-xl border-muted-foreground/20" required />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="type" className="font-bold">Tipo de Documento</Label>
                   <Select required>
@@ -158,17 +157,14 @@ export default function UploadPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="date" className="font-bold">Fecha de Documento</Label>
                   <Input id="date" type="date" className="h-12 rounded-xl border-muted-foreground/20" required />
                 </div>
-
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="authors" className="font-bold">Autores / Responsables</Label>
                   <Input id="authors" placeholder="Dra. María García, Ing. Juan Pérez..." className="h-12 rounded-xl border-muted-foreground/20" required />
                 </div>
-
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="keywords" className="font-bold">Palabras Clave</Label>
                   <div className="flex gap-2">
@@ -194,7 +190,6 @@ export default function UploadPage() {
                     ))}
                   </div>
                 </div>
-
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="description" className="font-bold">Breve Descripción</Label>
                   <Textarea 

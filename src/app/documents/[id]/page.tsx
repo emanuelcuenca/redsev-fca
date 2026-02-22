@@ -85,8 +85,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            
-            {/* Left Column: Preview and Metadata */}
             <div className="lg:col-span-2 space-y-6 md:space-y-8">
               <section>
                 <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -161,7 +159,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </section>
             </div>
 
-            {/* Right Column: AI Tools */}
             <div className="space-y-6 md:space-y-8">
               <Card className="rounded-2xl md:rounded-3xl border-none shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden">
                 <CardHeader className="p-6 md:p-8 pb-3 md:pb-4">
@@ -226,7 +223,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </p>
               </section>
             </div>
-
           </div>
         </main>
       </SidebarInset>

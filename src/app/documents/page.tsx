@@ -76,11 +76,9 @@ export default function DocumentsListPage() {
 
   const filteredDocs = useMemo(() => {
     return MOCK_DOCUMENTS.filter(doc => {
-      // Filtro por categoría principal
       if (isConvenios && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type === 'Convenio') return false;
 
-      // Búsqueda por texto
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
                             (doc.counterpart && doc.counterpart.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -88,7 +86,6 @@ export default function DocumentsListPage() {
       
       if (!matchesSearch) return false;
 
-      // Filtros específicos de Convenios
       if (isConvenios) {
         if (filterVigente !== "all") {
           const isVig = filterVigente === "vigente";
@@ -239,7 +236,6 @@ export default function DocumentsListPage() {
             )}
           </div>
 
-          {/* Mobile View: Cards */}
           <div className="grid grid-cols-1 gap-6 md:hidden w-full">
             {filteredDocs.map((doc) => (
               <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
@@ -298,7 +294,6 @@ export default function DocumentsListPage() {
             ))}
           </div>
 
-          {/* Desktop View: Table */}
           <div className="hidden md:block bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/30">

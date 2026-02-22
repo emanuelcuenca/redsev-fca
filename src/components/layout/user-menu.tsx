@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -17,8 +18,6 @@ import { useUser } from "@/firebase";
 export function UserMenu() {
   const { user } = useUser();
   
-  // En una app real, si no hay usuario, podríamos mostrar un botón de login
-  // pero para este prototipo asumimos que el usuario está "logueado" con datos mock
   const userPhoto = user?.photoURL || "https://picsum.photos/seed/prof1/100/100";
   const userName = user?.displayName || "Usuario FCA";
   const userEmail = user?.email || "institucional@unca.edu.ar";
