@@ -10,7 +10,8 @@ import {
   Calendar, 
   User, 
   ArrowRight,
-  Plus
+  Plus,
+  LayoutDashboard
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -62,11 +63,11 @@ export default function Dashboard() {
             <SidebarTrigger />
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-xs md:text-sm font-headline text-primary uppercase tracking-wider">
-                Secretaría de Extensión y Vinculación
+            <div className="flex flex-col items-center leading-none text-center gap-1">
+              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider">
+                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-xs md:text-sm font-headline text-black uppercase tracking-wider">
+              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider">
                 FCA - UNCA
               </span>
             </div>
@@ -84,18 +85,18 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <section className="mb-6 md:mb-10">
-            <h2 className="text-xl md:text-2xl font-headline font-bold mb-1 tracking-tight">
-              BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
-            </h2>
-            <p className="text-muted-foreground text-[13px] md:text-base font-medium max-w-2xl leading-snug">
-              Repositorio digital de gestión de Extensión y Vinculación de la Facultad.
-            </p>
-            {isAdmin && (
-              <Badge className="mt-3 bg-primary/10 text-primary border-primary/30 font-black px-3 py-1 text-[9px] md:text-xs uppercase tracking-[0.2em] rounded-lg">
-                Perfil Administrador
-              </Badge>
-            )}
+          <section className="mb-6 md:mb-10 flex items-center gap-3">
+            <div className="bg-primary/10 p-2.5 rounded-xl">
+              <LayoutDashboard className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
+                BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
+              </h2>
+              <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1">
+                Repositorio Digital de Gestión
+              </p>
+            </div>
           </section>
 
           <div className="flex flex-col md:flex-row gap-4 mb-8 md:mb-12">

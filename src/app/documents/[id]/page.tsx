@@ -66,11 +66,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </Button>
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-xs md:text-sm font-headline text-primary uppercase tracking-wider">
-                Secretaría de Extensión y Vinculación
+            <div className="flex flex-col items-center leading-none text-center gap-1">
+              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider">
+                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-xs md:text-sm font-headline text-black uppercase tracking-wider">
+              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider">
                 FCA - UNCA
               </span>
             </div>
@@ -90,7 +90,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             <div className="lg:col-span-2 space-y-6 md:space-y-8">
               <section>
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2">
+                  <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
                     <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
                   </h2>
                 </div>
@@ -104,14 +104,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 text-white p-4 md:p-6 backdrop-blur-md bg-white/10 rounded-xl md:rounded-2xl border border-white/20">
-                    <h3 className="text-lg md:text-xl font-headline font-bold mb-1 md:mb-2 line-clamp-2">{doc.title}</h3>
+                    <h3 className="text-lg md:text-xl font-headline font-bold mb-1 md:mb-2 line-clamp-2 uppercase">{doc.title}</h3>
                     <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{doc.content}</p>
                   </div>
                 </div>
               </section>
 
               <section className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-muted space-y-4 md:space-y-6">
-                <h2 className="text-xl md:text-2xl font-headline font-bold">Metadatos</h2>
+                <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Metadatos</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
@@ -168,7 +168,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-[10px] mb-1">
                     <Sparkles className="w-3.5 h-3.5" /> Inteligencia Artificial
                   </div>
-                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold">Resumen</CardTitle>
+                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold uppercase">Resumen</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 pt-0">
                   <p className="text-primary-foreground/80 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
@@ -205,7 +205,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </Card>
 
               <section className="bg-secondary/30 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-secondary space-y-4 md:space-y-6">
-                <h3 className="text-lg md:text-xl font-headline font-bold text-primary">Info Adicional</h3>
+                <h3 className="text-lg md:text-xl font-headline font-bold text-primary uppercase tracking-tight">Info Adicional</h3>
                 <ul className="space-y-3 md:space-y-4">
                   <li className="flex items-center justify-between group text-xs md:text-sm">
                     <span className="text-muted-foreground">ID Interno</span>

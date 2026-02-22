@@ -78,11 +78,11 @@ export default function UploadPage() {
             </Button>
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-xs md:text-sm font-headline text-primary uppercase tracking-wider">
-                Secretaría de Extensión y Vinculación
+            <div className="flex flex-col items-center leading-none text-center gap-1">
+              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider">
+                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-xs md:text-sm font-headline text-black uppercase tracking-wider">
+              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider">
                 FCA - UNCA
               </span>
             </div>
@@ -95,7 +95,7 @@ export default function UploadPage() {
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full">
           <form onSubmit={handleSubmit} className="space-y-8">
             <section>
-              <h2 className="text-2xl font-headline font-bold mb-4 flex items-center gap-2">
+              <h2 className="text-2xl font-headline font-bold mb-4 flex items-center gap-2 uppercase tracking-tight">
                 1. Archivo Digital
               </h2>
               <div className={`relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
@@ -116,7 +116,7 @@ export default function UploadPage() {
                       <Upload className="w-10 h-10 text-primary" />
                     </div>
                     <div className="text-center">
-                      <p className="text-xl font-bold mb-1">Arrastre su documento aquí</p>
+                      <p className="text-xl font-bold mb-1 uppercase tracking-tight">Arrastre su documento aquí</p>
                       <p className="text-muted-foreground mb-4">PDF, DOC, DOCX o Imágenes (Máx 20MB)</p>
                       <Label htmlFor="file-upload" className="cursor-pointer">
                         <div className="bg-primary text-primary-foreground px-6 py-2 rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
@@ -131,7 +131,7 @@ export default function UploadPage() {
             </section>
 
             <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-muted-foreground/10 space-y-6">
-              <h2 className="text-2xl font-headline font-bold mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-headline font-bold mb-2 flex items-center gap-2 uppercase tracking-tight">
                 2. Metadatos y Organización
               </h2>
               <p className="text-muted-foreground text-sm flex items-center gap-2 mb-6">
