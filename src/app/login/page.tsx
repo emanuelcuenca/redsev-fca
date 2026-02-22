@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight } from "lucide-center";
+import { Leaf, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,9 +32,9 @@ export default function LoginPage() {
           <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4">
             <Leaf className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-headline font-bold text-foreground tracking-tight text-center uppercase">FCA - UNCA</h1>
-          <p className="text-primary font-bold text-center mt-1 text-sm tracking-widest uppercase">
-            Secretaría de Extensión y Vinculación
+          <h1 className="text-sm font-headline text-primary uppercase tracking-wider text-center">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-sm font-headline text-black uppercase tracking-wider text-center mt-1">
+            FCA - UNCA
           </p>
         </div>
 
