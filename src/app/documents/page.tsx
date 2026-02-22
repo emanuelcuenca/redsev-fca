@@ -129,11 +129,11 @@ export default function DocumentsListPage() {
             <SidebarTrigger />
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-none text-center gap-1">
-              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider font-normal">
+            <div className="flex flex-col items-center leading-tight text-center gap-0.5">
+              <span className="text-[10px] md:text-base font-headline text-primary uppercase tracking-wider font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider font-normal">
+              <span className="text-[10px] md:text-base font-headline text-black uppercase tracking-wider font-normal">
                 FCA - UNCA
               </span>
             </div>
