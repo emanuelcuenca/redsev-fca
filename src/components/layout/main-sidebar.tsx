@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -30,6 +31,7 @@ export function MainSidebar() {
   const searchParams = useSearchParams();
   const { user } = useUser();
   const db = useFirestore();
+  const { setOpenMobile, isMobile } = useSidebar();
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -49,6 +51,12 @@ export function MainSidebar() {
     { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
   ];
 
+  const handleItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
@@ -59,7 +67,7 @@ export function MainSidebar() {
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
-          <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-[0.15em] leading-tight">
+          <span className="text-[14px] text-muted-foreground font-bold uppercase tracking-[0.15em] leading-tight">
             Extensión y Vinculación
           </span>
         </div>
@@ -75,6 +83,7 @@ export function MainSidebar() {
                   isActive={isActive}
                   tooltip={item.label}
                   className="h-12 rounded-xl px-4 font-bold transition-all"
+                  onClick={handleItemClick}
                 >
                   <Link href={item.href} className="flex items-center gap-4">
                     <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -98,6 +107,7 @@ export function MainSidebar() {
                     isActive={pathname === item.href}
                     tooltip={item.label}
                     className="h-12 rounded-xl px-4 font-bold text-primary bg-primary/5 hover:bg-primary/10"
+                    onClick={handleItemClick}
                   >
                     <Link href={item.href} className="flex items-center gap-4">
                       <item.icon className="w-5 h-5" />
