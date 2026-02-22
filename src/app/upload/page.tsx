@@ -79,10 +79,10 @@ export default function UploadPage() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-base md:text-lg font-headline text-primary tracking-tight">
+              <span className="text-xs md:text-sm font-headline text-primary uppercase tracking-wider">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-base md:text-lg font-headline text-black tracking-tight">
+              <span className="text-xs md:text-sm font-headline text-black uppercase tracking-wider">
                 FCA - UNCA
               </span>
             </div>

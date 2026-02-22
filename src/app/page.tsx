@@ -63,10 +63,10 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-base md:text-lg font-headline text-primary tracking-tight">
+              <span className="text-xs md:text-sm font-headline text-primary uppercase tracking-wider">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-base md:text-lg font-headline text-black tracking-tight">
+              <span className="text-xs md:text-sm font-headline text-black uppercase tracking-wider">
                 FCA - UNCA
               </span>
             </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <section className="mb-6 md:mb-10">
             <h2 className="text-xl md:text-2xl font-headline font-bold mb-1 tracking-tight">
-              Bienvenido{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
+              BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
             </h2>
             <p className="text-muted-foreground text-[13px] md:text-base font-medium max-w-2xl leading-snug">
               Repositorio digital de gestión de Extensión y Vinculación de la Facultad.
