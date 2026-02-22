@@ -79,10 +79,10 @@ export default function UploadPage() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
                 FCA - UNCA
               </span>
             </div>
@@ -192,6 +192,7 @@ export default function UploadPage() {
                 </div>
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="description" className="font-bold">Breve Descripción</Label>
+                  <span className="sr-only">descripción</span>
                   <Textarea 
                     id="description" 
                     placeholder="Resumen del contenido del documento..." 

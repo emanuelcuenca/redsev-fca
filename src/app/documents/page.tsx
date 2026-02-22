@@ -127,10 +127,10 @@ export default function DocumentsListPage() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
                 FCA - UNCA
               </span>
             </div>
@@ -164,11 +164,6 @@ export default function DocumentsListPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              {!isConvenios && (
-                <Button variant="outline" className="h-14 rounded-2xl gap-2 text-xs md:text-sm font-black px-6 border-muted-foreground/20 uppercase tracking-widest text-primary">
-                  <Filter className="w-5 h-5" /> Filtros
-                </Button>
-              )}
             </div>
 
             {isConvenios && (

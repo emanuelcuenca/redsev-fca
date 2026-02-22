@@ -5,15 +5,15 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { 
-  Search, 
   FileText, 
   Calendar, 
   User, 
   ArrowRight,
   Plus,
-  LayoutDashboard
+  LayoutDashboard,
+  Handshake,
+  Sprout
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
   Card, 
@@ -32,8 +32,6 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string | null>(null);
   const { user } = useUser();
   const db = useFirestore();
 
@@ -45,14 +43,8 @@ export default function Dashboard() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  const filteredDocuments = MOCK_DOCUMENTS.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          doc.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesType = selectedType ? doc.type === selectedType : true;
-    return matchesSearch && matchesType;
-  });
-
-  const types = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.type)));
+  // Mostramos una selección de documentos recientes en el inicio
+  const recentDocuments = MOCK_DOCUMENTS.slice(0, 6);
 
   return (
     <SidebarProvider>
@@ -64,10 +56,10 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
                 FCA - UNCA
               </span>
             </div>
@@ -85,59 +77,45 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 mb-6 md:mb-10">
-            <div className="bg-primary/10 p-2.5 rounded-xl">
-              <LayoutDashboard className="w-6 h-6 text-primary" />
+          <div className="mb-8 md:mb-12">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-primary/10 p-2.5 rounded-xl">
+                <LayoutDashboard className="w-6 h-6 text-primary" />
+              </div>
+              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
+                BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
+              </h2>
             </div>
-            <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
-              BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
-            </h2>
+            <p className="text-muted-foreground text-sm md:text-lg font-medium max-w-3xl leading-relaxed">
+              Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
+            </p>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-8 md:mb-12">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-all" />
-              <Input 
-                placeholder="Buscar por título, palabra clave..." 
-                className="pl-12 h-14 text-sm md:text-base rounded-2xl shadow-lg border-muted-foreground/10 focus:border-primary focus:ring-primary/10 transition-all font-medium"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar">
-              <Button 
-                variant={selectedType === null ? "default" : "outline"}
-                className="rounded-xl h-14 px-6 transition-all text-[9px] md:text-xs font-black uppercase tracking-widest"
-                onClick={() => setSelectedType(null)}
-              >
-                Todos
-              </Button>
-              {types.map(type => (
-                <Button 
-                  key={type}
-                  variant={selectedType === type ? "default" : "outline"}
-                  className="rounded-xl h-14 px-6 transition-all whitespace-nowrap text-[9px] md:text-xs font-black uppercase tracking-widest"
-                  onClick={() => setSelectedType(type)}
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12 md:mb-16">
+            <Button asChild className="h-24 md:h-32 rounded-2xl md:rounded-3xl text-sm md:text-xl font-black uppercase tracking-widest gap-4 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-all">
+              <Link href="/documents?category=convenios">
+                <Handshake className="w-6 h-6 md:w-8 md:h-8" /> Consultar Convenios
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-24 md:h-32 rounded-2xl md:rounded-3xl text-sm md:text-xl font-black uppercase tracking-widest gap-4 border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all">
+              <Link href="/documents?category=extension">
+                <Sprout className="w-6 h-6 md:w-8 md:h-8" /> Consulta sobre Extensión
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
+            <h3 className="text-lg md:text-2xl font-headline font-bold uppercase tracking-tight text-primary">Documentos Recientes</h3>
+            <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary">
+              <Link href="/documents">Ver todos →</Link>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {filteredDocuments.map((doc) => (
+            {recentDocuments.map((doc) => (
               <DocumentCard key={doc.id} document={doc} />
             ))}
           </div>
-
-          {filteredDocuments.length === 0 && (
-            <div className="text-center py-16 md:py-24 bg-muted/30 rounded-[2rem] border-2 border-dashed border-muted-foreground/10">
-              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
-              <h3 className="text-lg md:text-2xl font-headline font-bold mb-2 uppercase tracking-tight">Sin resultados</h3>
-              <p className="text-muted-foreground text-xs md:text-base font-bold">Intente ajustando los filtros de búsqueda.</p>
-            </div>
-          )}
         </main>
       </SidebarInset>
     </SidebarProvider>
