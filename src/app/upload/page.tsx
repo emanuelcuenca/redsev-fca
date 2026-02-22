@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -13,7 +12,7 @@ import {
   ChevronRight,
   Info
 } from "lucide-react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,13 +69,23 @@ export default function UploadPage() {
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-headline font-semibold text-primary">Cargar Documento</h1>
           </div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-tight text-center">
+              <span className="text-[13px] md:text-base font-headline text-primary uppercase tracking-tight">
+                Secretaría de Extensión y Vinculación
+              </span>
+              <span className="text-[13px] md:text-base font-headline text-black uppercase tracking-tight">
+                FCA - UNCA
+              </span>
+            </div>
+          </div>
+          <div className="w-8 md:w-10 shrink-0" /> {/* Spacer for balance */}
         </header>
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full">
