@@ -16,7 +16,8 @@ import {
   Handshake,
   Sprout,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Building2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -54,6 +55,7 @@ export default function DocumentsListPage() {
   const [filterVigente, setFilterVigente] = useState<string>("all");
   const [filterYear, setFilterYear] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterCounterpart, setFilterCounterpart] = useState<string>("all");
   
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
@@ -97,21 +99,25 @@ export default function DocumentsListPage() {
         if (filterType !== "all" && doc.convenioSubType !== filterType) {
           return false;
         }
+        if (filterCounterpart !== "all" && doc.counterpart !== filterCounterpart) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [searchQuery, category, isConvenios, filterVigente, filterYear, filterType]);
+  }, [searchQuery, category, isConvenios, filterVigente, filterYear, filterType, filterCounterpart]);
 
   const pageTitle = isConvenios ? 'Convenios' : 
-                    category === 'extension' ? 'Extensión Universitaria' : 
+                    category === 'extension' ? 'Extensión' : 
                     'Todos los Documentos';
 
   const PageIcon = isConvenios ? Handshake : 
                    category === 'extension' ? Sprout : 
                    FileText;
 
-  const years = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.signingYear).filter(Boolean))).sort().reverse();
+  const years = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.signingYear).filter(Boolean))).sort((a, b) => (b as number) - (a as number));
+  const counterparts = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.counterpart).filter(Boolean))).sort();
 
   return (
     <SidebarProvider>
@@ -165,7 +171,7 @@ export default function DocumentsListPage() {
             </div>
 
             {isConvenios && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <Select value={filterVigente} onValueChange={setFilterVigente}>
                   <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
                     <SelectValue placeholder="Estado" />
@@ -184,7 +190,19 @@ export default function DocumentsListPage() {
                   <SelectContent>
                     <SelectItem value="all">Cualquier Año</SelectItem>
                     {years.map(year => (
-                      <SelectItem key={year} value={year!.toString()}>{year}</SelectItem>
+                      <SelectItem key={year as number} value={year!.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterCounterpart} onValueChange={setFilterCounterpart}>
+                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Contraparte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las Contrapartes</SelectItem>
+                    {counterparts.map(cp => (
+                      <SelectItem key={cp as string} value={cp as string}>{cp}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -206,9 +224,10 @@ export default function DocumentsListPage() {
                     setFilterVigente("all");
                     setFilterYear("all");
                     setFilterType("all");
+                    setFilterCounterpart("all");
                     setSearchQuery("");
                   }}
-                  className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground hover:text-primary"
+                  className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground hover:text-primary col-span-2 md:col-span-1"
                 >
                   Limpiar filtros
                 </Button>
@@ -251,7 +270,7 @@ export default function DocumentsListPage() {
                   <div className="space-y-3">
                     {isConvenios && doc.counterpart && (
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground font-medium">Contraparte:</span>
+                        <Building2 className="w-4 h-4 text-primary" />
                         <span className="font-bold text-primary">{doc.counterpart}</span>
                       </div>
                     )}
