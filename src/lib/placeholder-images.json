@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "agriculture-doc-1",
+      "description": "Document related to crop management",
+      "imageUrl": "https://images.unsplash.com/photo-1566337656949-9455c5f9430f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhZ3JpY3VsdHVyZSUyMGZhcm18ZW58MHx8fHwxNzcxNzg5NDYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "agriculture farm"
+    },
+    {
+      "id": "agriculture-doc-2",
+      "description": "Report on sustainable irrigation",
+      "imageUrl": "https://images.unsplash.com/photo-1770664945615-52203ab54c88?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aXJyaWdhdGlvbiUyMHdhdGVyfGVufDB8fHx8MTc3MTc4OTQ2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "irrigation water"
+    },
+    {
+      "id": "agriculture-doc-3",
+      "description": "Agreement for rural extension",
+      "imageUrl": "https://images.unsplash.com/photo-1611159295503-94508c4d476d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cnVyYWwlMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzcxNzg5NDYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rural landscape"
+    },
+    {
+      "id": "user-avatar",
+      "description": "Professor profile picture",
+      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE2OTk5MDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
