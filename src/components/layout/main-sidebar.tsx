@@ -63,11 +63,11 @@ export function MainSidebar() {
         <div className="bg-primary text-primary-foreground p-2.5 rounded-xl shrink-0 shadow-lg shadow-primary/20">
           <Leaf className="w-6 h-6" />
         </div>
-        <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+        <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
-          <span className="text-[14px] text-muted-foreground font-bold uppercase tracking-[0.15em] leading-tight">
+          <span className="text-[13px] text-muted-foreground font-medium uppercase tracking-[0.1em] leading-tight">
             Extensión y Vinculación
           </span>
         </div>
@@ -130,18 +130,9 @@ export function MainSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Ajustes" className="h-11 rounded-xl px-4 font-bold text-muted-foreground">
-              <Settings className="w-5 h-5" />
-              <span className="text-sm md:text-base">Ajustes</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild variant="default" className="h-11 rounded-xl px-4 font-bold text-destructive hover:bg-destructive/10">
-              <Link href="/login">
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm md:text-base">Cerrar Sesión</span>
-              </Link>
-            </SidebarMenuButton>
+            <div className="px-4 py-2 text-[10px] text-muted-foreground font-bold italic group-data-[collapsible=icon]:hidden">
+              VínculoAgro v1.0
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -21,6 +20,7 @@ import {
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
+import { UserMenu } from "@/components/layout/user-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -129,19 +129,22 @@ export default function DocumentsListPage() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-[13px] md:text-base font-headline text-primary uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-primary tracking-tight">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[13px] md:text-base font-headline text-black uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-black tracking-tight">
                 FCA - UNCA
               </span>
             </div>
           </div>
-          {isAdmin && (
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-[10px] md:text-xs ml-2 px-3 h-8 font-bold">
-              <Link href="/upload">Subir</Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-3 shrink-0">
+            {isAdmin && (
+              <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-[10px] md:text-xs px-3 h-8 font-bold">
+                <Link href="/upload">Subir</Link>
+              </Button>
+            )}
+            <UserMenu />
+          </div>
         </header>
 
         <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">

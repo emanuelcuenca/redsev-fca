@@ -1,0 +1,80 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { User, Briefcase, LogOut, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { useUser } from "@/firebase";
+
+export function UserMenu() {
+  const { user } = useUser();
+  
+  // En una app real, si no hay usuario, podríamos mostrar un botón de login
+  // pero para este prototipo asumimos que el usuario está "logueado" con datos mock
+  const userPhoto = user?.photoURL || "https://picsum.photos/seed/prof1/100/100";
+  const userName = user?.displayName || "Usuario FCA";
+  const userEmail = user?.email || "institucional@unca.edu.ar";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-primary/20 p-0 overflow-hidden outline-none hover:border-primary/40 transition-colors">
+          <Image 
+            src={userPhoto} 
+            alt="Avatar" 
+            fill
+            className="object-cover" 
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-64 rounded-2xl shadow-xl border-muted p-2" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal p-4">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-black leading-none uppercase tracking-tight">{userName}</p>
+            <p className="text-[11px] leading-none text-muted-foreground font-medium mt-1">
+              {userEmail}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="mx-2" />
+        <div className="p-1">
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+            <Link href="/perfil">
+              <User className="w-4 h-4" />
+              <span className="text-sm">Mis datos personales</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+            <Link href="/situacion-docente">
+              <Briefcase className="w-4 h-4" />
+              <span className="text-sm">Situación Docente</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+            <Link href="/ajustes">
+              <Settings className="w-4 h-4" />
+              <span className="text-sm">Ajustes del Sistema</span>
+            </Link>
+          </DropdownMenuItem>
+        </div>
+        <DropdownMenuSeparator className="mx-2" />
+        <div className="p-1">
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-black text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer transition-colors uppercase tracking-widest text-[11px]">
+            <Link href="/login">
+              <LogOut className="w-4 h-4" />
+              <span>Cerrar Sesión</span>
+            </Link>
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

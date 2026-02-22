@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
+import { UserMenu } from "@/components/layout/user-menu";
 import { MOCK_DOCUMENTS, AgriculturalDocument } from "@/lib/mock-data";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -61,10 +62,10 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-[13px] md:text-base font-headline text-primary uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-primary tracking-tight">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[13px] md:text-base font-headline text-black uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-black tracking-tight">
                 FCA - UNCA
               </span>
             </div>
@@ -77,17 +78,7 @@ export default function Dashboard() {
                  </Link>
                </Button>
              )}
-             <div className="flex items-center gap-2">
-               <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary/20">
-                 <Image 
-                   src="https://picsum.photos/seed/prof1/100/100" 
-                   alt="Avatar" 
-                   width={36} 
-                   height={36} 
-                   className="object-cover" 
-                 />
-               </div>
-             </div>
+             <UserMenu />
           </div>
         </header>
 

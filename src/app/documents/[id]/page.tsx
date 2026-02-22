@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
+import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,21 +66,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-tight text-center">
-              <span className="text-[13px] md:text-base font-headline text-primary uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-primary tracking-tight">
                 Secretaría de Extensión y Vinculación
               </span>
-              <span className="text-[13px] md:text-base font-headline text-black uppercase tracking-tight">
+              <span className="text-base md:text-lg font-headline text-black tracking-tight">
                 FCA - UNCA
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 md:gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8">
-              <Share2 className="w-3.5 h-3.5" /> Compartir
+          <div className="flex items-center gap-3 shrink-0">
+            <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
+              <Download className="w-4 h-4" /> Descargar
             </Button>
-            <Button variant="default" size="sm" className="rounded-xl gap-1 md:gap-2 bg-primary hover:bg-primary/90 h-8 text-[10px] md:text-xs">
-              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" /> Descargar
-            </Button>
+            <UserMenu />
           </div>
         </header>
 
