@@ -70,11 +70,14 @@
     @apply border-border;
   }
   html, body {
-    @apply overflow-x-hidden w-full max-w-full m-0 p-0;
+    @apply overflow-x-hidden w-screen max-w-full m-0 p-0;
     -webkit-text-size-adjust: 100%;
+    position: relative;
   }
   body {
     @apply bg-background text-foreground text-[17px] md:text-[18px] leading-relaxed antialiased;
+    width: 100%;
+    min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
@@ -83,9 +86,14 @@
 
 /* Fix for mobile responsiveness preventing partial view */
 .group\/sidebar-wrapper {
-  @apply w-full max-w-full overflow-x-hidden;
+  @apply w-screen max-w-full overflow-x-hidden flex;
 }
 
 main {
-  @apply w-full max-w-full overflow-x-hidden;
+  @apply w-full max-w-full overflow-x-hidden flex-1;
+}
+
+/* Ensure sidebar trigger doesn't break layout */
+[data-sidebar="trigger"] {
+  @apply shrink-0;
 }

@@ -59,7 +59,7 @@ export function MainSidebar() {
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
-          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em]">
+          <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-[0.15em] leading-tight">
             Extensión y Vinculación
           </span>
         </div>
