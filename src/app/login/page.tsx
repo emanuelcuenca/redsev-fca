@@ -34,17 +34,17 @@ export default function LoginPage() {
           <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 animate-bounce-slow">
             <Leaf className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-4xl font-headline font-bold text-foreground tracking-tight">VínculoAgro</h1>
-          <p className="text-muted-foreground text-center mt-2 max-w-[280px]">
-            Repositorio Digital de Convenios y Proyectos de Extensión
+          <h1 className="text-3xl font-headline font-bold text-foreground tracking-tight text-center">FCA - UNCA</h1>
+          <p className="text-muted-foreground text-center mt-2 max-w-[320px]">
+            Repositorio Digital de la Secretaría de Extensión y Vinculación
           </p>
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
           <CardHeader className="space-y-1 pt-8 px-8">
-            <CardTitle className="text-2xl font-headline font-bold">Bienvenido de nuevo</CardTitle>
+            <CardTitle className="text-2xl font-headline font-bold">Bienvenido</CardTitle>
             <CardDescription>
-              Ingrese sus credenciales universitarias para acceder.
+              Ingrese sus credenciales universitarias para acceder al repositorio oficial.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8 pt-4">
@@ -56,7 +56,7 @@ export default function LoginPage() {
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="ejemplo@universidad.edu" 
+                    placeholder="usuario@unca.edu.ar" 
                     className="pl-10 h-12 rounded-xl focus:ring-primary/20 border-muted-foreground/20"
                     required
                   />

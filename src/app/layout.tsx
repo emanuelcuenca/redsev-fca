@@ -3,8 +3,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'VínculoAgro - Repositorio de Convenios',
-  description: 'Sistema de gestión de documentos para convenios y proyectos de extensión agraria.',
+  title: 'Repositorio Digital - Secretaría de Extensión y Vinculación FCA - UNCA',
+  description: 'Sistema de gestión de documentos para convenios y proyectos de extensión agraria de la Facultad de Ciencias Agrarias - UNCA.',
 };
 
 export default function RootLayout({

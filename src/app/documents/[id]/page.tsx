@@ -14,8 +14,7 @@ import {
   Tag,
   Loader2,
   FileText,
-  Eye,
-  ChevronRight
+  Eye
 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -91,7 +90,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
                 <div className="relative aspect-[3/4] w-full bg-muted rounded-3xl overflow-hidden border-2 border-muted shadow-lg">
                   <Image 
-                    src={doc.imageUrl} 
+                    src={document.imageUrl} 
                     alt="Document preview" 
                     fill 
                     className="object-cover opacity-90" 
@@ -217,7 +216,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </ul>
                 <Separator className="bg-secondary" />
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  Este documento es parte del repositorio institucional oficial de VínculoAgro. Su acceso está restringido a docentes y personal autorizado.
+                  Este documento es parte del repositorio oficial de la Secretaría de Extensión y Vinculación FCA - UNCA.
                 </p>
               </section>
             </div>

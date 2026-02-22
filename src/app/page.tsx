@@ -6,12 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { 
   Search, 
-  Filter, 
   FileText, 
   Calendar, 
   User, 
-  Tag, 
-  ChevronRight,
   ArrowRight,
   Plus
 } from "lucide-react";
@@ -50,7 +47,9 @@ export default function Dashboard() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold text-primary">Repositorio Digital</h1>
+            <h1 className="text-lg md:text-xl font-headline font-semibold text-primary truncate max-w-[200px] md:max-w-none">
+              Repositorio Digital FCA - UNCA
+            </h1>
           </div>
           <div className="flex items-center gap-3">
              <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-medium">
@@ -72,9 +71,9 @@ export default function Dashboard() {
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <section className="mb-10 text-center sm:text-left">
-            <h2 className="text-3xl font-headline font-bold mb-2">Bienvenido, Dr. Rojas</h2>
+            <h2 className="text-3xl font-headline font-bold mb-2">Bienvenido</h2>
             <p className="text-muted-foreground text-lg">
-              Gestione y consulte los convenios y proyectos de vinculación agrícola desde un solo lugar.
+              Secretaría de Extensión y Vinculación - Facultad de Ciencias Agrarias.
             </p>
           </section>
 
@@ -82,7 +81,7 @@ export default function Dashboard() {
             <div className="relative flex-1 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-primary transition-colors" />
               <Input 
-                placeholder="Buscar por título, palabras clave o autor..." 
+                placeholder="Buscar convenios, proyectos o autores..." 
                 className="pl-10 h-12 text-lg rounded-xl shadow-sm border-muted-foreground/20 focus:border-primary focus:ring-primary/20 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

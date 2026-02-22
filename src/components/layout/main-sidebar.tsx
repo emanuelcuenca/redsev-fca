@@ -12,7 +12,6 @@ import {
   LogOut,
   Leaf
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -37,12 +36,17 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-2 px-4">
-        <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
+        <div className="bg-primary text-primary-foreground p-1.5 rounded-lg shrink-0">
           <Leaf className="w-5 h-5" />
         </div>
-        <span className="font-headline font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
-          VínculoAgro
-        </span>
+        <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+          <span className="font-headline font-bold text-base tracking-tight">
+            FCA - UNCA
+          </span>
+          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
+            Extensión y Vinculación
+          </span>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="px-2">
