@@ -57,13 +57,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
-            <div className="flex flex-col leading-tight overflow-hidden">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+          </div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
                 Secretaría de Extensión y Vinculación
               </span>
               <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
@@ -71,7 +73,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 md:gap-2 ml-2">
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
             <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8">
               <Share2 className="w-3.5 h-3.5" /> Compartir
             </Button>

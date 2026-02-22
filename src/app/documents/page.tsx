@@ -87,11 +87,13 @@ export default function DocumentsListPage() {
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background w-full overflow-hidden">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             <SidebarTrigger />
-            <div className="flex flex-col leading-tight overflow-hidden">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+          </div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
                 Secretaría de Extensión y Vinculación
               </span>
               <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
@@ -244,7 +246,7 @@ export default function DocumentsListPage() {
           {filteredDocs.length === 0 && (
             <div className="py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
               <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-              <h3 className="text-xl font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
+              <h3 className="text-lg font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
               <p className="text-muted-foreground font-bold">Intente ajustando los filtros.</p>
             </div>
           )}

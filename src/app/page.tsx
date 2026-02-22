@@ -55,11 +55,13 @@ export default function Dashboard() {
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             <SidebarTrigger />
-            <div className="flex flex-col leading-tight overflow-hidden">
-              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+          </div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-tight overflow-hidden text-center">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate max-w-[180px] md:max-w-none">
                 Secretaría de Extensión y Vinculación
               </span>
               <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
@@ -67,7 +69,7 @@ export default function Dashboard() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0 ml-2">
+          <div className="flex items-center gap-3 shrink-0">
              {isAdmin && (
                <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-black rounded-xl h-9 uppercase tracking-widest text-[11px]">
                  <Link href="/upload" className="flex items-center gap-2">
@@ -91,14 +93,14 @@ export default function Dashboard() {
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <section className="mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-4xl font-headline font-bold mb-2 tracking-tight">
+            <h2 className="text-xl md:text-3xl font-headline font-bold mb-2 tracking-tight">
               Bienvenido{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
             </h2>
-            <p className="text-muted-foreground text-sm md:text-lg font-bold max-w-2xl leading-snug">
+            <p className="text-muted-foreground text-xs md:text-base font-bold max-w-2xl leading-snug">
               Repositorio digital de gestión de Extensión y Vinculación de la Facultad.
             </p>
             {isAdmin && (
-              <Badge className="mt-4 bg-primary/10 text-primary border-primary/30 font-black px-4 py-1.5 text-[10px] md:text-xs uppercase tracking-[0.2em] rounded-xl">
+              <Badge className="mt-4 bg-primary/10 text-primary border-primary/30 font-black px-4 py-1.5 text-[9px] md:text-xs uppercase tracking-[0.2em] rounded-xl">
                 Perfil Administrador
               </Badge>
             )}
@@ -117,7 +119,7 @@ export default function Dashboard() {
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar">
               <Button 
                 variant={selectedType === null ? "default" : "outline"}
-                className="rounded-xl h-14 px-6 transition-all text-[10px] md:text-xs font-black uppercase tracking-widest"
+                className="rounded-xl h-14 px-6 transition-all text-[9px] md:text-xs font-black uppercase tracking-widest"
                 onClick={() => setSelectedType(null)}
               >
                 Todos
@@ -126,7 +128,7 @@ export default function Dashboard() {
                 <Button 
                   key={type}
                   variant={selectedType === type ? "default" : "outline"}
-                  className="rounded-xl h-14 px-6 transition-all whitespace-nowrap text-[10px] md:text-xs font-black uppercase tracking-widest"
+                  className="rounded-xl h-14 px-6 transition-all whitespace-nowrap text-[9px] md:text-xs font-black uppercase tracking-widest"
                   onClick={() => setSelectedType(type)}
                 >
                   {type}
@@ -144,8 +146,8 @@ export default function Dashboard() {
           {filteredDocuments.length === 0 && (
             <div className="text-center py-16 md:py-24 bg-muted/30 rounded-[2rem] border-2 border-dashed border-muted-foreground/10">
               <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
-              <h3 className="text-xl md:text-2xl font-headline font-bold mb-2 uppercase tracking-tight">Sin resultados</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-bold">Intente ajustando los filtros de búsqueda.</p>
+              <h3 className="text-lg md:text-2xl font-headline font-bold mb-2 uppercase tracking-tight">Sin resultados</h3>
+              <p className="text-muted-foreground text-xs md:text-base font-bold">Intente ajustando los filtros de búsqueda.</p>
             </div>
           )}
         </main>
