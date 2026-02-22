@@ -61,9 +61,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
-              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </Button>
+            <SidebarTrigger />
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
@@ -226,6 +224,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </main>
       </SidebarInset>
-    </SidebarProvider>
+    </Provider>
   );
 }

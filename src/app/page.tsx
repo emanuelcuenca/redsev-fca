@@ -12,7 +12,8 @@ import {
   Plus,
   LayoutDashboard,
   Handshake,
-  Sprout
+  Sprout,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -43,7 +44,6 @@ export default function Dashboard() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  // Mostramos una selección de documentos recientes en el inicio
   const recentDocuments = MOCK_DOCUMENTS.slice(0, 6);
 
   return (
@@ -77,8 +77,8 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <div className="mb-8 md:mb-12">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="mb-10 md:mb-16">
+            <div className="flex items-center gap-3 mb-4">
               <div className="bg-primary/10 p-2.5 rounded-xl">
                 <LayoutDashboard className="w-6 h-6 text-primary" />
               </div>
@@ -86,23 +86,19 @@ export default function Dashboard() {
                 BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
               </h2>
             </div>
-            <p className="text-muted-foreground text-sm md:text-lg font-medium max-w-3xl leading-relaxed">
+            <p className="text-muted-foreground text-sm md:text-lg font-bold max-w-3xl leading-relaxed uppercase tracking-tight">
               Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12 md:mb-16">
-            <Button asChild className="h-24 md:h-32 rounded-2xl md:rounded-3xl text-sm md:text-xl font-black uppercase tracking-widest gap-4 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-all">
-              <Link href="/documents?category=convenios">
-                <Handshake className="w-6 h-6 md:w-8 md:h-8" /> Consultar Convenios
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-24 md:h-32 rounded-2xl md:rounded-3xl text-sm md:text-xl font-black uppercase tracking-widest gap-4 border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all">
-              <Link href="/documents?category=extension">
-                <Sprout className="w-6 h-6 md:w-8 md:h-8" /> Consulta sobre Extensión
-              </Link>
-            </Button>
-          </div>
+          <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
+            <h2 className="text-2xl md:text-5xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tighter leading-none">
+              Estrategias para el Desarrollo Sustentable
+            </h2>
+            <p className="text-sm md:text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
+              La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.
+            </p>
+          </section>
 
           <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
             <h3 className="text-lg md:text-2xl font-headline font-bold uppercase tracking-tight text-primary">Documentos Recientes</h3>
