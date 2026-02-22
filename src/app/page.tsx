@@ -64,10 +64,10 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1">
-              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider">
+              <span className="text-sm md:text-base font-headline text-primary uppercase tracking-wider font-normal">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider">
+              <span className="text-sm md:text-base font-headline text-black uppercase tracking-wider font-normal">
                 FCA - UNCA
               </span>
             </div>
@@ -85,19 +85,14 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          <section className="mb-6 md:mb-10 flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-6 md:mb-10">
             <div className="bg-primary/10 p-2.5 rounded-xl">
               <LayoutDashboard className="w-6 h-6 text-primary" />
             </div>
-            <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
-                BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
-              </h2>
-              <p className="text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1">
-                Repositorio Digital de Gestión
-              </p>
-            </div>
-          </section>
+            <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
+              BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
+            </h2>
+          </div>
 
           <div className="flex flex-col md:flex-row gap-4 mb-8 md:mb-12">
             <div className="relative flex-1 group">
