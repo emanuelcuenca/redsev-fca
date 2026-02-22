@@ -4,14 +4,13 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, 
-  FileText, 
-  UploadCloud, 
   Settings, 
   LogOut,
   Leaf,
   ShieldCheck,
   Handshake,
-  Sprout
+  Sprout,
+  UploadCloud
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,7 +28,6 @@ import { doc } from "firebase/firestore";
 export function MainSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentCategory = searchParams.get('category');
   const { user } = useUser();
   const db = useFirestore();
 
@@ -41,10 +39,11 @@ export function MainSidebar() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
+  // Reordenado: Extensión antes que Convenios
   const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
-    { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
     { icon: Sprout, label: "Extensión", href: "/documents?category=extension" },
+    { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
   ];
 
   const ADMIN_ITEMS = [
@@ -58,11 +57,11 @@ export function MainSidebar() {
           <Leaf className="w-6 h-6" />
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-          <span className="font-headline font-black text-lg tracking-tight uppercase text-primary leading-none">
-            FCA - UNCA
-          </span>
-          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em] mt-0.5">
+          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em] mb-0.5">
             Extensión y Vinculación
+          </span>
+          <span className="font-headline font-black text-xl tracking-tight uppercase text-primary leading-none">
+            FCA - UNCA
           </span>
         </div>
       </SidebarHeader>
