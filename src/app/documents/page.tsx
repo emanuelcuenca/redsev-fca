@@ -87,35 +87,35 @@ export default function DocumentsListPage() {
   return (
     <SidebarProvider>
       <MainSidebar />
-      <SidebarInset className="bg-background">
+      <SidebarInset className="bg-background w-full overflow-hidden">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
             <SidebarTrigger />
-            <h1 className="text-sm md:text-base font-headline font-bold text-primary truncate uppercase tracking-tight">
+            <h1 className="text-[11px] md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
               Secretaría de Extensión y Vinculación FCA - UNCA
             </h1>
           </div>
           {isAdmin && (
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-xs md:text-sm ml-2 px-4 h-9 font-bold">
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-[10px] md:text-xs ml-2 px-3 h-8 font-bold">
               <Link href="/upload">Subir</Link>
             </Button>
           )}
         </header>
 
-        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6 md:mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl">
               <PageIcon className="w-6 h-6 text-primary" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight">{pageTitle}</h2>
+            <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight">{pageTitle}</h2>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 mb-8 md:mb-12">
+          <div className="flex flex-col md:flex-row gap-3 mb-8">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input 
                 placeholder="Buscar por título, proyecto o autor..." 
-                className="pl-12 h-14 rounded-2xl text-base md:text-lg border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
+                className="pl-12 h-14 rounded-2xl text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -126,50 +126,43 @@ export default function DocumentsListPage() {
           </div>
 
           {/* Mobile View: Cards */}
-          <div className="grid grid-cols-1 gap-6 md:hidden">
+          <div className="grid grid-cols-1 gap-6 md:hidden w-full">
             {filteredDocs.map((doc) => (
-              <Card key={doc.id} className="rounded-[2.5rem] border-muted shadow-lg overflow-hidden border-2 bg-card">
-                <CardContent className="p-7">
-                  <div className="flex items-start justify-between mb-5">
-                    <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-[0.15em] px-4 py-1.5 bg-secondary text-primary border border-primary/10">
+              <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
                       {doc.type}
                     </Badge>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 -mt-2 -mr-2 rounded-full hover:bg-primary/10">
-                          <MoreVertical className="w-5 h-5" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
+                          <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-2xl p-2 min-w-[200px] shadow-2xl">
-                        <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer">
-                          <Link href={`/documents/${doc.id}`} className="flex items-center gap-3">
-                            <Eye className="w-4 h-4 text-primary" /> <span className="font-bold">Ver Detalles</span>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
+                            <Eye className="w-4 h-4" /> <span>Ver</span>
                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-xl py-3 gap-3 cursor-pointer">
-                          <Download className="w-4 h-4 text-primary" /> <span className="font-bold">Descargar PDF</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <h3 className="font-headline font-bold text-xl leading-snug mb-5 text-foreground">{doc.title}</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary/10 p-2.5 rounded-xl">
-                        <User className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="text-[16px] font-bold text-muted-foreground truncate">{doc.authors.join(', ')}</span>
+                  <h3 className="font-headline font-bold text-lg leading-tight mb-4">{doc.title}</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="w-4 h-4 text-primary" />
+                      <span className="font-bold truncate">{doc.authors.join(', ')}</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary/10 p-2.5 rounded-xl">
-                        <Calendar className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="text-[16px] font-bold text-muted-foreground">{new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      <span className="font-bold">{new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
-                  <div className="mt-7 pt-6 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 max-w-[150px] truncate">{doc.project}</span>
-                    <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-[17px] hover:no-underline">
+                  <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{doc.project}</span>
+                    <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                       <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                     </Button>
                   </div>
@@ -192,50 +185,47 @@ export default function DocumentsListPage() {
               </TableHeader>
               <TableBody>
                 {filteredDocs.map((doc) => (
-                  <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group border-muted/60">
+                  <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group">
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
-                        <div className="bg-primary/10 p-4 rounded-[1.25rem] shrink-0 group-hover:bg-primary group-hover:text-white group-hover:rotate-3 transition-all duration-500 shadow-sm">
-                          <FileText className="w-7 h-7" />
+                        <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                          <FileText className="w-6 h-6" />
                         </div>
-                        <div className="overflow-hidden">
-                          <p className="font-black text-xl leading-tight truncate group-hover:text-primary transition-colors">{doc.title}</p>
-                          <p className="text-base text-muted-foreground mt-2 flex items-center gap-2 font-bold">
+                        <div>
+                          <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>
+                          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
                             <User className="w-4 h-4 text-primary/60" /> {doc.authors.join(', ')}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-black text-[11px] uppercase tracking-[0.15em] py-1.5 px-4 bg-secondary/80 text-primary border border-primary/5">
+                      <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
                         {doc.type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-muted-foreground/90 text-[16px]">
+                    <TableCell className="font-bold text-muted-foreground/90">
                       {doc.project}
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-bold text-[16px]">
+                    <TableCell className="text-muted-foreground font-bold">
                       {new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-right pr-12">
-                      <div className="flex justify-end gap-3">
-                        <Button asChild variant="ghost" size="icon" className="rounded-2xl h-12 w-12 hover:bg-primary/10 hover:text-primary transition-all">
+                      <div className="flex justify-end gap-2">
+                        <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10">
                           <Link href={`/documents/${doc.id}`}>
-                            <Eye className="w-6 h-6" />
+                            <Eye className="w-5 h-5" />
                           </Link>
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 hover:bg-secondary transition-all">
-                              <MoreVertical className="w-6 h-6" />
+                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
+                              <MoreVertical className="w-5 h-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-2xl p-2 min-w-[220px] shadow-2xl border-muted/50">
-                            <DropdownMenuItem className="gap-3 py-3.5 rounded-xl cursor-pointer font-black text-sm uppercase tracking-widest">
-                              <Download className="w-5 h-5 text-primary" /> <span>Descargar PDF</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-3 py-3.5 rounded-xl cursor-pointer font-black text-sm uppercase tracking-widest">
-                              <FileDown className="w-5 h-5 text-primary" /> <span>Metadatos</span>
+                          <DropdownMenuContent align="end" className="rounded-xl">
+                            <DropdownMenuItem className="gap-2 font-bold">
+                              <Download className="w-4 h-4" /> Descargar
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -248,10 +238,10 @@ export default function DocumentsListPage() {
           </div>
           
           {filteredDocs.length === 0 && (
-            <div className="py-24 text-center bg-muted/20 rounded-[4rem] border-3 border-dashed border-muted shadow-inner">
-              <FileText className="w-24 h-24 text-muted-foreground/10 mx-auto mb-8" />
-              <h3 className="text-2xl md:text-3xl font-headline font-bold text-muted-foreground/60 mb-3 uppercase tracking-tight">No se encontraron registros</h3>
-              <p className="text-muted-foreground font-black text-lg">Pruebe ajustando los filtros de búsqueda.</p>
+            <div className="py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
+              <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+              <h3 className="text-xl font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
+              <p className="text-muted-foreground font-bold">Intente ajustando los filtros.</p>
             </div>
           )}
         </main>

@@ -39,7 +39,6 @@ export function MainSidebar() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  // Reordenado: Extensión antes que Convenios
   const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: Sprout, label: "Extensión", href: "/documents?category=extension" },
@@ -53,15 +52,15 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
-        <div className="bg-primary text-primary-foreground p-2 rounded-xl shrink-0 shadow-lg shadow-primary/20">
+        <div className="bg-primary text-primary-foreground p-2.5 rounded-xl shrink-0 shadow-lg shadow-primary/20">
           <Leaf className="w-6 h-6" />
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em] mb-0.5">
-            Extensión y Vinculación
-          </span>
-          <span className="font-headline font-black text-xl tracking-tight uppercase text-primary leading-none">
+          <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
+          </span>
+          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em]">
+            Extensión y Vinculación
           </span>
         </div>
       </SidebarHeader>
@@ -75,11 +74,11 @@ export function MainSidebar() {
                   asChild 
                   isActive={isActive}
                   tooltip={item.label}
-                  className="h-11 rounded-xl px-4 font-bold transition-all"
+                  className="h-12 rounded-xl px-4 font-bold transition-all"
                 >
                   <Link href={item.href} className="flex items-center gap-4">
                     <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className="text-sm">{item.label}</span>
+                    <span className="text-sm md:text-base">{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -88,7 +87,7 @@ export function MainSidebar() {
 
           {isAdmin && (
             <>
-              <SidebarSeparator className="my-3 mx-4" />
+              <SidebarSeparator className="my-4 mx-4" />
               <div className="px-5 py-1 text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] group-data-[collapsible=icon]:hidden mb-1">
                 Administración
               </div>
@@ -98,11 +97,11 @@ export function MainSidebar() {
                     asChild 
                     isActive={pathname === item.href}
                     tooltip={item.label}
-                    className="h-11 rounded-xl px-4 font-bold text-primary bg-primary/5 hover:bg-primary/10"
+                    className="h-12 rounded-xl px-4 font-bold text-primary bg-primary/5 hover:bg-primary/10"
                   >
                     <Link href={item.href} className="flex items-center gap-4">
                       <item.icon className="w-5 h-5" />
-                      <span className="text-sm">{item.label}</span>
+                      <span className="text-sm md:text-base">{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -121,16 +120,16 @@ export function MainSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Ajustes" className="h-10 rounded-xl px-4 font-bold text-muted-foreground">
+            <SidebarMenuButton tooltip="Ajustes" className="h-11 rounded-xl px-4 font-bold text-muted-foreground">
               <Settings className="w-5 h-5" />
-              <span>Ajustes</span>
+              <span className="text-sm md:text-base">Ajustes</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild variant="default" className="h-10 rounded-xl px-4 font-bold text-destructive hover:bg-destructive/10">
+            <SidebarMenuButton asChild variant="default" className="h-11 rounded-xl px-4 font-bold text-destructive hover:bg-destructive/10">
               <Link href="/login">
                 <LogOut className="w-5 h-5" />
-                <span>Cerrar Sesión</span>
+                <span className="text-sm md:text-base">Cerrar Sesión</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
