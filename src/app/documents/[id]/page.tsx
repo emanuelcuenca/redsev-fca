@@ -15,7 +15,7 @@ import {
   FileText,
   Eye
 } from "lucide-react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,9 +62,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
               <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
-            <h1 className="text-xs md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
-              Secretaría de Extensión y Vinculación FCA - UNCA
-            </h1>
+            <div className="flex flex-col leading-tight overflow-hidden">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+                Secretaría de Extensión y Vinculación
+              </span>
+              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+                FCA - UNCA
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1 md:gap-2 ml-2">
             <Button variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8">

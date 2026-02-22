@@ -9,8 +9,7 @@ import {
   Calendar, 
   User, 
   ArrowRight,
-  Plus,
-  ShieldCheck
+  Plus
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,9 +58,14 @@ export default function Dashboard() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
             <SidebarTrigger />
-            <h1 className="text-xs md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
-              Secretaría de Extensión y Vinculación FCA - UNCA
-            </h1>
+            <div className="flex flex-col leading-tight overflow-hidden">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+                Secretaría de Extensión y Vinculación
+              </span>
+              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+                FCA - UNCA
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0 ml-2">
              {isAdmin && (
@@ -87,11 +91,11 @@ export default function Dashboard() {
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <section className="mb-8 md:mb-12">
-            <h2 className="text-3xl md:text-5xl font-headline font-bold mb-2 tracking-tight">
+            <h2 className="text-2xl md:text-4xl font-headline font-bold mb-2 tracking-tight">
               Bienvenido{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
             </h2>
-            <p className="text-muted-foreground text-base md:text-xl font-bold max-w-2xl leading-snug">
-              Repisitorio digital de gestión de Extensión y Vinculación de la Facultad.
+            <p className="text-muted-foreground text-sm md:text-lg font-bold max-w-2xl leading-snug">
+              Repositorio digital de gestión de Extensión y Vinculación de la Facultad.
             </p>
             {isAdmin && (
               <Badge className="mt-4 bg-primary/10 text-primary border-primary/30 font-black px-4 py-1.5 text-[10px] md:text-xs uppercase tracking-[0.2em] rounded-xl">
@@ -105,7 +109,7 @@ export default function Dashboard() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-all" />
               <Input 
                 placeholder="Buscar por título, palabra clave..." 
-                className="pl-12 h-14 text-base md:text-lg rounded-2xl shadow-lg border-muted-foreground/10 focus:border-primary focus:ring-primary/10 transition-all font-medium"
+                className="pl-12 h-14 text-sm md:text-base rounded-2xl shadow-lg border-muted-foreground/10 focus:border-primary focus:ring-primary/10 transition-all font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -113,7 +117,7 @@ export default function Dashboard() {
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar">
               <Button 
                 variant={selectedType === null ? "default" : "outline"}
-                className="rounded-xl h-14 px-6 transition-all text-xs md:text-sm font-black uppercase tracking-widest"
+                className="rounded-xl h-14 px-6 transition-all text-[10px] md:text-xs font-black uppercase tracking-widest"
                 onClick={() => setSelectedType(null)}
               >
                 Todos
@@ -122,7 +126,7 @@ export default function Dashboard() {
                 <Button 
                   key={type}
                   variant={selectedType === type ? "default" : "outline"}
-                  className="rounded-xl h-14 px-6 transition-all whitespace-nowrap text-xs md:text-sm font-black uppercase tracking-widest"
+                  className="rounded-xl h-14 px-6 transition-all whitespace-nowrap text-[10px] md:text-xs font-black uppercase tracking-widest"
                   onClick={() => setSelectedType(type)}
                 >
                   {type}
@@ -171,7 +175,7 @@ function DocumentCard({ document }: { document: AgriculturalDocument }) {
         <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
           {document.title}
         </CardTitle>
-        <CardDescription className="flex items-center gap-2 mt-3 font-black text-xs uppercase tracking-widest text-primary/70">
+        <CardDescription className="flex items-center gap-2 mt-3 font-black text-[10px] md:text-xs uppercase tracking-widest text-primary/70">
           <Calendar className="w-4 h-4" /> {new Date(document.date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
         </CardDescription>
       </CardHeader>
@@ -189,7 +193,7 @@ function DocumentCard({ document }: { document: AgriculturalDocument }) {
         </div>
       </CardContent>
       <CardFooter className="p-6 mt-auto">
-        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-black h-auto text-base hover:no-underline">
+        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-black h-auto text-sm md:text-base hover:no-underline">
           <Link href={`/documents/${document.id}`} className="flex items-center gap-2">
             Ver Detalles <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
           </Link>

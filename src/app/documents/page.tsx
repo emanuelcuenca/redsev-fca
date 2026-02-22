@@ -11,7 +11,6 @@ import {
   MoreVertical,
   Download,
   Eye,
-  FileDown,
   Calendar,
   Handshake,
   Sprout
@@ -91,9 +90,14 @@ export default function DocumentsListPage() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 flex-1 overflow-hidden">
             <SidebarTrigger />
-            <h1 className="text-[11px] md:text-sm font-headline font-bold text-primary truncate uppercase tracking-tight">
-              Secretaría de Extensión y Vinculación FCA - UNCA
-            </h1>
+            <div className="flex flex-col leading-tight overflow-hidden">
+              <span className="text-[9px] md:text-[10px] font-headline font-bold text-primary uppercase tracking-wider truncate">
+                Secretaría de Extensión y Vinculación
+              </span>
+              <span className="text-[12px] md:text-sm font-headline font-black text-foreground uppercase tracking-tighter truncate">
+                FCA - UNCA
+              </span>
+            </div>
           </div>
           {isAdmin && (
             <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-[10px] md:text-xs ml-2 px-3 h-8 font-bold">
@@ -115,12 +119,12 @@ export default function DocumentsListPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input 
                 placeholder="Buscar por título, proyecto o autor..." 
-                className="pl-12 h-14 rounded-2xl text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
+                className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-14 rounded-2xl gap-2 text-base font-black px-6 border-muted-foreground/20 uppercase tracking-widest text-primary">
+            <Button variant="outline" className="h-14 rounded-2xl gap-2 text-xs md:text-sm font-black px-6 border-muted-foreground/20 uppercase tracking-widest text-primary">
               <Filter className="w-5 h-5" /> Filtros
             </Button>
           </div>
