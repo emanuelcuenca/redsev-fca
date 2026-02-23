@@ -16,7 +16,9 @@ import {
   Sprout,
   BookOpen,
   Leaf,
-  Loader2
+  Loader2,
+  LogIn,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -36,7 +38,6 @@ import { doc, collection, query, orderBy, limit } from "firebase/firestore";
 import { AgriculturalDocument } from "@/lib/mock-data";
 
 export default function Dashboard() {
-  const router = useRouter();
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
@@ -44,13 +45,6 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Redirigir al login si no hay sesión activa después de cargar
-  useEffect(() => {
-    if (mounted && !isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, mounted, router]);
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -60,7 +54,6 @@ export default function Dashboard() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  // Solo ejecutar la consulta si el usuario está autenticado para evitar errores de permisos
   const docsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'), limit(6));
@@ -70,13 +63,7 @@ export default function Dashboard() {
 
   const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : '';
 
-  if (isUserLoading || !mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <SidebarProvider>
@@ -88,23 +75,42 @@ export default function Dashboard() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
                 FCA - UNCA
               </span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-             {isAdmin && (
-               <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-black rounded-xl h-9 uppercase tracking-widest text-[11px]">
-                 <Link href="/upload" className="flex items-center gap-2">
-                   <Plus className="w-4 h-4" /> Nuevo
-                 </Link>
-               </Button>
+             {isUserLoading ? (
+               <Loader2 className="w-5 h-5 animate-spin text-primary" />
+             ) : user ? (
+               <>
+                 {isAdmin && (
+                   <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-black rounded-xl h-9 uppercase tracking-widest text-[11px]">
+                     <Link href="/upload" className="flex items-center gap-2">
+                       <Plus className="w-4 h-4" /> Nuevo
+                     </Link>
+                   </Button>
+                 )}
+                 <UserMenu />
+               </>
+             ) : (
+               <div className="flex items-center gap-2">
+                 <Button asChild variant="ghost" size="sm" className="font-black uppercase tracking-widest text-[10px] text-primary h-9 px-3 rounded-xl hover:bg-primary/5">
+                   <Link href="/login" className="flex items-center gap-2">
+                     <LogIn className="w-4 h-4" /> <span className="hidden min-[400px]:inline">Ingresar</span>
+                   </Link>
+                 </Button>
+                 <Button asChild size="sm" className="bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] h-9 px-3 rounded-xl shadow-lg shadow-primary/20">
+                   <Link href="/register" className="flex items-center gap-2">
+                     <UserPlus className="w-4 h-4" /> <span className="hidden min-[400px]:inline">Registro</span>
+                   </Link>
+                 </Button>
+               </div>
              )}
-             <UserMenu />
           </div>
         </header>
 
@@ -184,19 +190,35 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {isDocsLoading ? (
+            {isUserLoading || isDocsLoading ? (
               <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" />
                 <p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
               </div>
-            ) : recentDocuments && recentDocuments.length > 0 ? (
-              recentDocuments.map((doc) => (
-                <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
-              ))
+            ) : user ? (
+              recentDocuments && recentDocuments.length > 0 ? (
+                recentDocuments.map((doc) => (
+                  <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
+                ))
+              ) : (
+                <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
+                  <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos cargados aún.</p>
+                </div>
+              )
             ) : (
-              <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
-                <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos cargados aún.</p>
+              <div className="col-span-full py-20 text-center bg-secondary/50 rounded-[3rem] border-2 border-dashed border-primary/20">
+                <LogIn className="w-12 h-12 text-primary/30 mx-auto mb-4" />
+                <h3 className="text-lg font-headline font-bold text-primary uppercase tracking-tight mb-2">Acceso Restringido</h3>
+                <p className="text-muted-foreground font-bold uppercase tracking-tight mb-6">Inicie sesión para explorar el repositorio completo.</p>
+                <div className="flex items-center justify-center gap-4">
+                  <Button asChild className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 bg-primary">
+                    <Link href="/login">Ingresar</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 border-primary/20 text-primary">
+                    <Link href="/register">Registrarse</Link>
+                  </Button>
+                </div>
               </div>
             )}
           </div>

@@ -4,38 +4,42 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight, UserPlus } from "lucide-react";
+import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, initiateEmailSignIn } from "@/firebase";
+import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const router = useRouter();
   const auth = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      initiateEmailSignIn(auth, email, password);
-      // El estado de autenticación es manejado por el FirebaseProvider.
-      // Si el login es exitoso, el FirebaseProvider actualizará el estado del usuario.
+      initiateEmailSignUp(auth, email, password);
+      // El registro exitoso redirigirá automáticamente vía FirebaseProvider
+      toast({
+        title: "Registro iniciado",
+        description: "Creando su perfil institucional...",
+      });
       setTimeout(() => {
         router.push("/");
-      }, 1500);
+      }, 2000);
     } catch (error: any) {
       setLoading(false);
       toast({
         variant: "destructive",
-        title: "Error de acceso",
-        description: "Verifique sus credenciales institucionales.",
+        title: "Error de registro",
+        description: "No se pudo crear la cuenta. Intente nuevamente.",
       });
     }
   };
@@ -58,13 +62,28 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden">
           <CardHeader className="space-y-1 pt-8 px-8 text-center">
-            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Ingreso al Sistema</CardTitle>
+            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear Cuenta</CardTitle>
             <CardDescription className="font-medium">
-              Acceda al repositorio digital institucional.
+              Regístrese para acceder al Repositorio Digital.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-4 pt-4">
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre Completo</Label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                  <Input 
+                    id="name" 
+                    type="text" 
+                    placeholder="Juan Pérez" 
+                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Correo Institucional</Label>
                 <div className="relative group">
@@ -81,17 +100,16 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
-                </div>
+                <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
                   <Input 
                     id="password" 
                     type="password" 
-                    placeholder="••••••••" 
+                    placeholder="Mínimo 6 caracteres" 
                     className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
                     required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -105,7 +123,7 @@ export default function LoginPage() {
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <span className="flex items-center gap-2">Ingresar <ArrowRight className="w-4 h-4" /></span>
+                  <span className="flex items-center gap-2">Registrarse <ArrowRight className="w-4 h-4" /></span>
                 )}
               </Button>
             </form>
@@ -113,19 +131,15 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col gap-4 px-8 pb-8 pt-2">
             <div className="w-full h-px bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
             <div className="text-center space-y-3">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿No tiene una cuenta institucional?</p>
-              <Button asChild variant="outline" className="w-full h-11 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
-                <Link href="/register">
-                  <UserPlus className="w-4 h-4 mr-2" /> Crear cuenta nueva
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿Ya tiene una cuenta?</p>
+              <Button asChild variant="ghost" className="w-full h-11 rounded-xl text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
+                <Link href="/login">
+                  <LogIn className="w-4 h-4 mr-2" /> Volver al ingreso
                 </Link>
               </Button>
             </div>
           </CardFooter>
         </Card>
-        
-        <p className="text-[10px] text-muted-foreground text-center mt-8 font-bold uppercase tracking-widest opacity-60">
-          VínculoAgro - FCA UNCA © {new Date().getFullYear()}
-        </p>
       </div>
     </div>
   );
