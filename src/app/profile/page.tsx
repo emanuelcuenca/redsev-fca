@@ -10,7 +10,9 @@ import {
   Save, 
   Loader2, 
   ArrowLeft,
-  ShieldCheck,
+  Mail,
+  Lock,
+  Camera,
   UserCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -29,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
+import { updateEmail, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
@@ -37,6 +40,7 @@ export default function ProfilePage() {
   const db = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -53,7 +57,9 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
     academicRank: "",
-    department: ""
+    department: "",
+    email: "",
+    photoUrl: ""
   });
 
   useEffect(() => {
@@ -62,30 +68,69 @@ export default function ProfilePage() {
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         academicRank: profile.academicRank || "",
-        department: profile.department || ""
+        department: profile.department || "",
+        email: profile.email || user?.email || "",
+        photoUrl: profile.photoUrl || user?.photoURL || ""
       });
     }
-  }, [profile]);
+  }, [profile, user]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user || !userProfileRef) return;
     
     setIsSaving(true);
     
-    const fullName = `${formData.firstName} ${formData.lastName}`;
-    
-    updateDocumentNonBlocking(userProfileRef, {
-      ...formData,
-      name: fullName,
-      updatedAt: new Date().toISOString()
-    });
+    try {
+      // 1. Verificar si el email cambió para re-autenticar
+      if (formData.email !== user.email) {
+        if (!currentPassword) {
+          toast({
+            variant: "destructive",
+            title: "Contraseña requerida",
+            description: "Debe ingresar su contraseña actual para cambiar el correo electrónico.",
+          });
+          setIsSaving(false);
+          return;
+        }
 
-    toast({
-      title: "Perfil actualizado",
-      description: "Tus datos institucionales han sido guardados correctamente.",
-    });
-    
-    setIsSaving(false);
+        const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updateEmail(user, formData.email);
+      }
+
+      // 2. Actualizar perfil de Auth (Nombre y Foto)
+      const fullName = `${formData.firstName} ${formData.lastName}`;
+      await updateProfile(user, {
+        displayName: fullName,
+        photoURL: formData.photoUrl
+      });
+
+      // 3. Actualizar documento en Firestore
+      updateDocumentNonBlocking(userProfileRef, {
+        ...formData,
+        name: fullName,
+        updatedAt: new Date().toISOString()
+      });
+
+      toast({
+        title: "Perfil actualizado",
+        description: "Tus datos han sido guardados correctamente. Redirigiendo...",
+      });
+
+      // Redirigir al inicio después de un breve delay para que se vea el toast
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al actualizar",
+        description: error.message || "No se pudieron guardar los cambios.",
+      });
+      setIsSaving(false);
+    }
   };
 
   if (!mounted || isUserLoading || isProfileLoading) {
@@ -126,15 +171,15 @@ export default function ProfilePage() {
             </div>
             <div>
               <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">Relación Laboral</h2>
-              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Gestión de datos institucionales</p>
+              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Gestión de identidad y datos institucionales</p>
             </div>
           </div>
 
-          <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm">
+          <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm mb-8">
             <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
-              <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Información del Docente</CardTitle>
+              <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Información Profesional</CardTitle>
               <CardDescription className="font-medium text-muted-foreground">
-                Actualice su cargo y dependencia académica para la correcta asignación en el repositorio.
+                Gestione sus datos de acceso y su cargo dentro de la facultad.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
@@ -157,6 +202,35 @@ export default function ProfilePage() {
                     className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
                   />
                 </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Correo Institucional</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+                    <Input 
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      placeholder="usuario@unca.edu.ar"
+                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Foto de Perfil (URL)</Label>
+                  <div className="relative">
+                    <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+                    <Input 
+                      type="url"
+                      value={formData.photoUrl}
+                      onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
+                      placeholder="https://ejemplo.com/foto.jpg"
+                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cargo Docente</Label>
                   <div className="relative">
@@ -198,8 +272,27 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              {formData.email !== user?.email && (
+                <div className="p-6 bg-accent/5 border-2 border-accent/20 rounded-2xl animate-in fade-in slide-in-from-top-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Lock className="w-5 h-5 text-accent" />
+                    <h4 className="font-headline font-bold text-accent-foreground uppercase text-sm tracking-tight">Confirmación de Seguridad</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium mb-4">
+                    Para cambiar su correo electrónico, por favor ingrese su contraseña actual. Esto asegurará que sus futuros accesos utilicen la nueva dirección.
+                  </p>
+                  <Input 
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Contraseña actual"
+                    className="h-12 rounded-xl bg-white border-accent/20 font-bold"
+                  />
+                </div>
+              )}
+
               <div className="pt-6 border-t border-dashed flex items-center justify-between gap-4">
-                <Button variant="ghost" className="rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.back()}>
+                <Button variant="ghost" className="rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.push("/")}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Volver
                 </Button>
                 <Button 
@@ -207,7 +300,7 @@ export default function ProfilePage() {
                   onClick={handleSave}
                   disabled={isSaving}
                 >
-                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Cambios</span>}
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar y Finalizar</span>}
                 </Button>
               </div>
             </CardContent>
