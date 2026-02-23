@@ -72,7 +72,6 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      // Permite PDF e imágenes para OCR
       const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
       if (!allowedTypes.includes(selectedFile.type)) {
         toast({
@@ -91,40 +90,41 @@ export default function UploadPage() {
       toast({
         variant: "destructive",
         title: "Sin origen",
-        description: "Debe subir un archivo o URL para generar un resumen.",
+        description: "Debe seleccionar un archivo o URL para generar un resumen.",
       });
       return;
     }
 
     setIsSummarizing(true);
     try {
-      let documentImageUri = undefined;
+      let documentMediaUri = undefined;
       
-      // Si es imagen, la pasamos como URI para análisis visual
-      if (file && file.type.startsWith('image/')) {
-        documentImageUri = await new Promise<string>((resolve) => {
+      // Leer el archivo como Data URI para que la IA pueda procesarlo (PDF o Imagen)
+      if (file) {
+        documentMediaUri = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
           reader.readAsDataURL(file);
         });
       }
 
       const result = await summarizeDocument({ 
-        documentContent: title || description,
-        documentImageUri
+        documentContent: title || description || `Nuevo documento de tipo ${type}`,
+        documentMediaUri
       });
 
       setDescription(result.summary);
       toast({
         title: "Resumen generado",
-        description: "La IA ha procesado el contenido del documento.",
+        description: "La IA ha procesado el contenido del documento exitosamente.",
       });
     } catch (error) {
       console.error("AI Error:", error);
       toast({
         variant: "destructive",
         title: "Error de IA",
-        description: "No se pudo procesar el documento automáticamente.",
+        description: "No se pudo procesar el documento. Asegúrese de que el archivo sea legible.",
       });
     } finally {
       setIsSummarizing(false);
@@ -165,8 +165,9 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    // Capitalizar primera letra del título
-    const formattedTitle = title.charAt(0).toUpperCase() + title.slice(1);
+    // Asegurar primera letra mayúscula, resto tal cual se escribió
+    const cleanTitle = title.trim();
+    const formattedTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
 
     const documentData: any = {
       title: formattedTitle,

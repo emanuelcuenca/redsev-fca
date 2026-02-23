@@ -59,11 +59,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     if (!documentData) return;
     setIsSummarizing(true);
     try {
-      const contentToSummarize = documentData.content || documentData.description || `Título: ${documentData.title}.`;
-      // Soporta resumen multimodal si el documento tiene una imagen de referencia
       const result = await summarizeDocument({ 
-        documentContent: contentToSummarize,
-        documentImageUri: documentData.imageUrl && documentData.imageUrl.startsWith('data:') ? documentData.imageUrl : undefined
+        documentContent: documentData.description || `Título: ${documentData.title}.`,
+        documentMediaUri: documentData.imageUrl && documentData.imageUrl.startsWith('data:') ? documentData.imageUrl : undefined
       });
       setSummary(result.summary);
     } catch (error) {

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for summarizing documents, supporting both text and images (OCR).
+ * @fileOverview A Genkit flow for summarizing documents, supporting both text and media (PDF/Images).
  *
  * - summarizeDocument - A function that handles the document summarization process.
  * - DocumentSummarizationInput - The input type for the summarizeDocument function.
@@ -14,11 +14,11 @@ const DocumentSummarizationInputSchema = z.object({
   documentContent: z
     .string()
     .optional()
-    .describe('The text content of the document if available.'),
-  documentImageUri: z
+    .describe('The text content or context of the document if available.'),
+  documentMediaUri: z
     .string()
     .optional()
-    .describe('A data URI of a scanned document page (base64 encoded).'),
+    .describe('A data URI of the document (PDF or Image), base64 encoded.'),
 });
 export type DocumentSummarizationInput = z.infer<
   typeof DocumentSummarizationInputSchema
@@ -27,7 +27,7 @@ export type DocumentSummarizationInput = z.infer<
 const DocumentSummarizationOutputSchema = z.object({
   summary: z
     .string()
-    .describe('A concise summary or key points extracted from the document.'),
+    .describe('A concise summary or key points extracted from the document in Spanish.'),
 });
 export type DocumentSummarizationOutput = z.infer<
   typeof DocumentSummarizationOutputSchema
@@ -43,26 +43,27 @@ const documentSummarizationPrompt = ai.definePrompt({
   name: 'documentSummarizationPrompt',
   input: {schema: DocumentSummarizationInputSchema},
   output: {schema: DocumentSummarizationOutputSchema},
-  prompt: `You are an expert assistant specialized in analyzing and summarizing institutional agricultural documents.
+  prompt: `You are an expert assistant specialized in analyzing and summarizing institutional agricultural documents for the UNCA.
 
-Your task is to analyze the provided source (text or image) and generate a concise summary in Spanish.
+Your task is to analyze the provided source and generate a concise summary in Spanish.
 
-If an image is provided, perform OCR and analyze the visual structure to extract key information.
-If text is provided, summarize it directly.
+The source may be text, a PDF document, or a scanned image. 
+- If media is provided (PDF or Image), read it carefully, performing OCR if necessary.
+- If text is provided, use it as additional context or content.
+- Determine if the document is a convenio, project, or resolution and extract:
+  1. Main purpose
+  2. Institutions or actors involved
+  3. Key dates or financial amounts (if applicable)
 
-Focus on:
-- Purpose of the document
-- Key actors or institutions involved
-- Main objectives or conclusions
-
-Document Text Content:
+Document Text Context:
 {{documentContent}}
 
-{{#if documentImageUri}}
-Document Scanned Page:
-{{media url=documentImageUri}}
+{{#if documentMediaUri}}
+Document Content (File):
+{{media url=documentMediaUri}}
 {{/if}}
-`,
+
+Always respond in Spanish, focusing on being concise and professional.`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(
