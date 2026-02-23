@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,18 +9,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth, initiateEmailSignIn } from "@/firebase";
+import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulación de autenticación
-    setTimeout(() => {
-      router.push("/");
-    }, 1500);
+    
+    try {
+      initiateEmailSignIn(auth, email, password);
+      // El estado de autenticación es manejado por el FirebaseProvider.
+      // Si el login es exitoso, el usuario será redirigido por el estado de sesión si se implementa un guard.
+      // Por ahora, simulamos la redirección tras el intento.
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+    } catch (error: any) {
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Error de acceso",
+        description: "Verifique sus credenciales institucionales.",
+      });
+    }
   };
 
   return (
@@ -57,6 +76,8 @@ export default function LoginPage() {
                     placeholder="usuario@unca.edu.ar" 
                     className="pl-10 h-12 rounded-xl focus:ring-primary/20"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
               </div>
@@ -72,6 +93,8 @@ export default function LoginPage() {
                     placeholder="••••••••" 
                     className="pl-10 h-12 rounded-xl focus:ring-primary/20"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
               </div>

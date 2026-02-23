@@ -17,7 +17,8 @@ import {
   Sprout,
   CheckCircle2,
   XCircle,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -47,9 +48,9 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { doc, collection, query, orderBy } from "firebase/firestore";
+import { AgriculturalDocument } from "@/lib/mock-data";
 
 export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,17 +73,25 @@ export default function DocumentsListPage() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
+  const docsQuery = useMemoFirebase(() => 
+    query(collection(db, 'documents'), orderBy('uploadDate', 'desc')), 
+    [db]
+  );
+  
+  const { data: allDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
+
   const isConvenios = category === 'convenios';
 
   const filteredDocs = useMemo(() => {
-    return MOCK_DOCUMENTS.filter(doc => {
+    if (!allDocs) return [];
+    return allDocs.filter(doc => {
       if (isConvenios && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type === 'Convenio') return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
                             (doc.counterpart && doc.counterpart.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                            doc.authors.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()));
+                            doc.authors?.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()));
       
       if (!matchesSearch) return false;
 
@@ -104,7 +113,17 @@ export default function DocumentsListPage() {
 
       return true;
     });
-  }, [searchQuery, category, isConvenios, filterVigente, filterYear, filterType, filterCounterpart]);
+  }, [allDocs, searchQuery, category, isConvenios, filterVigente, filterYear, filterType, filterCounterpart]);
+
+  const years = useMemo(() => {
+    if (!allDocs) return [];
+    return Array.from(new Set(allDocs.map(d => d.signingYear).filter(Boolean))).sort((a, b) => (b as number) - (a as number));
+  }, [allDocs]);
+
+  const counterparts = useMemo(() => {
+    if (!allDocs) return [];
+    return Array.from(new Set(allDocs.map(d => d.counterpart).filter(Boolean))).sort();
+  }, [allDocs]);
 
   const pageTitle = isConvenios ? 'Convenios' : 
                     category === 'extension' ? 'Extensión' : 
@@ -113,9 +132,6 @@ export default function DocumentsListPage() {
   const PageIcon = isConvenios ? Handshake : 
                    category === 'extension' ? Sprout : 
                    FileText;
-
-  const years = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.signingYear).filter(Boolean))).sort((a, b) => (b as number) - (a as number));
-  const counterparts = Array.from(new Set(MOCK_DOCUMENTS.map(d => d.counterpart).filter(Boolean))).sort();
 
   return (
     <SidebarProvider>
@@ -231,159 +247,168 @@ export default function DocumentsListPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:hidden w-full">
-            {filteredDocs.map((doc) => (
-              <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex gap-2">
-                      <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
-                        {doc.type}
-                      </Badge>
-                      {isConvenios && (
-                        <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${doc.isVigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                          {doc.isVigente ? 'Vigente' : 'Vencido'}
-                        </Badge>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
-                            <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <h3 className="font-headline font-bold text-lg leading-tight mb-4">{doc.title}</h3>
-                  <div className="space-y-3">
-                    {isConvenios && doc.counterpart && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Building2 className="w-4 h-4 text-primary" />
-                        <span className="font-bold text-primary">{doc.counterpart}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="w-4 h-4 text-primary" />
-                      <span className="font-bold truncate">{doc.authors.join(', ')}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span className="font-bold">{new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    </div>
-                  </div>
-                  <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : doc.project}</span>
-                    <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
-                      <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="hidden md:block bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="font-black text-[12px] py-7 pl-12 uppercase tracking-[0.2em] text-muted-foreground/70">Documento</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                    {isConvenios ? 'Contraparte' : 'Tipo'}
-                  </TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                    {isConvenios ? 'Vigencia' : 'Proyecto'}
-                  </TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
-                  <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          {isLoading ? (
+            <div className="py-20 text-center flex flex-col items-center">
+              <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+              <p className="font-bold uppercase tracking-widest text-xs text-muted-foreground">Actualizando repositorio...</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-6 md:hidden w-full">
                 {filteredDocs.map((doc) => (
-                  <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group">
-                    <TableCell className="py-8 pl-12">
-                      <div className="flex items-center gap-6">
-                        <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                          <FileText className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>
-                          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
-                            <User className="w-4 h-4 text-primary/60" /> {doc.authors.join(', ')}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {isConvenios ? (
-                        <div className="flex flex-col">
-                          <span className="font-black text-primary">{doc.counterpart}</span>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
-                        </div>
-                      ) : (
-                        <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
-                          {doc.type}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isConvenios ? (
-                        <div className="flex items-center gap-2">
-                          {doc.isVigente ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-400" />
+                  <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex gap-2">
+                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
+                            {doc.type}
+                          </Badge>
+                          {isConvenios && (
+                            <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${doc.isVigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                              {doc.isVigente ? 'Vigente' : 'Vencido'}
+                            </Badge>
                           )}
-                          <span className={`font-bold text-sm ${doc.isVigente ? 'text-green-700' : 'text-red-700'}`}>
-                            {doc.isVigente ? 'Vigente' : 'Vencido'}
-                          </span>
                         </div>
-                      ) : (
-                        <span className="font-bold text-muted-foreground/90">{doc.project}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-bold">
-                      {new Date(doc.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </TableCell>
-                    <TableCell className="text-right pr-12">
-                      <div className="flex justify-end gap-2">
-                        <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10">
-                          <Link href={`/documents/${doc.id}`}>
-                            <Eye className="w-5 h-5" />
-                          </Link>
-                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
-                              <MoreVertical className="w-5 h-5" />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
+                              <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="rounded-xl">
-                            <DropdownMenuItem className="gap-2 font-bold">
-                              <Download className="w-4 h-4" /> Descargar
+                            <DropdownMenuItem asChild>
+                              <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
+                                <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
+                              </Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <h3 className="font-headline font-bold text-lg leading-tight mb-4 uppercase">{doc.title}</h3>
+                      <div className="space-y-3">
+                        {isConvenios && doc.counterpart && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Building2 className="w-4 h-4 text-primary" />
+                            <span className="font-bold text-primary">{doc.counterpart}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <User className="w-4 h-4 text-primary" />
+                          <span className="font-bold truncate">{doc.authors?.join(', ') || 'SEyV FCA'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span className="font-bold">{new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : doc.project}</span>
+                        <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
+                          <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {filteredDocs.length === 0 && (
-            <div className="py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
-              <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-              <h3 className="text-lg font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
-              <p className="text-muted-foreground font-bold">Intente ajustando los filtros de búsqueda.</p>
-            </div>
+              </div>
+
+              <div className="hidden md:block bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow className="hover:bg-transparent border-none">
+                      <TableHead className="font-black text-[12px] py-7 pl-12 uppercase tracking-[0.2em] text-muted-foreground/70">Documento</TableHead>
+                      <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                        {isConvenios ? 'Contraparte' : 'Tipo'}
+                      </TableHead>
+                      <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                        {isConvenios ? 'Vigencia' : 'Proyecto'}
+                      </TableHead>
+                      <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
+                      <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocs.map((doc) => (
+                      <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group">
+                        <TableCell className="py-8 pl-12">
+                          <div className="flex items-center gap-6">
+                            <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                              <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
+                              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
+                                <User className="w-4 h-4 text-primary/60" /> {doc.authors?.join(', ') || 'SEyV FCA'}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {isConvenios ? (
+                            <div className="flex flex-col">
+                              <span className="font-black text-primary">{doc.counterpart}</span>
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
+                            </div>
+                          ) : (
+                            <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
+                              {doc.type}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isConvenios ? (
+                            <div className="flex items-center gap-2">
+                              {doc.isVigente ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              ) : (
+                                <XCircle className="w-5 h-5 text-red-400" />
+                              )}
+                              <span className={`font-bold text-sm ${doc.isVigente ? 'text-green-700' : 'text-red-700'}`}>
+                                {doc.isVigente ? 'Vigente' : 'Vencido'}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-bold text-muted-foreground/90">{doc.project}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground font-bold">
+                          {new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </TableCell>
+                        <TableCell className="text-right pr-12">
+                          <div className="flex justify-end gap-2">
+                            <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10">
+                              <Link href={`/documents/${doc.id}`}>
+                                <Eye className="w-5 h-5" />
+                              </Link>
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
+                                  <MoreVertical className="w-5 h-5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="rounded-xl">
+                                <DropdownMenuItem className="gap-2 font-bold">
+                                  <Download className="w-4 h-4" /> Descargar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {filteredDocs.length === 0 && (
+                <div className="py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
+                  <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                  <h3 className="text-lg font-headline font-bold text-muted-foreground/60 uppercase">Sin resultados</h3>
+                  <p className="text-muted-foreground font-bold">Intente ajustando los filtros de búsqueda.</p>
+                </div>
+              )}
+            </>
           )}
         </main>
       </SidebarInset>
