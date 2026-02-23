@@ -20,7 +20,8 @@ import {
   FileUp,
   Clock,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Link as LinkIcon
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";

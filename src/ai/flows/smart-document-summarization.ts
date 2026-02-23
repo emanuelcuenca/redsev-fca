@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flujo de Genkit para el análisis y resumen de documentos institucionales.
@@ -75,9 +76,11 @@ const documentSummarizationFlow = ai.defineFlow(
   },
   async input => {
     try {
-      // Verificación de API Key en tiempo de ejecución para diagnóstico
-      if (!process.env.GEMINI_API_KEY) {
-        throw new Error('CONFIG_ERROR: No se encontró la GEMINI_API_KEY en las variables de entorno del servidor.');
+      // Verificación de API Key con nombres alternativos
+      const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error('CONFIG_ERROR: No se encontró una clave de acceso válida (GEMINI_API_KEY) en las variables de entorno del servidor.');
       }
 
       const {output} = await documentSummarizationPrompt(input);
