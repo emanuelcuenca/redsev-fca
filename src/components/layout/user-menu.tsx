@@ -3,7 +3,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { User, Briefcase, LogOut, Settings } from "lucide-react";
+import { useState } from "react";
+import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +15,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/firebase";
+import { toast } from "@/hooks/use-toast";
 
 export function UserMenu() {
   const { user } = useUser();
+  const [copied, setCopied] = useState(false);
   
   const userPhoto = user?.photoURL || "https://picsum.photos/seed/prof1/100/100";
-  const userName = user?.displayName || "Usuario FCA";
+  const userName = user?.displayName || user?.email?.split('@')[0] || "Usuario FCA";
   const userEmail = user?.email || "institucional@unca.edu.ar";
+
+  const copyUid = () => {
+    if (user?.uid) {
+      navigator.clipboard.writeText(user.uid);
+      setCopied(true);
+      toast({
+        title: "ID Copiado",
+        description: "El identificador de usuario se ha copiado al portapapeles.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -34,7 +49,7 @@ export function UserMenu() {
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 rounded-2xl shadow-xl border-muted p-2" align="end" forceMount>
+      <DropdownMenuContent className="w-72 rounded-2xl shadow-xl border-muted p-2" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-4">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-black leading-none uppercase tracking-tight">{userName}</p>
@@ -43,6 +58,21 @@ export function UserMenu() {
             </p>
           </div>
         </DropdownMenuLabel>
+        
+        <div className="px-4 pb-4">
+          <div className="bg-muted/50 rounded-xl p-3 border border-muted-foreground/10 flex items-center justify-between gap-2">
+            <div className="overflow-hidden">
+              <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1 flex items-center gap-1">
+                <Fingerprint className="w-3 h-3" /> Tu ID de Usuario (UID)
+              </p>
+              <p className="text-[10px] font-mono font-bold truncate text-primary/70">{user?.uid}</p>
+            </div>
+            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg shrink-0" onClick={copyUid}>
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+            </Button>
+          </div>
+        </div>
+
         <DropdownMenuSeparator className="mx-2" />
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
@@ -52,15 +82,9 @@ export function UserMenu() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-            <Link href="/situacion-docente">
+            <Link href="/admin">
               <Briefcase className="w-4 h-4" />
-              <span className="text-sm">Situación Docente</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-            <Link href="/ajustes">
-              <Settings className="w-4 h-4" />
-              <span className="text-sm">Ajustes del Sistema</span>
+              <span className="text-sm">Panel de Gestión</span>
             </Link>
           </DropdownMenuItem>
         </div>
