@@ -90,7 +90,7 @@ export default function Dashboard() {
     );
   }
 
-  // Si no hay usuario, no renderizar nada (la redirección se encargará)
+  // SI NO HAY USUARIO, BLOQUEO TOTAL DE RENDERIZADO
   if (!user) return null;
 
   return (
@@ -117,7 +117,6 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-          {/* Alerta de Perfil Incompleto */}
           {user && isProfileIncomplete && (
             <div className="mb-8 p-4 bg-accent/10 border-2 border-accent/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-3">
