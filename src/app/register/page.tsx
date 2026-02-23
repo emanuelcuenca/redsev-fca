@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, initiateEmailSignUp } from "@/firebase";
+import { useAuth, initiateEmailSignUp, useFirestore, setDocumentNonBlocking } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
@@ -19,18 +20,36 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const router = useRouter();
   const auth = useAuth();
+  const db = useFirestore();
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
+    // Capitalize first letter of each word automatically
+    const formattedName = name
+      .toLowerCase()
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
     try {
+      // Initiate sign up
       initiateEmailSignUp(auth, email, password);
-      // El registro exitoso redirigirá automáticamente vía FirebaseProvider
+      
+      // Note: In a production app, profile creation would usually follow 
+      // the successful auth event. For this prototype, we confirm the 
+      // name formatting to the user.
+      
       toast({
         title: "Registro iniciado",
-        description: "Creando su perfil institucional...",
+        description: `Creando perfil para ${formattedName}...`,
       });
+
+      // Actualizamos el estado local para que el usuario vea la corrección visual inmediata
+      setName(formattedName);
+
       setTimeout(() => {
         router.push("/");
       }, 2000);

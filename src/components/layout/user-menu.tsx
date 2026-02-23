@@ -77,26 +77,28 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         
-        <div className="px-4 pb-4">
-          <div className="bg-muted/50 rounded-xl p-3 border border-muted-foreground/10 flex items-center justify-between gap-2">
-            <div className="overflow-hidden">
-              <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1 flex items-center gap-1">
-                <Fingerprint className="w-3 h-3" /> Tu ID de Usuario (UID)
-              </p>
-              <p className="text-[10px] font-mono font-bold truncate text-primary/70">{user?.uid}</p>
+        {isAdmin && (
+          <div className="px-4 pb-4 animate-in fade-in slide-in-from-top-1">
+            <div className="bg-muted/50 rounded-xl p-3 border border-muted-foreground/10 flex items-center justify-between gap-2">
+              <div className="overflow-hidden">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1 flex items-center gap-1">
+                  <Fingerprint className="w-3 h-3" /> ID de Usuario (Solo Admin)
+                </p>
+                <p className="text-[10px] font-mono font-bold truncate text-primary/70">{user?.uid}</p>
+              </div>
+              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg shrink-0" onClick={copyUid}>
+                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </Button>
             </div>
-            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg shrink-0" onClick={copyUid}>
-              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-            </Button>
           </div>
-        </div>
+        )}
 
         <DropdownMenuSeparator className="mx-2" />
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
             <Link href="/">
               <User className="w-4 h-4" />
-              <span className="text-sm">Mis datos personales</span>
+              <span className="text-sm">Relación laboral</span>
             </Link>
           </DropdownMenuItem>
           {isAdmin && (
