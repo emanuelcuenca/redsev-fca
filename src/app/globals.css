@@ -70,7 +70,7 @@
     @apply border-border;
   }
   html, body {
-    @apply overflow-x-hidden w-screen max-w-full m-0 p-0;
+    @apply overflow-x-hidden w-full max-w-full m-0 p-0;
     -webkit-text-size-adjust: 100%;
     position: relative;
   }
@@ -85,7 +85,7 @@
 }
 
 .group\/sidebar-wrapper {
-  @apply w-screen max-w-full overflow-x-hidden flex;
+  @apply w-full max-w-full overflow-x-hidden flex;
 }
 
 main {
