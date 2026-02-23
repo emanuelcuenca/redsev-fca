@@ -108,7 +108,7 @@ export function UserMenu() {
         <DropdownMenuSeparator className="mx-2" />
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-            <Link href="/">
+            <Link href="/profile">
               <User className="w-4 h-4" />
               <span className="text-sm">Relación laboral</span>
             </Link>

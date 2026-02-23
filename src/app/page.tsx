@@ -19,7 +19,8 @@ import {
   Loader2,
   LogIn,
   UserPlus,
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -55,6 +56,12 @@ export default function Dashboard() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
+  const userProfileRef = useMemoFirebase(() => 
+    user ? doc(db, 'users', user.uid) : null, 
+    [db, user]
+  );
+  const { data: userProfile } = useDoc(userProfileRef);
+
   const docsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'), limit(6));
@@ -62,7 +69,10 @@ export default function Dashboard() {
   
   const { data: recentDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
-  const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : (user?.email?.split('@')[0].toUpperCase() || '');
+  const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0].toUpperCase() || '');
+
+  // Verificar si faltan datos institucionales
+  const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
 
   if (!mounted) return null;
 
@@ -107,6 +117,24 @@ export default function Dashboard() {
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+          {/* Alerta de Perfil Incompleto */}
+          {user && isProfileIncomplete && (
+            <div className="mb-8 p-4 bg-accent/10 border-2 border-accent/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
+              <div className="flex items-center gap-3">
+                <div className="bg-accent p-2 rounded-xl">
+                  <AlertTriangle className="w-5 h-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <h4 className="font-headline font-black uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
+                  <p className="text-xs text-muted-foreground font-medium">Por favor, complete su cargo y dependencia para poder participar plenamente del sistema.</p>
+                </div>
+              </div>
+              <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl font-black uppercase tracking-widest text-[10px] px-6">
+                <Link href="/profile">Completar ahora</Link>
+              </Button>
+            </div>
+          )}
+
           <div className="mb-10 md:mb-16">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="bg-primary/10 p-2.5 rounded-xl">
