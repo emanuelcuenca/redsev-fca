@@ -174,10 +174,10 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[11px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
                 SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
               </span>
-              <span className="text-[11px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
                 FCA - UNCA
               </span>
             </div>
@@ -187,7 +187,7 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-4xl mx-auto w-full">
+        <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-20">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl">
               <UserCircle className="w-6 h-6 text-primary" />
@@ -215,7 +215,6 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
-              {/* Sección de Foto de Perfil con esquema de cabeza */}
               <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">
                 <div className="relative group cursor-pointer mb-4">
                   <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
@@ -334,12 +333,12 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              <div className="pt-6 border-t border-dashed flex items-center justify-between gap-4">
-                <Button variant="ghost" className="rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.push("/")}>
+              <div className="pt-6 border-t border-dashed flex flex-col md:flex-row items-center justify-between gap-4">
+                <Button variant="ghost" className="w-full md:w-auto rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.push("/")}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Volver
                 </Button>
                 <Button 
-                  className="h-14 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px]"
+                  className="w-full md:w-auto h-14 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px]"
                   onClick={handleSave}
                   disabled={isSaving}
                 >
