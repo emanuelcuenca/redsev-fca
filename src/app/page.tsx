@@ -42,11 +42,19 @@ import { AgriculturalDocument } from "@/lib/mock-data";
 export default function Dashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // REDIRECCIÓN ESTRICTA: Si no hay usuario y ya cargó, fuera.
+  useEffect(() => {
+    if (mounted && !isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, mounted, router]);
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -74,7 +82,16 @@ export default function Dashboard() {
   // Verificar si faltan datos institucionales
   const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
 
-  if (!mounted) return null;
+  if (!mounted || isUserLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Si no hay usuario, no renderizar nada (la redirección se encargará)
+  if (!user) return null;
 
   return (
     <SidebarProvider>
@@ -95,24 +112,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-             {isUserLoading ? (
-               <Loader2 className="w-5 h-5 animate-spin text-primary" />
-             ) : user ? (
-               <UserMenu />
-             ) : (
-               <div className="flex items-center gap-2">
-                 <Button asChild variant="ghost" size="sm" className="font-black uppercase tracking-widest text-[10px] text-primary h-9 px-3 rounded-xl hover:bg-primary/5">
-                   <Link href="/login" className="flex items-center gap-2">
-                     <LogIn className="w-4 h-4" /> <span className="hidden min-[400px]:inline">Ingresar</span>
-                   </Link>
-                 </Button>
-                 <Button asChild size="sm" className="bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] h-9 px-3 rounded-xl shadow-lg shadow-primary/20">
-                   <Link href="/register" className="flex items-center gap-2">
-                     <UserPlus className="w-4 h-4" /> <span className="hidden min-[400px]:inline">Registro</span>
-                   </Link>
-                 </Button>
-               </div>
-             )}
+             <UserMenu />
           </div>
         </header>
 
@@ -215,12 +215,12 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {isUserLoading || isDocsLoading ? (
+            {isDocsLoading ? (
               <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" />
                 <p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
               </div>
-            ) : user ? (
+            ) : (
               recentDocuments && recentDocuments.length > 0 ? (
                 recentDocuments.map((doc) => (
                   <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
@@ -231,20 +231,6 @@ export default function Dashboard() {
                   <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos cargados aún.</p>
                 </div>
               )
-            ) : (
-              <div className="col-span-full py-20 text-center bg-secondary/50 rounded-[3rem] border-2 border-dashed border-primary/20">
-                <LogIn className="w-12 h-12 text-primary/30 mx-auto mb-4" />
-                <h3 className="text-lg font-headline font-bold text-primary uppercase tracking-tight mb-2">Acceso Restringido</h3>
-                <p className="text-muted-foreground font-bold uppercase tracking-tight mb-6">Inicie sesión para explorar el repositorio completo.</p>
-                <div className="flex items-center justify-center gap-4">
-                  <Button asChild className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 bg-primary">
-                    <Link href="/login">Ingresar</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 border-primary/20 text-primary">
-                    <Link href="/register">Registrarse</Link>
-                  </Button>
-                </div>
-              </div>
             )}
           </div>
         </main>

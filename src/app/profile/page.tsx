@@ -62,6 +62,13 @@ export default function ProfilePage() {
     setMounted(true);
   }, []);
 
+  // REDIRECCIÓN ESTRICTA
+  useEffect(() => {
+    if (mounted && !isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, mounted, router]);
+
   const userProfileRef = useMemoFirebase(() => 
     user ? doc(db, 'users', user.uid) : null, 
     [db, user]
@@ -179,6 +186,8 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <SidebarProvider>

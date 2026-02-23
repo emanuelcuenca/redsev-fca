@@ -16,7 +16,8 @@ import {
   Briefcase, 
   Landmark,
   UserRound,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 
@@ -53,6 +55,7 @@ export default function RegisterPage() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [academicRank, setAcademicRank] = useState("");
   const [department, setDepartment] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const router = useRouter();
@@ -80,7 +83,20 @@ export default function RegisterPage() {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
+    // VALIDACIÓN ESTRICTA DE DOMINIO INSTITUCIONAL
+    const isInstitutional = email.endsWith('@unca.edu.ar') || email.endsWith('@est.unca.edu.ar');
+    if (!isInstitutional) {
+      setError("Solo se permiten correos institucionales (@unca.edu.ar o @est.unca.edu.ar).");
+      toast({
+        variant: "destructive",
+        title: "Dominio no permitido",
+        description: "Debe usar un correo institucional de la UNCA.",
+      });
+      return;
+    }
+
     if (!academicRank || !department) {
       toast({
         variant: "destructive",
@@ -120,6 +136,7 @@ export default function RegisterPage() {
       }, 2500);
     } catch (error: any) {
       setLoading(false);
+      setError("No se pudo crear la cuenta. Verifique sus datos.");
       toast({
         variant: "destructive",
         title: "Error de registro",
@@ -153,6 +170,14 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent className="px-8 pb-4 pt-4">
             <form onSubmit={handleRegister} className="space-y-6">
+              {error && (
+                <Alert variant="destructive" className="rounded-xl">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="flex flex-col items-center justify-center space-y-3 mb-4">
                 <div 
                   className="relative group cursor-pointer"
