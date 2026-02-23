@@ -10,17 +10,16 @@ import {
   Plus, 
   Save, 
   ArrowLeft,
-  ChevronRight,
   Info,
   Loader2,
-  CheckCircle2,
-  Clock,
   Building2,
   Calendar as CalendarIcon,
   ScrollText,
   GraduationCap,
   Gavel,
-  Compass
+  Compass,
+  Link as LinkIcon,
+  FileUp
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -38,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
@@ -48,7 +48,9 @@ export default function UploadPage() {
   const db = useFirestore();
 
   // Common fields
+  const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
+  const [externalUrl, setExternalUrl] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
   const [date, setDate] = useState("");
@@ -66,7 +68,16 @@ export default function UploadPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      if (selectedFile.type !== "application/pdf") {
+        toast({
+          variant: "destructive",
+          title: "Formato no permitido",
+          description: "Solo se permiten archivos en formato PDF.",
+        });
+        return;
+      }
+      setFile(selectedFile);
     }
   };
 
@@ -83,11 +94,30 @@ export default function UploadPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !file || !type) {
+    
+    if (!user || !type || !title) {
       toast({
         variant: "destructive",
         title: "Campos incompletos",
-        description: "Por favor seleccione el tipo de documento y suba un archivo.",
+        description: "Por favor complete el título y tipo de documento.",
+      });
+      return;
+    }
+
+    if (uploadMethod === "file" && !file) {
+      toast({
+        variant: "destructive",
+        title: "Archivo faltante",
+        description: "Debe subir un archivo PDF.",
+      });
+      return;
+    }
+
+    if (uploadMethod === "url" && !externalUrl) {
+      toast({
+        variant: "destructive",
+        title: "Enlace faltante",
+        description: "Debe proporcionar una URL externa.",
       });
       return;
     }
@@ -105,8 +135,8 @@ export default function UploadPage() {
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       imageUrl: "https://picsum.photos/seed/" + Math.random() + "/600/400",
-      fileType: file.type,
-      fileUrl: "#", 
+      fileType: uploadMethod === "file" ? "application/pdf" : "url",
+      fileUrl: uploadMethod === "file" ? "#" : externalUrl, // In a real app, file would be uploaded to storage and URL returned
     };
 
     // Add convenio specific data if type is Convenio
@@ -167,7 +197,6 @@ export default function UploadPage() {
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Selección de Categoría</h2>
               </div>
-              <p className="text-muted-foreground text-sm font-medium mb-4 italic">Primero, defina qué tipo de documento desea ingresar al sistema.</p>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
@@ -196,51 +225,86 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {/* STEP 2: FILE UPLOAD */}
+            {/* STEP 2: CONTENT SOURCE */}
             <section className={`transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="bg-primary/20 text-primary p-2 rounded-xl">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">2</Badge>
                 </div>
-                <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Archivo Digital</h2>
+                <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Origen del Contenido</h2>
               </div>
-              
-              <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
-                {file ? (
-                  <div className="flex flex-col items-center gap-3 text-center">
-                    <div className="bg-primary/20 p-4 rounded-full">
-                      <FileText className="w-12 h-12 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
-                      <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
-                      <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-primary/10 p-4 rounded-full mb-4">
-                      <Upload className="w-10 h-10 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Documento</p>
-                      <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">PDF, Word o Imágenes (Máx 20MB)</p>
-                      <Label htmlFor="file-upload" className="cursor-pointer">
-                        <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                          Seleccionar Archivo
+
+              <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
+                  <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                    <FileUp className="w-4 h-4" /> Archivo PDF
+                  </TabsTrigger>
+                  <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                    <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="file" className="mt-0">
+                  <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
+                    {file ? (
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="bg-primary/20 p-4 rounded-full">
+                          <FileText className="w-12 h-12 text-primary" />
                         </div>
-                        <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx,image/*" />
-                      </Label>
+                        <div>
+                          <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
+                          <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
+                          <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-primary/10 p-4 rounded-full mb-4">
+                          <Upload className="w-10 h-10 text-primary" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir PDF</p>
+                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Documento oficial (Máx 20MB)</p>
+                          <Label htmlFor="file-upload" className="cursor-pointer">
+                            <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                              Seleccionar Archivo
+                            </div>
+                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                          </Label>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="url" className="mt-0">
+                  <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
+                    <div className="flex items-center gap-3 text-primary mb-2">
+                      <LinkIcon className="w-6 h-6" />
+                      <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
                     </div>
-                  </>
-                )}
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="external-url" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Dirección URL del documento</Label>
+                      <Input 
+                        id="external-url"
+                        placeholder="https://docs.google.com/... o https://sitio.com/archivo.pdf"
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold"
+                        value={externalUrl}
+                        onChange={(e) => setExternalUrl(e.target.value)}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-medium italic">
+                      Utilice esta opción para documentos alojados en la nube o sitios oficiales de la UNCA.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </section>
 
             {/* STEP 3: METADATA */}
-            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${file ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${(file || externalUrl) ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-primary/20 text-primary p-2 rounded-xl">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
@@ -261,7 +325,6 @@ export default function UploadPage() {
                   />
                 </div>
 
-                {/* Convenio Specific Fields */}
                 {type === "Convenio" && (
                   <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="space-y-3">
@@ -391,7 +454,7 @@ export default function UploadPage() {
                 <Button 
                   type="submit" 
                   className="w-full md:w-auto h-14 px-12 rounded-xl font-black bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 uppercase tracking-widest text-[11px]" 
-                  disabled={isSaving || !file || !title}
+                  disabled={isSaving || (!file && !externalUrl) || !title}
                 >
                   {isSaving ? (
                     <span className="flex items-center gap-3">
