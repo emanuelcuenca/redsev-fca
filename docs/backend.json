@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the VínculoAgro application, with distinct roles determining access and functionality. Authentication details are managed by an external system.",
+      "description": "Represents a user of the VínculoAgro application, with distinct roles and institutional data.",
       "properties": {
         "id": {
           "type": "string",
@@ -13,7 +13,7 @@
         },
         "email": {
           "type": "string",
-          "description": "Email address of the user, primarily used as an identifier for authentication (handled externally).",
+          "description": "Email address of the user.",
           "format": "email"
         },
         "firstName": {
@@ -26,28 +26,43 @@
         },
         "name": {
           "type": "string",
-          "description": "Full name of the user (concatenation)."
+          "description": "Full name of the user."
         },
         "photoUrl": {
           "type": "string",
           "format": "uri",
           "description": "Optional profile photo URL."
         },
+        "academicRank": {
+          "type": "string",
+          "description": "Cargo docente del usuario.",
+          "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"]
+        },
+        "department": {
+          "type": "string",
+          "description": "Dependencia académica del usuario.",
+          "enum": [
+            "Tecnología y Cs. Aplicadas",
+            "Cs. Exactas y Naturales",
+            "Cs. Agrarias",
+            "Cs. Económicas y de Adm.",
+            "Cs. de la Salud",
+            "Derecho",
+            "Humanidades",
+            "Esc. de Arqueología"
+          ]
+        },
         "role": {
           "type": "string",
-          "description": "The role of the user within the VínculoAgro application. 'Administrator' for the Secretaría (can upload and manage documents), 'Viewer' for all other users (can search, view, and summarize documents).",
-          "items": {
-            "type": "string"
-          }
+          "description": "Role within the application.",
+          "default": "Viewer"
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the user account was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the user account was last updated.",
           "format": "date-time"
         }
       },
@@ -56,6 +71,8 @@
         "email",
         "firstName",
         "lastName",
+        "academicRank",
+        "department",
         "role",
         "createdAt",
         "updatedAt"
@@ -65,69 +82,43 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Document",
       "type": "object",
-      "description": "Represents a document stored in the VínculoAgro repository, including its associated metadata and file location.",
+      "description": "Represents a document stored in the VínculoAgro repository.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the Document entity."
+          "type": "string"
         },
         "title": {
-          "type": "string",
-          "description": "The official title of the document."
+          "type": "string"
         },
         "description": {
-          "type": "string",
-          "description": "An optional brief description or abstract of the document's content."
+          "type": "string"
         },
         "fileUrl": {
           "type": "string",
-          "description": "The URL or path where the actual document file is stored.",
           "format": "uri"
         },
         "fileType": {
-          "type": "string",
-          "description": "The type of the document file (e.g., 'PDF', 'DOCX', 'JPG')."
+          "type": "string"
         },
         "uploadDate": {
           "type": "string",
-          "description": "The date and time when the document was uploaded to the repository.",
           "format": "date-time"
         },
         "uploadedByUserId": {
-          "type": "string",
-          "description": "Reference to the User who uploaded this document."
-        },
-        "agreementTypeId": {
-          "type": "string",
-          "description": "Reference to the type of agreement."
-        },
-        "projectId": {
-          "type": "string",
-          "description": "Reference to the project this document is associated with."
-        },
-        "authorIds": {
-          "type": "array",
-          "description": "References to the Author entities.",
-          "items": {
-            "type": "string"
-          }
+          "type": "string"
         },
         "isVigente": {
-          "type": "boolean",
-          "description": "Indica si el convenio está vigente."
+          "type": "boolean"
         },
         "signingYear": {
-          "type": "integer",
-          "description": "Año de firma del convenio."
+          "type": "integer"
         },
         "counterpart": {
-          "type": "string",
-          "description": "La institución contraparte del convenio."
+          "type": "string"
         },
         "convenioSubType": {
           "type": "string",
-          "description": "Tipo de convenio (Marco o Específico).",
-          "enum": ["Marco", "Específico"]
+          "enum": ["Marco", "Específico", "Pasantía"]
         }
       },
       "required": [
@@ -138,14 +129,6 @@
         "uploadDate",
         "uploadedByUserId"
       ]
-    },
-    "AgreementType": {
-      "title": "AgreementType",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" }
-      }
     }
   },
   "auth": {

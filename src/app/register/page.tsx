@@ -4,13 +4,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn, Camera } from "lucide-react";
+import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn, Camera, Briefcase, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, initiateEmailSignUp, useFirestore, setDocumentNonBlocking } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
@@ -20,9 +26,11 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [academicRank, setAcademicRank] = useState("");
+  const [department, setDepartment] = useState("");
+  
   const router = useRouter();
   const auth = useAuth();
-  const db = useFirestore();
 
   const formatName = (text: string) => {
     return text
@@ -35,14 +43,35 @@ export default function RegisterPage() {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!academicRank || !department) {
+      toast({
+        variant: "destructive",
+        title: "Campos incompletos",
+        description: "Por favor seleccione su cargo docente y dependencia.",
+      });
+      return;
+    }
+
     setLoading(true);
     
     const formattedFirstName = formatName(firstName);
     const formattedLastName = formatName(lastName);
     const fullName = `${formattedFirstName} ${formattedLastName}`;
 
+    // Almacenar temporalmente los datos adicionales para que el Provider los use al detectar el nuevo usuario
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pending_profile_data', JSON.stringify({
+        firstName: formattedFirstName,
+        lastName: formattedLastName,
+        photoUrl,
+        academicRank,
+        department,
+        name: fullName
+      }));
+    }
+
     try {
-      // Inicia registro en Firebase Auth
       initiateEmailSignUp(auth, email, password);
       
       toast({
@@ -50,13 +79,9 @@ export default function RegisterPage() {
         description: `Creando perfil para ${fullName}...`,
       });
 
-      // Actualizamos estado local
-      setFirstName(formattedFirstName);
-      setLastName(formattedLastName);
-
       setTimeout(() => {
         router.push("/");
-      }, 2000);
+      }, 2500);
     } catch (error: any) {
       setLoading(false);
       toast({
@@ -72,7 +97,7 @@ export default function RegisterPage() {
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-xl relative z-10">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform">
             <Leaf className="w-10 h-10 text-primary-foreground" />
@@ -85,14 +110,14 @@ export default function RegisterPage() {
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden">
           <CardHeader className="space-y-1 pt-8 px-8 text-center">
-            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear Cuenta</CardTitle>
+            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear Cuenta Institucional</CardTitle>
             <CardDescription className="font-medium">
-              Regístrese para acceder al Repositorio Digital.
+              Forme parte del Repositorio Digital de Extensión y Vinculación.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-4 pt-4">
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
                   <div className="relative group">
@@ -125,18 +150,45 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="photoUrl" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional - URL)</Label>
-                <div className="relative group">
-                  <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input 
-                    id="photoUrl" 
-                    type="url" 
-                    placeholder="https://ejemplo.com/foto.jpg" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargo Docente</Label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+                    <Select value={academicRank} onValueChange={setAcademicRank}>
+                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-medium">
+                        <SelectValue placeholder="Seleccione cargo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Auxiliar">Auxiliar</SelectItem>
+                        <SelectItem value="JTP">JTP</SelectItem>
+                        <SelectItem value="Adjunto">Adjunto</SelectItem>
+                        <SelectItem value="Asociado">Asociado</SelectItem>
+                        <SelectItem value="Titular">Titular</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
+                  <div className="relative">
+                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+                    <Select value={department} onValueChange={setDepartment}>
+                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-medium">
+                        <SelectValue placeholder="Seleccione dependencia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Tecnología y Cs. Aplicadas">Tecnología y Cs. Aplicadas</SelectItem>
+                        <SelectItem value="Cs. Exactas y Naturales">Cs. Exactas y Naturales</SelectItem>
+                        <SelectItem value="Cs. Agrarias">Cs. Agrarias</SelectItem>
+                        <SelectItem value="Cs. Económicas y de Adm.">Cs. Económicas y de Adm.</SelectItem>
+                        <SelectItem value="Cs. de la Salud">Cs. de la Salud</SelectItem>
+                        <SelectItem value="Derecho">Derecho</SelectItem>
+                        <SelectItem value="Humanidades">Humanidades</SelectItem>
+                        <SelectItem value="Esc. de Arqueología">Esc. de Arqueología</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
@@ -169,6 +221,21 @@ export default function RegisterPage() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="photoUrl" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional - URL)</Label>
+                <div className="relative group">
+                  <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                  <Input 
+                    id="photoUrl" 
+                    type="url" 
+                    placeholder="https://ejemplo.com/foto.jpg" 
+                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
                   />
                 </div>
               </div>
