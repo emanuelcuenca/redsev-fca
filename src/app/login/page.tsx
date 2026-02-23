@@ -34,9 +34,8 @@ export default function LoginPage() {
       router.push("/");
     } catch (error: any) {
       setLoading(false);
-      let message = "Verifique sus credenciales institucionales.";
-      if (error.code === 'auth/user-not-found') message = "Usuario no registrado en el sistema.";
-      if (error.code === 'auth/wrong-password') message = "Contraseña incorrecta.";
+      // Mensaje unificado solicitado para proteger la privacidad del sistema y ser claro con el usuario
+      let message = "El usuario y/o la contraseña no coinciden con nuestros registros.";
       
       toast({
         variant: "destructive",
