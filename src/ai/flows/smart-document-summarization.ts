@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for summarizing documents or extracting key points.
+ * @fileOverview A Genkit flow for summarizing documents, supporting both text and images (OCR).
  *
  * - summarizeDocument - A function that handles the document summarization process.
  * - DocumentSummarizationInput - The input type for the summarizeDocument function.
@@ -13,7 +13,12 @@ import {z} from 'genkit';
 const DocumentSummarizationInputSchema = z.object({
   documentContent: z
     .string()
-    .describe('The full text content of the document to be summarized.'),
+    .optional()
+    .describe('The text content of the document if available.'),
+  documentImageUri: z
+    .string()
+    .optional()
+    .describe('A data URI of a scanned document page (base64 encoded).'),
 });
 export type DocumentSummarizationInput = z.infer<
   typeof DocumentSummarizationInputSchema
@@ -38,12 +43,25 @@ const documentSummarizationPrompt = ai.definePrompt({
   name: 'documentSummarizationPrompt',
   input: {schema: DocumentSummarizationInputSchema},
   output: {schema: DocumentSummarizationOutputSchema},
-  prompt: `You are an expert assistant specialized in analyzing and summarizing documents.
+  prompt: `You are an expert assistant specialized in analyzing and summarizing institutional agricultural documents.
 
-Your task is to read the provided document content and generate a concise summary or extract the key points, focusing on the most critical information.
+Your task is to analyze the provided source (text or image) and generate a concise summary in Spanish.
 
-Document Content:
+If an image is provided, perform OCR and analyze the visual structure to extract key information.
+If text is provided, summarize it directly.
+
+Focus on:
+- Purpose of the document
+- Key actors or institutions involved
+- Main objectives or conclusions
+
+Document Text Content:
 {{documentContent}}
+
+{{#if documentImageUri}}
+Document Scanned Page:
+{{media url=documentImageUri}}
+{{/if}}
 `,
 });
 

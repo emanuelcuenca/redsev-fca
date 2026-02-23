@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -43,7 +42,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     setMounted(true);
   }, []);
 
-  // Redirigir al login si no hay sesión activa
   useEffect(() => {
     if (mounted && !isUserLoading && !user) {
       router.push('/login');
@@ -61,8 +59,12 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     if (!documentData) return;
     setIsSummarizing(true);
     try {
-      const contentToSummarize = documentData.content || `Título: ${documentData.title}. Tipo: ${documentData.type}. Proyecto: ${documentData.project}. Contraparte: ${documentData.counterpart}.`;
-      const result = await summarizeDocument({ documentContent: contentToSummarize });
+      const contentToSummarize = documentData.content || documentData.description || `Título: ${documentData.title}.`;
+      // Soporta resumen multimodal si el documento tiene una imagen de referencia
+      const result = await summarizeDocument({ 
+        documentContent: contentToSummarize,
+        documentImageUri: documentData.imageUrl && documentData.imageUrl.startsWith('data:') ? documentData.imageUrl : undefined
+      });
       setSummary(result.summary);
     } catch (error) {
       console.error("Summary error:", error);

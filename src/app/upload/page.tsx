@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -20,7 +19,8 @@ import {
   Compass,
   Link as LinkIcon,
   FileUp,
-  Clock
+  Clock,
+  Sparkles
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
+import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 
 export default function UploadPage() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export default function UploadPage() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   // Convenio specific fields
   const [isVigente, setIsVigente] = useState(true);
@@ -70,15 +72,62 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type !== "application/pdf") {
+      // Permite PDF e imágenes para OCR
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+      if (!allowedTypes.includes(selectedFile.type)) {
         toast({
           variant: "destructive",
           title: "Formato no permitido",
-          description: "Solo se permiten archivos en formato PDF.",
+          description: "Solo se permiten PDF o imágenes (JPG/PNG) para escaneos.",
         });
         return;
       }
       setFile(selectedFile);
+    }
+  };
+
+  const handleAiSummarize = async () => {
+    if (!file && !externalUrl) {
+      toast({
+        variant: "destructive",
+        title: "Sin origen",
+        description: "Debe subir un archivo o URL para generar un resumen.",
+      });
+      return;
+    }
+
+    setIsSummarizing(true);
+    try {
+      let documentImageUri = undefined;
+      
+      // Si es imagen, la pasamos como URI para análisis visual
+      if (file && file.type.startsWith('image/')) {
+        documentImageUri = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const result = await summarizeDocument({ 
+        documentContent: title || description,
+        documentImageUri
+      });
+
+      setDescription(result.summary);
+      toast({
+        title: "Resumen generado",
+        description: "La IA ha procesado el contenido del documento.",
+      });
+    } catch (error) {
+      console.error("AI Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: "No se pudo procesar el documento automáticamente.",
+      });
+    } finally {
+      setIsSummarizing(false);
     }
   };
 
@@ -109,38 +158,30 @@ export default function UploadPage() {
       toast({
         variant: "destructive",
         title: "Archivo faltante",
-        description: "Debe subir un archivo PDF.",
-      });
-      return;
-    }
-
-    if (uploadMethod === "url" && !externalUrl) {
-      toast({
-        variant: "destructive",
-        title: "Enlace faltante",
-        description: "Debe proporcionar una URL externa.",
+        description: "Debe subir un archivo.",
       });
       return;
     }
 
     setIsSaving(true);
     
-    // Base data
+    // Capitalizar primera letra del título
+    const formattedTitle = title.charAt(0).toUpperCase() + title.slice(1);
+
     const documentData: any = {
-      title,
+      title: formattedTitle,
       type,
       date,
-      authors: authors.split(',').map(a => a.trim()),
+      authors: authors.split(',').map(a => a.trim()).filter(Boolean),
       description,
       keywords,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       imageUrl: "https://picsum.photos/seed/" + Math.random() + "/600/400",
-      fileType: uploadMethod === "file" ? "application/pdf" : "url",
-      fileUrl: uploadMethod === "file" ? "#" : externalUrl, // In a real app, file would be uploaded to storage and URL returned
+      fileType: uploadMethod === "file" ? file?.type : "url",
+      fileUrl: uploadMethod === "file" ? "#" : externalUrl,
     };
 
-    // Add convenio specific data if type is Convenio
     if (type === "Convenio") {
       documentData.isVigente = isVigente;
       documentData.signingYear = parseInt(signingYear);
@@ -238,7 +279,7 @@ export default function UploadPage() {
               <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
                   <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <FileUp className="w-4 h-4" /> Archivo PDF
+                    <FileUp className="w-4 h-4" /> Archivo (PDF/Imagen)
                   </TabsTrigger>
                   <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
                     <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
@@ -266,13 +307,13 @@ export default function UploadPage() {
                           <Upload className="w-10 h-10 text-primary" />
                         </div>
                         <div className="text-center">
-                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir PDF</p>
-                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Documento oficial (Máx 20MB)</p>
+                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Archivo</p>
+                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">PDF o Escaneo JPG/PNG (Máx 20MB)</p>
                           <Label htmlFor="file-upload" className="cursor-pointer">
                             <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
                               Seleccionar Archivo
                             </div>
-                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*" />
                           </Label>
                         </div>
                       </>
@@ -296,9 +337,6 @@ export default function UploadPage() {
                         onChange={(e) => setExternalUrl(e.target.value)}
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground font-medium italic">
-                      Utilice esta opción para documentos alojados en la nube o sitios oficiales de la UNCA.
-                    </p>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -327,7 +365,7 @@ export default function UploadPage() {
                 </div>
 
                 {type === "Convenio" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
                     <div className="space-y-3">
                       <Label htmlFor="counterpart" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                         <Building2 className="w-3.5 h-3.5" /> Institución Contraparte
@@ -361,8 +399,6 @@ export default function UploadPage() {
                       <Input 
                         id="signingYear" 
                         type="number"
-                        min="1950"
-                        max={new Date().getFullYear() + 10}
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                         required={type === "Convenio"}
                         value={signingYear}
@@ -372,7 +408,7 @@ export default function UploadPage() {
                     <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-primary/10">
                       <div className="flex flex-col">
                         <span className="font-black uppercase text-[10px] tracking-widest text-primary">Estado de Vigencia</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{isVigente ? 'Vigente' : 'No Vigente / Finalizado'}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{isVigente ? 'Vigente' : 'No Vigente'}</span>
                       </div>
                       <Switch checked={isVigente} onCheckedChange={setIsVigente} />
                     </div>
@@ -406,10 +442,34 @@ export default function UploadPage() {
                 </div>
 
                 <div className="space-y-3 col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
+                      onClick={handleAiSummarize}
+                      disabled={isSummarizing}
+                    >
+                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      Generar con IA
+                    </Button>
+                  </div>
+                  <Textarea 
+                    id="description" 
+                    placeholder="Describa el objetivo del documento o genere uno automáticamente con IA..." 
+                    className="min-h-[140px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-3 col-span-2">
                   <Label htmlFor="keywords" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Etiquetas / Palabras Clave</Label>
                   <div className="flex gap-2">
                     <Input 
-                      placeholder="Ej: Suelos, Riego, Sustentabilidad..." 
+                      placeholder="Ej: Suelos, Riego..." 
                       className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold"
                       value={keywordInput}
                       onChange={(e) => setKeywordInput(e.target.value)}
@@ -429,17 +489,6 @@ export default function UploadPage() {
                       </Badge>
                     ))}
                   </div>
-                </div>
-
-                <div className="space-y-3 col-span-2">
-                  <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
-                  <Textarea 
-                    id="description" 
-                    placeholder="Describa brevemente el objetivo y alcance del documento..." 
-                    className="min-h-[140px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
                 </div>
               </div>
 
