@@ -1,7 +1,7 @@
 
 "use client";
 
-import Link from "next/image";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -12,7 +12,6 @@ import {
   Users,
   ScrollText,
   GraduationCap,
-  Gavel,
   Plane
 } from "lucide-react";
 import {
