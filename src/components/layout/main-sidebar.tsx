@@ -9,7 +9,11 @@ import {
   Handshake,
   ArrowLeftRight,
   UploadCloud,
-  Users
+  Users,
+  ScrollText,
+  GraduationCap,
+  Gavel,
+  Compass
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +48,10 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
+    { icon: ScrollText, label: "Resoluciones", href: "/documents?category=resoluciones" },
+    { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
+    { icon: Gavel, label: "Reglamentos", href: "/documents?category=reglamentos" },
+    { icon: Compass, label: "Plan Estratégico", href: "/documents?category=plan" },
   ];
 
   const ADMIN_ITEMS = [

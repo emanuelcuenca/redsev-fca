@@ -16,7 +16,11 @@ import {
   CheckCircle2,
   Clock,
   Building2,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  ScrollText,
+  GraduationCap,
+  Gavel,
+  Compass
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -165,24 +169,28 @@ export default function UploadPage() {
               </div>
               <p className="text-muted-foreground text-sm font-medium mb-4 italic">Primero, defina qué tipo de documento desea ingresar al sistema.</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { id: "Convenio", label: "Convenio", icon: Clock },
                   { id: "Proyecto", label: "Proyecto de Extensión", icon: FileText },
+                  { id: "Resolución", label: "Resolución", icon: ScrollText },
+                  { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
+                  { id: "Reglamento", label: "Reglamento", icon: Gavel },
+                  { id: "Plan Estratégico", label: "Plan Estratégico", icon: Compass },
                   { id: "Informe", label: "Informe Técnico", icon: Info }
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setType(item.id)}
-                    className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all gap-3 ${
+                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
                       type === item.id 
                         ? 'border-primary bg-primary/10 text-primary shadow-md' 
                         : 'border-muted-foreground/10 bg-white hover:border-primary/30 hover:bg-muted/50'
                     }`}
                   >
-                    <item.icon className={`w-8 h-8 ${type === item.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className="font-bold uppercase tracking-widest text-[10px] text-center leading-tight">{item.label}</span>
+                    <item.icon className={`w-6 h-6 ${type === item.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className="font-bold uppercase tracking-widest text-[9px] text-center leading-tight">{item.label}</span>
                   </button>
                 ))}
               </div>

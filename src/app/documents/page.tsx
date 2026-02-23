@@ -18,7 +18,12 @@ import {
   CheckCircle2,
   XCircle,
   Building2,
-  Loader2
+  Loader2,
+  ArrowLeftRight,
+  ScrollText,
+  GraduationCap,
+  Gavel,
+  Compass
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -98,8 +103,13 @@ export default function DocumentsListPage() {
   const filteredDocs = useMemo(() => {
     if (!allDocs) return [];
     return allDocs.filter(doc => {
-      if (isConvenios && doc.type !== 'Convenio') return false;
-      if (category === 'extension' && doc.type === 'Convenio') return false;
+      // Filtrado por categorías principales
+      if (category === 'convenios' && doc.type !== 'Convenio') return false;
+      if (category === 'extension' && !['Proyecto', 'Informe'].includes(doc.type)) return false;
+      if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
+      if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
+      if (category === 'reglamentos' && doc.type !== 'Reglamento') return false;
+      if (category === 'plan' && doc.type !== 'Plan Estratégico') return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -138,12 +148,20 @@ export default function DocumentsListPage() {
     return Array.from(new Set(allDocs.map(d => d.counterpart).filter(Boolean))).sort();
   }, [allDocs]);
 
-  const pageTitle = isConvenios ? 'Convenios' : 
+  const pageTitle = category === 'convenios' ? 'Convenios' : 
                     category === 'extension' ? 'Extensión' : 
+                    category === 'resoluciones' ? 'Resoluciones' :
+                    category === 'pasantias' ? 'Prácticas y Pasantías' :
+                    category === 'reglamentos' ? 'Reglamentos' :
+                    category === 'plan' ? 'Plan Estratégico' :
                     'Todos los Documentos';
 
-  const PageIcon = isConvenios ? Handshake : 
-                   category === 'extension' ? Sprout : 
+  const PageIcon = category === 'convenios' ? Handshake : 
+                   category === 'extension' ? ArrowLeftRight : 
+                   category === 'resoluciones' ? ScrollText :
+                   category === 'pasantias' ? GraduationCap :
+                   category === 'reglamentos' ? Gavel :
+                   category === 'plan' ? Compass :
                    FileText;
 
   if (isUserLoading || !mounted) {
@@ -320,7 +338,7 @@ export default function DocumentsListPage() {
                         </div>
                       </div>
                       <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : doc.project}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.type)}</span>
                         <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                           <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                         </Button>
@@ -339,7 +357,7 @@ export default function DocumentsListPage() {
                         {isConvenios ? 'Contraparte' : 'Tipo'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        {isConvenios ? 'Vigencia' : 'Proyecto'}
+                        {isConvenios ? 'Vigencia' : 'Proyecto / Sección'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
                       <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
@@ -386,7 +404,7 @@ export default function DocumentsListPage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="font-bold text-muted-foreground/90">{doc.project}</span>
+                            <span className="font-bold text-muted-foreground/90">{doc.project || doc.type}</span>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground font-bold">
