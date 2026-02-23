@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   User, 
@@ -15,7 +15,8 @@ import {
   Camera,
   UserCircle,
   ShieldAlert,
-  UserRound
+  UserRound,
+  Image as ImageIcon
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -55,6 +56,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -96,6 +98,25 @@ export default function ProfilePage() {
     }
   }, [profile, user]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "Archivo muy pesado",
+          description: "La imagen no debe superar los 2MB.",
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, photoUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     if (!user || !userProfileRef) return;
     
@@ -119,16 +140,11 @@ export default function ProfilePage() {
       }
 
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      if (isAdmin) {
-        await updateProfile(user, {
-          displayName: fullName,
-          photoURL: formData.photoUrl
-        });
-      } else {
-        await updateProfile(user, {
-          photoURL: formData.photoUrl
-        });
-      }
+      
+      await updateProfile(user, {
+        displayName: isAdmin ? fullName : user.displayName,
+        photoURL: formData.photoUrl
+      });
 
       updateDocumentNonBlocking(userProfileRef, {
         ...formData,
@@ -138,7 +154,7 @@ export default function ProfilePage() {
 
       toast({
         title: "Perfil actualizado",
-        description: "Tus datos han sido guardados correctamente. Redirigiendo...",
+        description: "Tus datos han sido guardados correctamente.",
       });
 
       setTimeout(() => {
@@ -187,7 +203,7 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-20">
+        <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl">
               <UserCircle className="w-6 h-6 text-primary" />
@@ -216,29 +232,34 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">
-                <div className="relative group cursor-pointer mb-4">
-                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
+                <div 
+                  className="relative group cursor-pointer mb-4"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="w-40 h-40 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40 hover:scale-105 duration-300">
                     <Avatar className="w-full h-full rounded-none">
                       <AvatarImage src={formData.photoUrl} className="object-cover" />
                       <AvatarFallback className="bg-transparent">
-                        <UserRound className="w-16 h-16 text-primary/30" strokeWidth={1.5} />
+                        <UserRound className="w-20 h-20 text-primary/20" strokeWidth={1.2} />
                       </AvatarFallback>
                     </Avatar>
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ImageIcon className="w-8 h-8 text-white mb-2" />
+                      <span className="text-[10px] text-white font-black uppercase tracking-widest">Cambiar Foto</span>
+                    </div>
                   </div>
-                  <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
+                  <div className="absolute bottom-2 right-2 bg-primary text-white p-2.5 rounded-full shadow-lg border-2 border-white">
                     <Camera className="w-4 h-4" />
                   </div>
-                </div>
-                <div className="w-full max-w-sm space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex justify-center">Foto de Perfil (Enlace / URL)</Label>
-                  <Input 
-                    type="url"
-                    value={formData.photoUrl}
-                    onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
-                    placeholder="Pegue aquí el enlace de su imagen..."
-                    className="h-10 rounded-xl bg-white border-muted-foreground/20 text-center text-xs font-bold"
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleFileChange} 
                   />
                 </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Haga clic en el círculo para subir una foto desde su equipo</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -321,7 +342,7 @@ export default function ProfilePage() {
                     <h4 className="font-headline font-bold text-accent-foreground uppercase text-sm tracking-tight">Confirmación de Seguridad</h4>
                   </div>
                   <p className="text-xs text-muted-foreground font-medium mb-4">
-                    Para cambiar su correo electrónico, por favor ingrese su contraseña actual.
+                    Para cambiar el correo electrónico, por favor ingrese su contraseña actual.
                   </p>
                   <Input 
                     type="password"

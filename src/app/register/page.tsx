@@ -1,10 +1,23 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn, Camera, Briefcase, Landmark } from "lucide-react";
+import { 
+  Leaf, 
+  Mail, 
+  Lock, 
+  Loader2, 
+  ArrowRight, 
+  User, 
+  LogIn, 
+  Camera, 
+  Briefcase, 
+  Landmark,
+  UserRound,
+  Image as ImageIcon
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +29,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 
@@ -39,6 +53,7 @@ export default function RegisterPage() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [academicRank, setAcademicRank] = useState("");
   const [department, setDepartment] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const router = useRouter();
   const auth = useAuth();
@@ -50,6 +65,17 @@ export default function RegisterPage() {
       .filter(word => word.length > 0)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -107,13 +133,13 @@ export default function RegisterPage() {
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-xl relative z-10">
+      <div className="w-full max-w-xl relative z-10 py-10">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform">
             <Leaf className="w-10 h-10 text-primary-foreground" />
           </Link>
-          <h1 className="text-sm md:text-base font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-sm md:text-base font-headline text-black uppercase tracking-tighter text-center mt-1">
+          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-xl font-headline text-black uppercase tracking-tighter text-center mt-1">
             FCA - UNCA
           </p>
         </div>
@@ -126,7 +152,38 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-4 pt-4">
-            <form onSubmit={handleRegister} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-6">
+              <div className="flex flex-col items-center justify-center space-y-3 mb-4">
+                <div 
+                  className="relative group cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
+                    <Avatar className="w-full h-full rounded-none">
+                      <AvatarImage src={photoUrl} className="object-cover" />
+                      <AvatarFallback className="bg-transparent">
+                        <UserRound className="w-16 h-16 text-primary/20" strokeWidth={1.2} />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ImageIcon className="w-6 h-6 text-white mb-1" />
+                      <span className="text-[8px] text-white font-black uppercase tracking-widest">Subir Foto</span>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                </div>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional)</Label>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleFileChange} 
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
@@ -136,7 +193,7 @@ export default function RegisterPage() {
                       id="firstName" 
                       type="text" 
                       placeholder="Juan" 
-                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
@@ -151,7 +208,7 @@ export default function RegisterPage() {
                       id="lastName" 
                       type="text" 
                       placeholder="Pérez" 
-                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
@@ -166,7 +223,7 @@ export default function RegisterPage() {
                   <div className="relative">
                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
                     <Select value={academicRank} onValueChange={setAcademicRank}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-medium">
+                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-bold">
                         <SelectValue placeholder="Seleccione cargo" />
                       </SelectTrigger>
                       <SelectContent>
@@ -184,7 +241,7 @@ export default function RegisterPage() {
                   <div className="relative">
                     <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
                     <Select value={department} onValueChange={setDepartment}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-medium">
+                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-bold">
                         <SelectValue placeholder="Seleccione dependencia" />
                       </SelectTrigger>
                       <SelectContent>
@@ -205,7 +262,7 @@ export default function RegisterPage() {
                     id="email" 
                     type="email" 
                     placeholder="usuario@unca.edu.ar" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -221,26 +278,11 @@ export default function RegisterPage() {
                     id="password" 
                     type="password" 
                     placeholder="Mínimo 6 caracteres" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
                     required
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="photoUrl" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional - URL)</Label>
-                <div className="relative group">
-                  <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input 
-                    id="photoUrl" 
-                    type="url" 
-                    placeholder="https://ejemplo.com/foto.jpg" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
                   />
                 </div>
               </div>
