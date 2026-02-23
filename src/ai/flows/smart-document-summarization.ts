@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for summarizing documents, supporting both text and media (PDF/Images).
- * Enhanced with High-Sensitivity Vision (Google Lens style) for processing difficult scanned documents.
+ * @fileOverview Flujo de Genkit para el análisis y resumen de documentos institucionales.
+ * Soporta documentos legibles y escaneos de alta dificultad (estilo Google Lens).
  */
 
 import {ai} from '@/ai/genkit';
@@ -11,11 +11,11 @@ const DocumentSummarizationInputSchema = z.object({
   documentContent: z
     .string()
     .optional()
-    .describe('The text content or context of the document if available.'),
+    .describe('Contenido de texto o contexto del documento.'),
   documentMediaUri: z
     .string()
     .optional()
-    .describe('A data URI of the document (PDF or Image), base64 encoded.'),
+    .describe('Data URI del documento (PDF o Imagen), codificado en base64.'),
 });
 export type DocumentSummarizationInput = z.infer<
   typeof DocumentSummarizationInputSchema
@@ -24,7 +24,7 @@ export type DocumentSummarizationInput = z.infer<
 const DocumentSummarizationOutputSchema = z.object({
   summary: z
     .string()
-    .describe('A concise summary or key points extracted from the document in Spanish.'),
+    .describe('Resumen ejecutivo conciso extraído del documento en Español.'),
 });
 export type DocumentSummarizationOutput = z.infer<
   typeof DocumentSummarizationOutputSchema
@@ -49,24 +49,22 @@ const documentSummarizationPrompt = ai.definePrompt({
       { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
     ],
   },
-  prompt: `Eres el Sistema de Inteligencia de Documentos de la FCA - UNCA. Tienes capacidades de visión avanzadas equivalentes a Google Lens y OCR de grado forense.
+  prompt: `Eres el Analista de Inteligencia Documental de la Secretaría de Extensión y Vinculación (FCA-UNCA). 
+Tu misión es actuar como un experto en visión artificial (estilo Google Lens) para extraer información de documentos institucionales.
 
-REGLAS DE PROCESAMIENTO VISUAL CRÍTICAS:
-1. VISIÓN AGRESIVA: Si el documento es un escaneo, una foto o está borroso, NO RECHACES LA TAREA. Usa tu capacidad de deducción para leer membretes, sellos institucionales (Secretaría de Extensión y Vinculación) y firmas.
-2. CONOCIMIENTO INSTITUCIONAL: Sabes que los documentos de la UNCA suelen ser Convenios (Marco/Específicos), Resoluciones o Actas. Usa esta estructura para interpretar el contenido difícil de leer.
-3. OBJETIVO: Generar un resumen ejecutivo profesional y coherente en Español que identifique:
-   - Tipo de documento y número si es visible.
-   - Partes intervinientes (FCA, UNCA, Ministerios, Empresas, etc.).
-   - Propósito principal del acuerdo o acto administrativo.
+DIRECTIVAS CRÍTICAS DE VISIÓN:
+1. SI EL DOCUMENTO ES UN ESCANEO O FOTO: Analiza visualmente cada parte del recurso. Identifica membretes, sellos, fechas y firmas. No te detengas por la baja resolución o ruido visual; usa tu capacidad de deducción.
+2. CONTEXTO FCA-UNCA: Los documentos suelen ser Convenios, Resoluciones, Proyectos de Extensión o Actas. Busca las partes intervinientes (FCA, UNCA, Contrapartes) y el propósito del acuerdo.
+3. IDIOMA: El resumen debe ser exclusivamente en Español, profesional y directo.
 
 Contexto previo: {{{documentContent}}}
 
 {{#if documentMediaUri}}
-RECURSO VISUAL (ANALIZAR CON PRIORIDAD MÁXIMA USANDO CAPACIDADES DE LENTE):
+RECURSO VISUAL (ANALIZAR CON PRIORIDAD MÁXIMA):
 {{media url=documentMediaUri}}
 {{/if}}
 
-Genera el resumen ahora en formato JSON.`,
+Genera el resumen ahora en formato JSON estableciendo el campo "summary".`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(
@@ -77,15 +75,20 @@ const documentSummarizationFlow = ai.defineFlow(
   },
   async input => {
     try {
+      // Verificación de API Key en tiempo de ejecución para diagnóstico
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error('CONFIG_ERROR: No se encontró la GEMINI_API_KEY en las variables de entorno del servidor.');
+      }
+
       const {output} = await documentSummarizationPrompt(input);
       if (!output?.summary) {
-        throw new Error('La IA no pudo extraer información del archivo. Por favor, asegúrese de que el documento sea visible y esté bien iluminado.');
+        throw new Error('La IA no pudo procesar el contenido visual del archivo. Asegúrese de que el documento sea visible.');
       }
       return output!;
     } catch (e: any) {
-      // Manejo mejorado del error de API KEY
-      if (e.message.toLowerCase().includes('api_key') || e.message.toLowerCase().includes('api key')) {
-        throw new Error('Error de Conexión: No se encontró la clave de acceso a la IA (GEMINI_API_KEY). Verifique su configuración institucional.');
+      console.error('Flow Error:', e);
+      if (e.message.includes('CONFIG_ERROR') || e.message.toLowerCase().includes('api_key') || e.message.toLowerCase().includes('api key')) {
+        throw new Error('Error de Acceso: El sistema no encuentra la GEMINI_API_KEY para acceder a la IA. Verifique el archivo .env o la configuración del servidor.');
       }
       throw e;
     }

@@ -20,7 +20,8 @@ import {
   Link as LinkIcon,
   FileUp,
   Clock,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -43,6 +44,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function UploadPage() {
   const router = useRouter();
@@ -61,6 +63,7 @@ export default function UploadPage() {
   const [keywordInput, setKeywordInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [isVigente, setIsVigente] = useState(true);
   const [signingYear, setSigningYear] = useState(new Date().getFullYear().toString());
@@ -70,16 +73,16 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-      if (!allowedTypes.includes(selectedFile.type)) {
+      if (selectedFile.type !== "application/pdf" && !selectedFile.type.startsWith("image/")) {
         toast({
           variant: "destructive",
           title: "Formato no permitido",
-          description: "Solo se permiten PDF o imágenes (JPG/PNG).",
+          description: "Solo se permiten PDF o imágenes institucionales.",
         });
         return;
       }
       setFile(selectedFile);
+      setAiError(null);
     }
   };
 
@@ -88,12 +91,13 @@ export default function UploadPage() {
       toast({
         variant: "destructive",
         title: "Sin origen",
-        description: "Debe seleccionar un archivo o URL para analizar.",
+        description: "Debe seleccionar un archivo o URL para que la IA pueda leerlo.",
       });
       return;
     }
 
     setIsSummarizing(true);
+    setAiError(null);
     try {
       let documentMediaUri = undefined;
       
@@ -115,15 +119,16 @@ export default function UploadPage() {
         setDescription(result.summary);
         toast({
           title: "Análisis completado",
-          description: "Se ha extraído la información visual correctamente.",
+          description: "La IA ha interpretado el documento exitosamente.",
         });
       }
     } catch (error: any) {
       console.error("AI Error:", error);
+      setAiError(error.message);
       toast({
         variant: "destructive",
-        title: "Error de Análisis",
-        description: error.message || "No se pudieron interpretar los datos del documento.",
+        title: "Error de IA",
+        description: "No se pudo acceder al servicio de inteligencia artificial.",
       });
     } finally {
       setIsSummarizing(false);
@@ -155,8 +160,9 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    // Asegurar mayúscula inicial respetando el resto del texto ingresado
-    const formattedTitle = title.trim().charAt(0).toUpperCase() + title.trim().slice(1);
+    // Formateo de título: Mayúscula inicial, resto tal cual se escribió.
+    const trimmedTitle = title.trim();
+    const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
 
     const documentData: any = {
       title: formattedTitle,
@@ -443,9 +449,18 @@ export default function UploadPage() {
                       Generar con IA
                     </Button>
                   </div>
+                  {aiError && (
+                    <Alert variant="destructive" className="mb-4 rounded-xl">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Fallo en IA</AlertTitle>
+                      <AlertDescription className="text-[11px] font-bold">
+                        {aiError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <Textarea 
                     id="description" 
-                    placeholder="Describa el objetivo del documento o genere uno automáticamente con IA..." 
+                    placeholder="Escriba manualmente el resumen o generelo automáticamente con IA analizando el documento..." 
                     className="min-h-[140px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
