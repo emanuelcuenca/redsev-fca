@@ -21,7 +21,8 @@ import {
   Clock,
   Sparkles,
   AlertCircle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Plane
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -241,6 +242,8 @@ export default function UploadPage() {
                   { id: "Proyecto", label: "Proyecto de Extensión", icon: FileText },
                   { id: "Resolución", label: "Resolución", icon: ScrollText },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
+                  { id: "Movilidad Estudiantil", label: "Movilidad Estudiantil", icon: Plane },
+                  { id: "Movilidad Docente", label: "Movilidad Docente", icon: Plane },
                   { id: "Reglamento", label: "Reglamento", icon: Gavel },
                   { id: "Informe", label: "Informe Técnico", icon: Info }
                 ].map((item) => (

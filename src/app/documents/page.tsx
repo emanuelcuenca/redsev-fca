@@ -19,7 +19,10 @@ import {
   ScrollText,
   GraduationCap,
   Gavel,
-  Trash2
+  Trash2,
+  Plane,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -105,6 +108,8 @@ export default function DocumentsListPage() {
       if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'reglamentos' && doc.type !== 'Reglamento') return false;
+      if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
+      if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -158,6 +163,8 @@ export default function DocumentsListPage() {
                     category === 'resoluciones' ? 'Resoluciones' :
                     category === 'pasantias' ? 'Prácticas y Pasantías' :
                     category === 'reglamentos' ? 'Reglamentos' :
+                    category === 'movilidad-estudiantil' ? 'Movilidad Estudiantil' :
+                    category === 'movilidad-docente' ? 'Movilidad Docente' :
                     'Todos los Documentos';
 
   const PageIcon = category === 'convenios' ? Handshake : 
@@ -165,6 +172,8 @@ export default function DocumentsListPage() {
                    category === 'resoluciones' ? ScrollText :
                    category === 'pasantias' ? GraduationCap :
                    category === 'reglamentos' ? Gavel :
+                   category === 'movilidad-estudiantil' ? Plane :
+                   category === 'movilidad-docente' ? Plane :
                    FileText;
 
   if (isUserLoading || !mounted) {

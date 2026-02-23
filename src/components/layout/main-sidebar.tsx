@@ -12,7 +12,8 @@ import {
   Users,
   ScrollText,
   GraduationCap,
-  Gavel
+  Gavel,
+  Plane
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,6 +50,8 @@ export function MainSidebar() {
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
     { icon: ScrollText, label: "Resoluciones", href: "/documents?category=resoluciones" },
     { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
+    { icon: Plane, label: "Movilidad Estudiantil", href: "/documents?category=movilidad-estudiantil" },
+    { icon: Plane, label: "Movilidad Docente", href: "/documents?category=movilidad-docente" },
     { icon: Gavel, label: "Reglamentos", href: "/documents?category=reglamentos" },
   ];
 
@@ -81,7 +84,8 @@ export function MainSidebar() {
       <SidebarContent>
         <SidebarMenu className="px-2 gap-1.5">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || (item.href.includes('?') && pathname + '?' + searchParams.toString() === item.href);
+            const currentHref = pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
+            const isActive = currentHref === item.href;
             return (
               <SidebarMenuItem key={item.label}>
                 <SidebarMenuButton 
