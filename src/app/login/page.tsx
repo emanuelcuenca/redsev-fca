@@ -26,7 +26,7 @@ export default function LoginPage() {
     
     try {
       // VALIDACIÓN ESTRICTA: Esperamos a que Firebase confirme la autenticidad
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       toast({
         title: "Acceso concedido",
         description: "Bienvenido al repositorio institucional.",
@@ -35,7 +35,7 @@ export default function LoginPage() {
     } catch (error: any) {
       setLoading(false);
       // Mensaje unificado solicitado para proteger la privacidad del sistema y ser claro con el usuario
-      let message = "El usuario y/o la contraseña no coinciden con nuestros registros.";
+      const message = "El usuario y/o la contraseña no coinciden con nuestros registros.";
       
       toast({
         variant: "destructive",
@@ -87,7 +87,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
+                  <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
