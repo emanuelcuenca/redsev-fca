@@ -88,16 +88,7 @@ export default function Dashboard() {
              {isUserLoading ? (
                <Loader2 className="w-5 h-5 animate-spin text-primary" />
              ) : user ? (
-               <>
-                 {isAdmin && (
-                   <Button asChild size="sm" className="hidden sm:flex bg-accent hover:bg-accent/90 text-accent-foreground font-black rounded-xl h-9 uppercase tracking-widest text-[11px]">
-                     <Link href="/upload" className="flex items-center gap-2">
-                       <Plus className="w-4 h-4" /> Nuevo
-                     </Link>
-                   </Button>
-                 )}
-                 <UserMenu />
-               </>
+               <UserMenu />
              ) : (
                <div className="flex items-center gap-2">
                  <Button asChild variant="ghost" size="sm" className="font-black uppercase tracking-widest text-[10px] text-primary h-9 px-3 rounded-xl hover:bg-primary/5">

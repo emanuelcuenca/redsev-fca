@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
@@ -32,9 +33,20 @@ export function UserMenu() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
   
-  const userPhoto = user?.photoURL || "https://picsum.photos/seed/prof1/100/100";
+  const userPhoto = user?.photoURL || "";
   const userName = user?.displayName || user?.email?.split('@')[0] || "Usuario FCA";
   const userEmail = user?.email || "institucional@unca.edu.ar";
+
+  // Generar iniciales del nombre
+  const getInitials = (name: string) => {
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0] ? parts[0][0].toUpperCase() : "U";
+  };
+
+  const initials = getInitials(userName);
 
   const copyUid = () => {
     if (user?.uid) {
@@ -52,12 +64,12 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full border-2 border-primary/20 p-0 overflow-hidden outline-none hover:border-primary/40 transition-colors">
-          <Image 
-            src={userPhoto} 
-            alt="Avatar" 
-            fill
-            className="object-cover" 
-          />
+          <Avatar className="h-full w-full">
+            <AvatarImage src={userPhoto} alt={userName} className="object-cover" />
+            <AvatarFallback className="bg-primary text-primary-foreground font-black text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-72 rounded-2xl shadow-xl border-muted p-2" align="end" forceMount>

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn } from "lucide-react";
+import { Leaf, Mail, Lock, Loader2, ArrowRight, User, LogIn, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,38 +17,42 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Capitalize first letter of each word automatically
-    const formattedName = name
+  const formatName = (text: string) => {
+    return text
       .toLowerCase()
       .split(' ')
       .filter(word => word.length > 0)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  };
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const formattedFirstName = formatName(firstName);
+    const formattedLastName = formatName(lastName);
+    const fullName = `${formattedFirstName} ${formattedLastName}`;
 
     try {
-      // Initiate sign up
+      // Inicia registro en Firebase Auth
       initiateEmailSignUp(auth, email, password);
-      
-      // Note: In a production app, profile creation would usually follow 
-      // the successful auth event. For this prototype, we confirm the 
-      // name formatting to the user.
       
       toast({
         title: "Registro iniciado",
-        description: `Creando perfil para ${formattedName}...`,
+        description: `Creando perfil para ${fullName}...`,
       });
 
-      // Actualizamos el estado local para que el usuario vea la corrección visual inmediata
-      setName(formattedName);
+      // Actualizamos estado local
+      setFirstName(formattedFirstName);
+      setLastName(formattedLastName);
 
       setTimeout(() => {
         router.push("/");
@@ -88,21 +92,54 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent className="px-8 pb-4 pt-4">
             <form onSubmit={handleRegister} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input 
+                      id="firstName" 
+                      type="text" 
+                      placeholder="Juan" 
+                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Apellido</Label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input 
+                      id="lastName" 
+                      type="text" 
+                      placeholder="Pérez" 
+                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
+                      required
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre Completo</Label>
+                <Label htmlFor="photoUrl" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional - URL)</Label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                  <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
                   <Input 
-                    id="name" 
-                    type="text" 
-                    placeholder="Juan Pérez" 
+                    id="photoUrl" 
+                    type="url" 
+                    placeholder="https://ejemplo.com/foto.jpg" 
                     className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Correo Institucional</Label>
                 <div className="relative group">
@@ -118,6 +155,7 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
                 <div className="relative group">
@@ -134,6 +172,7 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mt-2"

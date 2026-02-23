@@ -173,11 +173,6 @@ export default function DocumentsListPage() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            {isAdmin && (
-              <Button asChild size="sm" className="bg-primary hover:bg-primary/90 rounded-xl text-[10px] md:text-xs px-3 h-8 font-bold">
-                <Link href="/upload">Subir</Link>
-              </Button>
-            )}
             <UserMenu />
           </div>
         </header>
