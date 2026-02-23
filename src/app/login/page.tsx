@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, initiateEmailSignIn } from "@/firebase";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -19,23 +20,28 @@ export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      initiateEmailSignIn(auth, email, password);
-      // El estado de autenticación es manejado por el FirebaseProvider.
-      // Si el login es exitoso, el FirebaseProvider actualizará el estado del usuario.
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
+      // VALIDACIÓN ESTRICTA: Esperamos a que Firebase confirme la autenticidad
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Acceso concedido",
+        description: "Bienvenido al repositorio institucional.",
+      });
+      router.push("/");
     } catch (error: any) {
       setLoading(false);
+      let message = "Verifique sus credenciales institucionales.";
+      if (error.code === 'auth/user-not-found') message = "Usuario no registrado en el sistema.";
+      if (error.code === 'auth/wrong-password') message = "Contraseña incorrecta.";
+      
       toast({
         variant: "destructive",
         title: "Error de acceso",
-        description: "Verifique sus credenciales institucionales.",
+        description: message,
       });
     }
   };

@@ -1,14 +1,14 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, 
-  Settings, 
   Leaf,
   ShieldCheck,
   Handshake,
-  Sprout,
+  ArrowLeftRight,
   UploadCloud,
   Users
 } from "lucide-react";
@@ -43,7 +43,7 @@ export function MainSidebar() {
 
   const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
-    { icon: Sprout, label: "Extensión", href: "/documents?category=extension" },
+    { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
   ];
 

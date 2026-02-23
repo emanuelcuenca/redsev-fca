@@ -32,7 +32,8 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth, initiateEmailSignUp } from "@/firebase";
+import { useAuth } from "@/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 const DEPARTMENTS = [
@@ -81,18 +82,21 @@ export default function RegisterPage() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
     // VALIDACIÓN ESTRICTA DE DOMINIO INSTITUCIONAL
-    const isInstitutional = email.endsWith('@unca.edu.ar') || email.endsWith('@est.unca.edu.ar');
+    const cleanEmail = email.trim().toLowerCase();
+    const isInstitutional = cleanEmail.endsWith('@unca.edu.ar') || cleanEmail.endsWith('@est.unca.edu.ar');
+    
     if (!isInstitutional) {
-      setError("Solo se permiten correos institucionales (@unca.edu.ar o @est.unca.edu.ar).");
+      const msg = "Solo se permiten correos institucionales de la UNCA (@unca.edu.ar).";
+      setError(msg);
       toast({
         variant: "destructive",
-        title: "Dominio no permitido",
-        description: "Debe usar un correo institucional de la UNCA.",
+        title: "Dominio no institucional",
+        description: msg,
       });
       return;
     }
@@ -101,7 +105,7 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "Campos incompletos",
-        description: "Por favor seleccione su cargo docente y dependencia.",
+        description: "Debe seleccionar su cargo y dependencia institucional.",
       });
       return;
     }
@@ -112,6 +116,7 @@ export default function RegisterPage() {
     const formattedLastName = formatName(lastName);
     const fullName = `${formattedFirstName} ${formattedLastName}`;
 
+    // Almacenamos datos para que el Provider los use al crear el doc de Firestore
     if (typeof window !== 'undefined') {
       localStorage.setItem('pending_profile_data', JSON.stringify({
         firstName: formattedFirstName,
@@ -124,23 +129,23 @@ export default function RegisterPage() {
     }
 
     try {
-      initiateEmailSignUp(auth, email, password);
-      
+      await createUserWithEmailAndPassword(auth, cleanEmail, password);
       toast({
-        title: "Registro iniciado",
-        description: `Creando perfil para ${fullName}...`,
+        title: "Cuenta creada",
+        description: `Bienvenido al sistema, ${formattedFirstName}.`,
       });
-
-      setTimeout(() => {
-        router.push("/");
-      }, 2500);
+      router.push("/");
     } catch (error: any) {
       setLoading(false);
-      setError("No se pudo crear la cuenta. Verifique sus datos.");
+      let message = "No se pudo crear la cuenta. Intente nuevamente.";
+      if (error.code === 'auth/email-already-in-use') message = "El correo ya está registrado.";
+      if (error.code === 'auth/weak-password') message = "La contraseña es muy débil.";
+      
+      setError(message);
       toast({
         variant: "destructive",
         title: "Error de registro",
-        description: "No se pudo crear la cuenta. Intente nuevamente.",
+        description: message,
       });
     }
   };
@@ -155,8 +160,8 @@ export default function RegisterPage() {
           <Link href="/" className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform">
             <Leaf className="w-10 h-10 text-primary-foreground" />
           </Link>
-          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-xl font-headline text-black uppercase tracking-tighter text-center mt-1">
+          <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-sm md:text-xl font-headline text-black uppercase tracking-tighter text-center mt-1">
             FCA - UNCA
           </p>
         </div>
@@ -173,7 +178,7 @@ export default function RegisterPage() {
               {error && (
                 <Alert variant="destructive" className="rounded-xl">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
+                  <AlertTitle>Error de Registro</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
