@@ -19,6 +19,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 
+const DEPARTMENTS = [
+  "Cs. Agrarias",
+  "Cs. de la Salud",
+  "Cs. Económicas y de Adm.",
+  "Cs. Exactas y Naturales",
+  "Derecho",
+  "Esc. de Arqueología",
+  "Humanidades",
+  "Tecnología y Cs. Aplicadas"
+].sort();
+
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -59,7 +70,6 @@ export default function RegisterPage() {
     const formattedLastName = formatName(lastName);
     const fullName = `${formattedFirstName} ${formattedLastName}`;
 
-    // Almacenar temporalmente los datos adicionales para que el Provider los use al detectar el nuevo usuario
     if (typeof window !== 'undefined') {
       localStorage.setItem('pending_profile_data', JSON.stringify({
         firstName: formattedFirstName,
@@ -178,14 +188,9 @@ export default function RegisterPage() {
                         <SelectValue placeholder="Seleccione dependencia" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Tecnología y Cs. Aplicadas">Tecnología y Cs. Aplicadas</SelectItem>
-                        <SelectItem value="Cs. Exactas y Naturales">Cs. Exactas y Naturales</SelectItem>
-                        <SelectItem value="Cs. Agrarias">Cs. Agrarias</SelectItem>
-                        <SelectItem value="Cs. Económicas y de Adm.">Cs. Económicas y de Adm.</SelectItem>
-                        <SelectItem value="Cs. de la Salud">Cs. de la Salud</SelectItem>
-                        <SelectItem value="Derecho">Derecho</SelectItem>
-                        <SelectItem value="Humanidades">Humanidades</SelectItem>
-                        <SelectItem value="Esc. de Arqueología">Esc. de Arqueología</SelectItem>
+                        {DEPARTMENTS.map(dept => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

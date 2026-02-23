@@ -13,7 +13,8 @@ import {
   Mail,
   Lock,
   Camera,
-  UserCircle
+  UserCircle,
+  ShieldAlert
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -34,6 +35,17 @@ import { doc } from "firebase/firestore";
 import { updateEmail, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
+const DEPARTMENTS = [
+  "Cs. Agrarias",
+  "Cs. de la Salud",
+  "Cs. Económicas y de Adm.",
+  "Cs. Exactas y Naturales",
+  "Derecho",
+  "Esc. de Arqueología",
+  "Humanidades",
+  "Tecnología y Cs. Aplicadas"
+].sort();
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
@@ -52,6 +64,13 @@ export default function ProfilePage() {
   );
   
   const { data: profile, isLoading: isProfileLoading } = useDoc(userProfileRef);
+
+  const adminCheckRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  const { data: adminDoc } = useDoc(adminCheckRef);
+  const isAdmin = !!adminDoc;
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -81,8 +100,8 @@ export default function ProfilePage() {
     setIsSaving(true);
     
     try {
-      // 1. Verificar si el email cambió para re-autenticar
-      if (formData.email !== user.email) {
+      // 1. Si es admin y cambió el email, o si un usuario común intenta cambiarlo (bloqueado por UI pero por si acaso)
+      if (formData.email !== user.email && isAdmin) {
         if (!currentPassword) {
           toast({
             variant: "destructive",
@@ -98,12 +117,19 @@ export default function ProfilePage() {
         await updateEmail(user, formData.email);
       }
 
-      // 2. Actualizar perfil de Auth (Nombre y Foto)
+      // 2. Actualizar perfil de Auth (Nombre y Foto) - Solo si es admin o si son campos de cargo/dependencia que sí puede editar
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      await updateProfile(user, {
-        displayName: fullName,
-        photoURL: formData.photoUrl
-      });
+      if (isAdmin) {
+        await updateProfile(user, {
+          displayName: fullName,
+          photoURL: formData.photoUrl
+        });
+      } else {
+        // Usuario común solo puede actualizar su foto si se lo permitimos (aquí lo dejamos habilitado)
+        await updateProfile(user, {
+          photoURL: formData.photoUrl
+        });
+      }
 
       // 3. Actualizar documento en Firestore
       updateDocumentNonBlocking(userProfileRef, {
@@ -117,7 +143,6 @@ export default function ProfilePage() {
         description: "Tus datos han sido guardados correctamente. Redirigiendo...",
       });
 
-      // Redirigir al inicio después de un breve delay para que se vea el toast
       setTimeout(() => {
         router.push("/");
       }, 1500);
@@ -175,6 +200,15 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {!isAdmin && (
+            <div className="mb-6 p-4 bg-muted/50 rounded-2xl flex items-center gap-3 border border-dashed border-muted-foreground/20 animate-in fade-in duration-700">
+              <ShieldAlert className="w-5 h-5 text-muted-foreground" />
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">
+                Los campos de nombre y correo están protegidos. Contacte a un administrador para realizar cambios en estos datos.
+              </p>
+            </div>
+          )}
+
           <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm mb-8">
             <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
               <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Información Profesional</CardTitle>
@@ -190,7 +224,8 @@ export default function ProfilePage() {
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                     placeholder="Su nombre"
-                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
+                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
+                    disabled={!isAdmin}
                   />
                 </div>
                 <div className="space-y-2">
@@ -199,7 +234,8 @@ export default function ProfilePage() {
                     value={formData.lastName}
                     onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                     placeholder="Su apellido"
-                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
+                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
+                    disabled={!isAdmin}
                   />
                 </div>
                 
@@ -212,7 +248,8 @@ export default function ProfilePage() {
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="usuario@unca.edu.ar"
-                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
+                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
+                      disabled={!isAdmin}
                     />
                   </div>
                 </div>
@@ -258,21 +295,16 @@ export default function ProfilePage() {
                         <SelectValue placeholder="Seleccione dependencia" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Tecnología y Cs. Aplicadas">Tecnología y Cs. Aplicadas</SelectItem>
-                        <SelectItem value="Cs. Exactas y Naturales">Cs. Exactas y Naturales</SelectItem>
-                        <SelectItem value="Cs. Agrarias">Cs. Agrarias</SelectItem>
-                        <SelectItem value="Cs. Económicas y de Adm.">Cs. Económicas y de Adm.</SelectItem>
-                        <SelectItem value="Cs. de la Salud">Cs. de la Salud</SelectItem>
-                        <SelectItem value="Derecho">Derecho</SelectItem>
-                        <SelectItem value="Humanidades">Humanidades</SelectItem>
-                        <SelectItem value="Esc. de Arqueología">Esc. de Arqueología</SelectItem>
+                        {DEPARTMENTS.map(dept => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
               </div>
 
-              {formData.email !== user?.email && (
+              {isAdmin && formData.email !== user?.email && (
                 <div className="p-6 bg-accent/5 border-2 border-accent/20 rounded-2xl animate-in fade-in slide-in-from-top-4">
                   <div className="flex items-center gap-3 mb-4">
                     <Lock className="w-5 h-5 text-accent" />
