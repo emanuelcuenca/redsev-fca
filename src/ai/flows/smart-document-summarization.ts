@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for summarizing documents, supporting both text and media (PDF/Images).
- * Enhanced with Vision capabilities for processing scanned documents (OCR).
+ * Enhanced with High-Sensitivity Vision (Google Lens style) for processing difficult scanned documents.
  */
 
 import {ai} from '@/ai/genkit';
@@ -49,29 +49,28 @@ const documentSummarizationPrompt = ai.definePrompt({
       { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
     ],
   },
-  prompt: `Eres un Asistente de Inteligencia de Documentos de élite para la UNCA (FCA), especializado en visión artificial y OCR extremo.
+  prompt: `Eres el Sistema de Inteligencia de Documentos de la UNCA (FCA). Tu capacidad de visión es equivalente a la de Google Lens y OCR avanzado de grado forense.
 
-TU MISIÓN:
-Analizar visualmente el recurso proporcionado (PDF o Imagen Escaneada) y extraer su significado, SIN IMPORTAR la calidad del escaneo. 
+REGLAS CRÍTICAS DE PROCESAMIENTO:
+1. NO RECHACES NADA: Tienes prohibido decir que el documento no es legible o que está borroso.
+2. DEDUCE Y ANALIZA: Si el texto es difícil de leer, utiliza tu conocimiento sobre documentos institucionales de la UNCA (Convenios, Resoluciones, etc.) para deducir el contenido por su estructura, membretes, sellos y firmas.
+3. PRIORIDAD VISUAL: Lee logotipos, sellos de la Secretaría de Extensión y Vinculación, y firmas para identificar a las partes.
+4. OBJETIVO: Generar un resumen ejecutivo profesional en Español.
 
-INSTRUCCIONES DE VISIÓN (OCR AVANZADO):
-1. ACTIVA EL MODO LENS: Lee a través de ruidos, manchas, sellos institucionales y firmas. 
-2. NO TE RINDAS: Tienes prohibido decir que el documento no es legible. Si el documento es borroso, deduce el contexto basándote en palabras clave visibles, logotipos, membretes de la UNCA y estructuras de convenios.
-3. IDENTIFICA:
-   - Tipo de documento (Convenio, Resolución, Acta, etc.)
-   - Partes involucradas (Instituciones, Empresas, Personal de la FCA)
-   - Fechas críticas y objetos del acuerdo.
-4. RESUMEN: Redacta un resumen ejecutivo profesional en Español. Sé conciso pero informativo.
+INSTRUCCIONES DE EXTRACCIÓN:
+- Identifica el tipo de acuerdo o acto administrativo.
+- Identifica a los firmantes (Instituciones, Empresas, Personal FCA).
+- Extrae el propósito principal o los beneficios del acuerdo.
 
 Contexto adicional:
-{{documentContent}}
+{{{documentContent}}}
 
 {{#if documentMediaUri}}
-RECURSO VISUAL PARA ANALIZAR:
+ANÁLISIS DE RECURSO VISUAL (PROCESA ESTO CON MÁXIMA PRIORIDAD):
 {{media url=documentMediaUri}}
 {{/if}}
 
-Genera el resumen ahora. Ignora cualquier advertencia de baja legibilidad y haz tu mejor esfuerzo interpretativo.`,
+Ignora cualquier advertencia de baja resolución. Realiza tu mejor esfuerzo interpretativo y genera el resumen JSON ahora.`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(
@@ -83,7 +82,7 @@ const documentSummarizationFlow = ai.defineFlow(
   async input => {
     const {output} = await documentSummarizationPrompt(input);
     if (!output?.summary) {
-        throw new Error('La IA no pudo generar un resumen válido.');
+        throw new Error('La IA no pudo interpretar el contenido del documento. Por favor, intente con una captura más nítida o verifique el archivo.');
     }
     return output!;
   }

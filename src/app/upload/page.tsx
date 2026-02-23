@@ -123,7 +123,7 @@ export default function UploadPage() {
       toast({
         variant: "destructive",
         title: "Error de Análisis",
-        description: "No se pudo interpretar el archivo. Asegúrese de que no esté protegido por contraseña.",
+        description: error.message || "No se pudieron interpretar los datos del documento.",
       });
     } finally {
       setIsSummarizing(false);
@@ -155,6 +155,7 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
+    // Asegurar mayúscula inicial respetando el resto del texto
     const formattedTitle = title.trim().charAt(0).toUpperCase() + title.trim().slice(1);
 
     const documentData: any = {
