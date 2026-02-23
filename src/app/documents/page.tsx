@@ -107,8 +107,7 @@ export default function DocumentsListPage() {
       if (category === 'extension' && !['Proyecto', 'Informe'].includes(doc.type)) return false;
       if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
-      if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
+      if (category === 'movilidad' && !['Movilidad', 'Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -161,16 +160,14 @@ export default function DocumentsListPage() {
                     category === 'extension' ? 'Extensión' : 
                     category === 'resoluciones-reglamentos' ? 'Resoluciones y Reglamentos' :
                     category === 'pasantias' ? 'Prácticas y Pasantías' :
-                    category === 'movilidad-estudiantil' ? 'Movilidad Estudiantil' :
-                    category === 'movilidad-docente' ? 'Movilidad Docente' :
+                    category === 'movilidad' ? 'Movilidad' :
                     'Todos los Documentos';
 
   const PageIcon = category === 'convenios' ? Handshake : 
                    category === 'extension' ? ArrowLeftRight : 
                    category === 'resoluciones-reglamentos' ? ScrollText :
                    category === 'pasantias' ? GraduationCap :
-                   category === 'movilidad-estudiantil' ? Plane :
-                   category === 'movilidad-docente' ? Plane :
+                   category === 'movilidad' ? Plane :
                    FileText;
 
   if (isUserLoading || !mounted) {

@@ -74,11 +74,11 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type !== "application/pdf" && !selectedFile.type.startsWith("image/")) {
+      if (selectedFile.type !== "application/pdf") {
         toast({
           variant: "destructive",
           title: "Formato no permitido",
-          description: "Solo se permiten PDF o imágenes institucionales.",
+          description: "Solo se permiten archivos PDF institucionales.",
         });
         return;
       }
@@ -240,10 +240,9 @@ export default function UploadPage() {
                 {[
                   { id: "Convenio", label: "Convenio", icon: Clock },
                   { id: "Proyecto", label: "Proyecto de Extensión", icon: FileText },
-                  { id: "Resolución", label: "Resolución", icon: ScrollText },
+                  { id: "Movilidad", label: "Movilidad", icon: Plane },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
-                  { id: "Movilidad Estudiantil", label: "Movilidad Estudiantil", icon: Plane },
-                  { id: "Movilidad Docente", label: "Movilidad Docente", icon: Plane },
+                  { id: "Resolución", label: "Resolución", icon: ScrollText },
                   { id: "Reglamento", label: "Reglamento", icon: Gavel },
                   { id: "Informe", label: "Informe Técnico", icon: Info }
                 ].map((item) => (
@@ -275,7 +274,7 @@ export default function UploadPage() {
               <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
                   <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <FileUp className="w-4 h-4" /> Archivo (PDF/Imagen)
+                    <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
                   </TabsTrigger>
                   <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
                     <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
@@ -304,12 +303,12 @@ export default function UploadPage() {
                         </div>
                         <div className="text-center">
                           <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Archivo</p>
-                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">PDF o Escaneo JPG/PNG (Máx 20MB)</p>
+                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Documento Institucional (Solo PDF, Máx 20MB)</p>
                           <Label htmlFor="file-upload" className="cursor-pointer">
                             <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                              Seleccionar Archivo
+                              Seleccionar PDF
                             </div>
-                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*" />
+                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
                           </Label>
                         </div>
                       </>
