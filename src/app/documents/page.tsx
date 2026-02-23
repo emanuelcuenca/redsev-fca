@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { 
@@ -53,12 +53,17 @@ import { doc, collection, query, orderBy } from "firebase/firestore";
 import { AgriculturalDocument } from "@/lib/mock-data";
 
 export default function DocumentsListPage() {
+  const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterVigente, setFilterVigente] = useState<string>("all");
   const [filterYear, setFilterYear] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCounterpart, setFilterCounterpart] = useState<string>("all");
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   
@@ -298,7 +303,9 @@ export default function DocumentsListPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 text-primary" />
-                          <span className="font-bold">{new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          <span className="font-bold">
+                            {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
@@ -372,7 +379,7 @@ export default function DocumentsListPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground font-bold">
-                          {new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
                         </TableCell>
                         <TableCell className="text-right pr-12">
                           <div className="flex justify-end gap-2">
