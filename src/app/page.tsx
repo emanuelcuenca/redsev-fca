@@ -114,8 +114,8 @@ export default function Dashboard() {
                     <Sprout className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Extensión</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Transferencia de conocimiento técnico directamente al productor rural.</p>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Interacción dialéctica entre la Universidad y los demás componentes del cuerpo social.</p>
                   </div>
                 </div>
 
@@ -124,8 +124,8 @@ export default function Dashboard() {
                     <Handshake className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Vinculación</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad, el estado y la empresa privada.</p>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Vinculación</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad y el medio socio-productivo.</p>
                   </div>
                 </div>
 
@@ -134,8 +134,8 @@ export default function Dashboard() {
                     <BookOpen className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Formación</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Programas de capacitación continua para profesionales y técnicos.</p>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Formación</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Capacitación continua para profesionales y técnicos.</p>
                   </div>
                 </div>
 
@@ -144,7 +144,7 @@ export default function Dashboard() {
                     <Leaf className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1">Sustentabilidad</h3>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Sustentabilidad</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p>
                   </div>
                 </div>
