@@ -4,156 +4,69 @@ service cloud.firestore {
 
     /**
      * VínculoAgro Security Rules
-     * 
-     * CORE PHILOSOPHY:
-     * This ruleset implements a centralized administrative model. The "Secretaría" (Administrators) 
-     * has full control over the document repository, while all other authenticated users (Viewers) 
-     * have read-only access to search and view content.
-     * 
-     * DATA STRUCTURE:
-     * - /users/{userId}: Private user profiles.
-     * - /roles_admin/{userId}: An "Existence-over-Content" collection used to verify admin status 
-     *   without expensive document lookups.
-     * - /documents, /projects, /authors, etc.: Top-level collections for repository content.
-     * 
-     * KEY SECURITY DECISIONS:
-     * - RBAC via 'roles_admin': Administrative privileges are determined by the existence of a 
-     *   document in the `/roles_admin` collection mapped to the user's UID.
-     * - Public Read (Authenticated): Any signed-in user can list and get repository documents.
-     * - Administrative Writes: All mutations (create, update, delete) on repository data are 
-     *   restricted to users with the Admin role.
-     * - Self-Service Profiles: Users can create and manage their own profile data, but cannot 
-     *   elevate their own roles.
-     * 
-     * DENORMALIZATION FOR AUTHORIZATION:
-     * - Documents include an `uploadedByUserId` to track provenance, though writes are governed 
-     *   primarily by the global Admin role.
-     * - User documents include an `id` field that must match the Firestore document ID to ensure 
-     *   path-to-data consistency.
      */
 
     // --- Global Helper Functions ---
 
-    // Checks if the user is authenticated.
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Checks if the user's UID exists in the administrative roles collection.
-    // This is a high-performance check that avoids fetching full user profiles.
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // Checks if the authenticated user's UID matches the provided userId.
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Checks if the document exists and the user is an admin.
-    // This function is intended for `update` and `delete` operations where `resource` (the existing document) is available.
     function isExistingAdmin() {
       return resource != null && isAdmin();
     }
 
     // --- Collection Rules ---
 
-    /**
-     * @description Rules for the User collection. Users manage their own profiles.
-     * @path /users/{userId}
-     * @allow (get, list, update) if the user is the owner of the profile.
-     * @deny (create) if the userId in the data does not match the path.
-     * @principle Ownership-based access and path-to-data consistency.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
-    /**
-     * @description Marker collection for Administrative roles.
-     * @path /roles_admin/{userId}
-     * @allow (get) if the user is an admin or checking their own status.
-     * @deny (write) all client-side writes; admins should be managed via Admin SDK/Console.
-     * @principle Existence-over-content pattern for high-performance role checks.
-     */
     match /roles_admin/{userId} {
-      allow get: if isSignedIn(); // Any signed-in user can check if *someone* is an admin (e.g., for UI elements)
-      allow list: if isAdmin();    // Only admins can list all admin roles.
-      allow create, update, delete: if false; // Managed by Admin SDK for security
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      // Permite que un administrador cree o elimine otros administradores.
+      // NOTA: El primer administrador debe ser creado manualmente en la consola de Firebase.
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Central repository for documents.
-     * @path /documents/{documentId}
-     * @allow (get, list) for any authenticated user.
-     * @allow (create, update, delete) only for users in the roles_admin collection.
-     * @principle Administrative write privileges with authenticated public read access.
-     */
     match /documents/{documentId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin() && request.resource.data.uploadedByUserId == request.auth.uid;
+      allow create: if isAdmin();
       allow update: if isExistingAdmin();
       allow delete: if isExistingAdmin();
     }
 
-    /**
-     * @description Categorization and metadata for types of agreements.
-     * @path /agreementTypes/{agreementTypeId}
-     * @allow (get, list) for any authenticated user.
-     * @allow (write) restricted to administrators.
-     * @principle Global metadata managed by authorities, consumed by users.
-     */
     match /agreementTypes/{agreementTypeId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Project metadata associated with documents.
-     * @path /projects/{projectId}
-     * @allow (get, list) for any authenticated user.
-     * @allow (write) restricted to administrators.
-     * @principle Global metadata managed by authorities, consumed by users.
-     */
     match /projects/{projectId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Information about document authors and contributors.
-     * @path /authors/{authorId}
-     * @allow (get, list) for any authenticated user.
-     * @allow (write) restricted to administrators.
-     * @principle Global metadata managed by authorities, consumed by users.
-     */
     match /authors/{authorId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Searchable keywords and tags for document discovery.
-     * @path /keywords/{keywordId}
-     * @allow (get, list) for any authenticated user.
-     * @allow (write) restricted to administrators.
-     * @principle Global metadata managed by authorities, consumed by users.
-     */
     match /keywords/{keywordId} {
       allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
   }
 }

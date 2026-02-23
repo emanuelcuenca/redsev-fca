@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -10,7 +9,8 @@ import {
   ShieldCheck,
   Handshake,
   Sprout,
-  UploadCloud
+  UploadCloud,
+  Users
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,6 +49,7 @@ export function MainSidebar() {
 
   const ADMIN_ITEMS = [
     { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
+    { icon: Users, label: "Gestión de Usuarios", href: "/admin" },
   ];
 
   const handleItemClick = () => {
