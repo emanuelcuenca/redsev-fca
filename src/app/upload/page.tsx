@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -16,8 +17,6 @@ import {
   ScrollText,
   GraduationCap,
   Gavel,
-  Compass,
-  Link as LinkIcon,
   FileUp,
   Clock,
   Sparkles,
@@ -242,7 +241,6 @@ export default function UploadPage() {
                   { id: "Resolución", label: "Resolución", icon: ScrollText },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
                   { id: "Reglamento", label: "Reglamento", icon: Gavel },
-                  { id: "Plan Estratégico", label: "Plan Estratégico", icon: Compass },
                   { id: "Informe", label: "Informe Técnico", icon: Info }
                 ].map((item) => (
                   <button
@@ -318,7 +316,7 @@ export default function UploadPage() {
                 <TabsContent value="url" className="mt-0">
                   <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
                     <div className="flex items-center gap-3 text-primary mb-2">
-                      <LinkIcon className="w-6 h-6" />
+                      <FileUp className="w-6 h-6" />
                       <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
                     </div>
                     <div className="space-y-2">
