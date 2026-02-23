@@ -259,7 +259,7 @@ export default function ProfilePage() {
                     onChange={handleFileChange} 
                   />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Haga clic en el círculo para subir una foto desde su equipo</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">subir foto de perfil</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -174,7 +174,7 @@ export default function RegisterPage() {
                     <Camera className="w-4 h-4" />
                   </div>
                 </div>
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Foto de Perfil (Opcional)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">subir foto de perfil</Label>
                 <input 
                   type="file" 
                   ref={fileInputRef} 
