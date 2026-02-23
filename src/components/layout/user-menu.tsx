@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint } from "lucide-react";
+import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint, ShieldCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,12 +14,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/firebase";
+import { Badge } from "@/components/ui/badge";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 
 export function UserMenu() {
   const { user } = useUser();
+  const db = useFirestore();
   const [copied, setCopied] = useState(false);
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
   
   const userPhoto = user?.photoURL || "https://picsum.photos/seed/prof1/100/100";
   const userName = user?.displayName || user?.email?.split('@')[0] || "Usuario FCA";
@@ -52,7 +63,14 @@ export function UserMenu() {
       <DropdownMenuContent className="w-72 rounded-2xl shadow-xl border-muted p-2" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-4">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-black leading-none uppercase tracking-tight">{userName}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-black leading-none uppercase tracking-tight truncate">{userName}</p>
+              {isAdmin && (
+                <Badge className="bg-primary/10 text-primary border-primary/20 h-5 px-1.5 text-[8px] font-black uppercase tracking-widest">
+                  <ShieldCheck className="w-2.5 h-2.5 mr-1" /> ADMIN
+                </Badge>
+              )}
+            </div>
             <p className="text-[11px] leading-none text-muted-foreground font-medium mt-1">
               {userEmail}
             </p>
@@ -76,17 +94,19 @@ export function UserMenu() {
         <DropdownMenuSeparator className="mx-2" />
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-            <Link href="/perfil">
+            <Link href="/">
               <User className="w-4 h-4" />
               <span className="text-sm">Mis datos personales</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-            <Link href="/admin">
-              <Briefcase className="w-4 h-4" />
-              <span className="text-sm">Panel de Gestión</span>
-            </Link>
-          </DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+              <Link href="/admin">
+                <Briefcase className="w-4 h-4" />
+                <span className="text-sm">Panel de Gestión</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
         </div>
         <DropdownMenuSeparator className="mx-2" />
         <div className="p-1">

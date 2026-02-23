@@ -18,7 +18,8 @@ import {
   Leaf,
   Loader2,
   LogIn,
-  UserPlus
+  UserPlus,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -61,7 +62,7 @@ export default function Dashboard() {
   
   const { data: recentDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
-  const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : '';
+  const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : (user?.email?.split('@')[0].toUpperCase() || '');
 
   if (!mounted) return null;
 
@@ -116,13 +117,18 @@ export default function Dashboard() {
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <div className="mb-10 md:mb-16">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="bg-primary/10 p-2.5 rounded-xl">
                 <LayoutDashboard className="w-6 h-6 text-primary" />
               </div>
               <h2 className="text-xl md:text-2xl font-headline font-bold tracking-tight uppercase">
                 BIENVENIDO{formattedName ? `, ${formattedName}` : ''}
               </h2>
+              {isAdmin && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 font-black text-[9px] uppercase tracking-widest px-3 py-1 animate-pulse">
+                  <ShieldCheck className="w-3 h-3 mr-1.5" /> Modo Administrador
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground text-sm md:text-base font-bold max-w-4xl leading-relaxed uppercase tracking-tight">
               Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
