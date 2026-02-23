@@ -5,7 +5,6 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
-  Leaf, 
   Mail, 
   Lock, 
   Loader2, 
@@ -86,7 +85,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     
-    // VALIDACIÓN ESTRICTA DE DOMINIO INSTITUCIONAL
     const cleanEmail = email.trim().toLowerCase();
     const isInstitutional = cleanEmail.endsWith('@unca.edu.ar') || cleanEmail.endsWith('@est.unca.edu.ar');
     
@@ -116,7 +114,6 @@ export default function RegisterPage() {
     const formattedLastName = formatName(lastName);
     const fullName = `${formattedFirstName} ${formattedLastName}`;
 
-    // Almacenamos datos para que el Provider los use al crear el doc de Firestore
     if (typeof window !== 'undefined') {
       localStorage.setItem('pending_profile_data', JSON.stringify({
         firstName: formattedFirstName,
@@ -157,8 +154,8 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-xl relative z-10 py-10">
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform">
-            <Leaf className="w-10 h-10 text-primary-foreground" />
+          <Link href="/" className="bg-primary px-5 py-3 rounded-md shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center min-w-[70px]">
+            <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
           <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
           <p className="text-sm md:text-xl font-headline text-black uppercase tracking-tighter text-center mt-1">

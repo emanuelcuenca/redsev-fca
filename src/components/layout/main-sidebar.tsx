@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, 
-  Leaf,
   ShieldCheck,
   Handshake,
   ArrowLeftRight,
@@ -61,8 +60,8 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
-        <div className="bg-primary text-primary-foreground p-2.5 rounded-xl shrink-0 shadow-lg shadow-primary/20">
-          <Leaf className="w-6 h-6" />
+        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-md shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center">
+          <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">

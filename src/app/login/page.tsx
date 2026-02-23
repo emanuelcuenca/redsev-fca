@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, Mail, Lock, Loader2, ArrowRight, UserPlus } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,15 +17,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const router = useRouter();
   const auth = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoginError(null);
     
     try {
-      // VALIDACIÓN ESTRICTA: Esperamos a que Firebase confirme la autenticidad
       await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       toast({
         title: "Acceso concedido",
@@ -34,14 +35,7 @@ export default function LoginPage() {
       router.push("/");
     } catch (error: any) {
       setLoading(false);
-      // Mensaje unificado solicitado para proteger la privacidad del sistema y ser claro con el usuario
-      const message = "El usuario y/o la contraseña no coinciden con nuestros registros.";
-      
-      toast({
-        variant: "destructive",
-        title: "Error de acceso",
-        description: message,
-      });
+      setLoginError("El usuario y/o la contraseña no coinciden con nuestros registros.");
     }
   };
 
@@ -52,8 +46,8 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform">
-            <Leaf className="w-10 h-10 text-primary-foreground" />
+          <Link href="/" className="bg-primary px-5 py-3 rounded-md shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center min-w-[80px]">
+            <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
           <h1 className="text-sm md:text-base font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
           <p className="text-sm md:text-base font-headline text-black uppercase tracking-tighter text-center mt-1">
@@ -101,6 +95,14 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
+                {loginError && (
+                  <div className="flex items-center gap-2 mt-2 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3.5 h-3.5 text-destructive" />
+                    <p className="text-[11px] font-bold text-destructive leading-tight">
+                      {loginError}
+                    </p>
+                  </div>
+                )}
               </div>
               <Button 
                 type="submit" 
