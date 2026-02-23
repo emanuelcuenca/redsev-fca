@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   FileText, 
   Search, 
@@ -54,6 +54,7 @@ import { AgriculturalDocument } from "@/lib/mock-data";
 
 export default function DocumentsListPage() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterVigente, setFilterVigente] = useState<string>("all");
   const [filterYear, setFilterYear] = useState<string>("all");
@@ -67,8 +68,14 @@ export default function DocumentsListPage() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
+
+  useEffect(() => {
+    if (mounted && !isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, mounted, router]);
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -78,10 +85,11 @@ export default function DocumentsListPage() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  const docsQuery = useMemoFirebase(() => 
-    query(collection(db, 'documents'), orderBy('uploadDate', 'desc')), 
-    [db]
-  );
+  // Solo ejecutar la consulta si el usuario está autenticado
+  const docsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
+  }, [db, user]);
   
   const { data: allDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
@@ -137,6 +145,14 @@ export default function DocumentsListPage() {
   const PageIcon = isConvenios ? Handshake : 
                    category === 'extension' ? Sprout : 
                    FileText;
+
+  if (isUserLoading || !mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>

@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   FileText, 
   Calendar, 
@@ -35,13 +36,21 @@ import { doc, collection, query, orderBy, limit } from "firebase/firestore";
 import { AgriculturalDocument } from "@/lib/mock-data";
 
 export default function Dashboard() {
-  const { user } = useUser();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Redirigir al login si no hay sesión activa después de cargar
+  useEffect(() => {
+    if (mounted && !isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, mounted, router]);
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -51,14 +60,23 @@ export default function Dashboard() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  const docsQuery = useMemoFirebase(() => 
-    query(collection(db, 'documents'), orderBy('uploadDate', 'desc'), limit(6)), 
-    [db]
-  );
+  // Solo ejecutar la consulta si el usuario está autenticado para evitar errores de permisos
+  const docsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'), limit(6));
+  }, [db, user]);
   
   const { data: recentDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
   const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : '';
+
+  if (isUserLoading || !mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -96,18 +114,18 @@ export default function Dashboard() {
               <div className="bg-primary/10 p-2.5 rounded-xl">
                 <LayoutDashboard className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
+              <h2 className="text-xl md:text-2xl font-headline font-bold tracking-tight uppercase">
                 BIENVENIDO{formattedName ? `, ${formattedName}` : ''}
               </h2>
             </div>
-            <p className="text-muted-foreground text-sm md:text-lg font-bold max-w-3xl leading-relaxed uppercase tracking-tight">
+            <p className="text-muted-foreground text-sm md:text-base font-bold max-w-4xl leading-relaxed uppercase tracking-tight">
               Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
             </p>
           </div>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
             <div className="max-w-4xl">
-              <h2 className="text-xl md:text-3xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
+              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
                 Estrategias para el Desarrollo Sustentable
               </h2>
               <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight">
@@ -159,7 +177,7 @@ export default function Dashboard() {
           </section>
 
           <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
-            <h3 className="text-lg md:text-2xl font-headline font-bold uppercase tracking-tight text-primary">Documentos Recientes</h3>
+            <h3 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight text-primary">Documentos Recientes</h3>
             <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary">
               <Link href="/documents">Ver todos →</Link>
             </Button>
@@ -189,7 +207,6 @@ export default function Dashboard() {
 }
 
 function DocumentCard({ document, isMounted }: { document: AgriculturalDocument, isMounted: boolean }) {
-  // Use uploadedByUserId for the placeholder or real date
   const displayDate = document.date || document.uploadDate;
   
   return (

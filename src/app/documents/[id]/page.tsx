@@ -3,6 +3,7 @@
 
 import { useState, use, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -25,34 +26,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AgriculturalDocument } from "@/lib/mock-data";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const db = useFirestore();
+  const { user, isUserLoading } = useUser();
   
-  const docRef = useMemoFirebase(() => 
-    resolvedParams.id ? doc(db, 'documents', resolvedParams.id) : null, 
-    [db, resolvedParams.id]
-  );
-  
-  const { data: documentData, isLoading } = useDoc<AgriculturalDocument>(docRef);
-
+  const [mounted, setMounted] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Redirigir al login si no hay sesión activa
+  useEffect(() => {
+    if (mounted && !isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, mounted, router]);
+
+  const docRef = useMemoFirebase(() => 
+    (resolvedParams.id && user) ? doc(db, 'documents', resolvedParams.id) : null, 
+    [db, resolvedParams.id, user]
+  );
+  
+  const { data: documentData, isLoading } = useDoc<AgriculturalDocument>(docRef);
+
   const handleSummarize = async () => {
     if (!documentData) return;
     setIsSummarizing(true);
     try {
-      // Usamos el contenido del documento o el título si no hay contenido extenso
       const contentToSummarize = documentData.content || `Título: ${documentData.title}. Tipo: ${documentData.type}. Proyecto: ${documentData.project}. Contraparte: ${documentData.counterpart}.`;
       const result = await summarizeDocument({ documentContent: contentToSummarize });
       setSummary(result.summary);
@@ -63,7 +71,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  if (isLoading) {
+  if (isUserLoading || isLoading || !mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
