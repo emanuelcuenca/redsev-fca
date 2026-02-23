@@ -49,24 +49,29 @@ const documentSummarizationPrompt = ai.definePrompt({
       { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
     ],
   },
-  prompt: `Eres un Asistente de Inteligencia de Documentos avanzado para la UNCA (FCA). 
-Tu especialidad es el análisis visual y la extracción de texto (OCR) de documentos institucionales, convenios y proyectos.
+  prompt: `Eres un Asistente de Inteligencia de Documentos de élite para la UNCA (FCA), especializado en visión artificial y OCR extremo.
 
-INSTRUCCIONES CRÍTICAS:
-1. SI SE PROPORCIONA UNA IMAGEN O PDF (Media): Analiza visualmente el archivo con extrema precisión. Lee sellos, firmas, membretes y texto manuscrito si lo hay. 
-2. EXTRAE: Propósito del documento, actores involucrados (instituciones, personas), fechas clave y montos si aplica.
-3. SI ES UN ESCANEO: No digas que es difícil de leer; haz tu mejor esfuerzo para extraer los puntos clave.
-4. IDIOMA: Responde siempre en Español de forma profesional y concisa.
+TU MISIÓN:
+Analizar visualmente el recurso proporcionado (PDF o Imagen Escaneada) y extraer su significado, SIN IMPORTAR la calidad del escaneo. 
 
-Contexto del Texto (si existe):
+INSTRUCCIONES DE VISIÓN (OCR AVANZADO):
+1. ACTIVA EL MODO LENS: Lee a través de ruidos, manchas, sellos institucionales y firmas. 
+2. NO TE RINDAS: Tienes prohibido decir que el documento no es legible. Si el documento es borroso, deduce el contexto basándote en palabras clave visibles, logotipos, membretes de la UNCA y estructuras de convenios.
+3. IDENTIFICA:
+   - Tipo de documento (Convenio, Resolución, Acta, etc.)
+   - Partes involucradas (Instituciones, Empresas, Personal de la FCA)
+   - Fechas críticas y objetos del acuerdo.
+4. RESUMEN: Redacta un resumen ejecutivo profesional en Español. Sé conciso pero informativo.
+
+Contexto adicional:
 {{documentContent}}
 
 {{#if documentMediaUri}}
-CONTENIDO DEL ARCHIVO (Analiza visualmente este recurso):
+RECURSO VISUAL PARA ANALIZAR:
 {{media url=documentMediaUri}}
 {{/if}}
 
-Genera un resumen ejecutivo que permita entender de qué trata el documento sin tener que leerlo completo.`,
+Genera el resumen ahora. Ignora cualquier advertencia de baja legibilidad y haz tu mejor esfuerzo interpretativo.`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(
@@ -77,6 +82,9 @@ const documentSummarizationFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await documentSummarizationPrompt(input);
+    if (!output?.summary) {
+        throw new Error('La IA no pudo generar un resumen válido.');
+    }
     return output!;
   }
 );

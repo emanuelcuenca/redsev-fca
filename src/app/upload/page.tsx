@@ -49,7 +49,6 @@ export default function UploadPage() {
   const { user } = useUser();
   const db = useFirestore();
 
-  // Common fields
   const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
@@ -63,7 +62,6 @@ export default function UploadPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
 
-  // Convenio specific fields
   const [isVigente, setIsVigente] = useState(true);
   const [signingYear, setSigningYear] = useState(new Date().getFullYear().toString());
   const [counterpart, setCounterpart] = useState("");
@@ -77,7 +75,7 @@ export default function UploadPage() {
         toast({
           variant: "destructive",
           title: "Formato no permitido",
-          description: "Solo se permiten PDF o imágenes (JPG/PNG) para escaneos.",
+          description: "Solo se permiten PDF o imágenes (JPG/PNG).",
         });
         return;
       }
@@ -90,7 +88,7 @@ export default function UploadPage() {
       toast({
         variant: "destructive",
         title: "Sin origen",
-        description: "Debe seleccionar un archivo o URL para generar un resumen.",
+        description: "Debe seleccionar un archivo o URL para analizar.",
       });
       return;
     }
@@ -99,7 +97,6 @@ export default function UploadPage() {
     try {
       let documentMediaUri = undefined;
       
-      // Leer el archivo como Data URI para que la IA pueda procesarlo (PDF o Imagen)
       if (file) {
         documentMediaUri = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -110,21 +107,23 @@ export default function UploadPage() {
       }
 
       const result = await summarizeDocument({ 
-        documentContent: title || description || `Nuevo documento institucional de tipo ${type}`,
+        documentContent: title || `Analizando documento de tipo ${type}`,
         documentMediaUri
       });
 
-      setDescription(result.summary);
-      toast({
-        title: "Análisis completado",
-        description: "La IA ha procesado el documento visualmente y generado el resumen.",
-      });
-    } catch (error) {
+      if (result.summary) {
+        setDescription(result.summary);
+        toast({
+          title: "Análisis completado",
+          description: "Se ha extraído la información visual correctamente.",
+        });
+      }
+    } catch (error: any) {
       console.error("AI Error:", error);
       toast({
         variant: "destructive",
-        title: "Error de IA",
-        description: "No se pudo procesar el documento. Intente con un archivo de menor tamaño o más claro.",
+        title: "Error de Análisis",
+        description: "No se pudo interpretar el archivo. Asegúrese de que no esté protegido por contraseña.",
       });
     } finally {
       setIsSummarizing(false);
@@ -154,20 +153,9 @@ export default function UploadPage() {
       return;
     }
 
-    if (uploadMethod === "file" && !file) {
-      toast({
-        variant: "destructive",
-        title: "Archivo faltante",
-        description: "Debe subir un archivo.",
-      });
-      return;
-    }
-
     setIsSaving(true);
     
-    // Asegurar primera letra mayúscula, resto tal cual se escribió
-    const cleanTitle = title.trim();
-    const formattedTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+    const formattedTitle = title.trim().charAt(0).toUpperCase() + title.trim().slice(1);
 
     const documentData: any = {
       title: formattedTitle,
@@ -232,7 +220,6 @@ export default function UploadPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8 pb-20">
-            {/* STEP 1: CATEGORY SELECTION */}
             <section className="bg-primary/5 p-6 md:p-8 rounded-[2rem] border border-primary/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary text-white p-2 rounded-xl">
@@ -268,7 +255,6 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {/* STEP 2: CONTENT SOURCE */}
             <section className={`transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-primary/20 text-primary p-2 rounded-xl">
@@ -343,7 +329,6 @@ export default function UploadPage() {
               </Tabs>
             </section>
 
-            {/* STEP 3: METADATA */}
             <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${(file || externalUrl) ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-primary/20 text-primary p-2 rounded-xl">
