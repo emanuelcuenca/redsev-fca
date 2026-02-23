@@ -105,9 +105,8 @@ export default function DocumentsListPage() {
     return allDocs.filter(doc => {
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && !['Proyecto', 'Informe'].includes(doc.type)) return false;
-      if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
+      if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'reglamentos' && doc.type !== 'Reglamento') return false;
       if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
       if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
@@ -160,18 +159,16 @@ export default function DocumentsListPage() {
 
   const pageTitle = category === 'convenios' ? 'Convenios' : 
                     category === 'extension' ? 'Extensión' : 
-                    category === 'resoluciones' ? 'Resoluciones' :
+                    category === 'resoluciones-reglamentos' ? 'Resoluciones y Reglamentos' :
                     category === 'pasantias' ? 'Prácticas y Pasantías' :
-                    category === 'reglamentos' ? 'Reglamentos' :
                     category === 'movilidad-estudiantil' ? 'Movilidad Estudiantil' :
                     category === 'movilidad-docente' ? 'Movilidad Docente' :
                     'Todos los Documentos';
 
   const PageIcon = category === 'convenios' ? Handshake : 
                    category === 'extension' ? ArrowLeftRight : 
-                   category === 'resoluciones' ? ScrollText :
+                   category === 'resoluciones-reglamentos' ? ScrollText :
                    category === 'pasantias' ? GraduationCap :
-                   category === 'reglamentos' ? Gavel :
                    category === 'movilidad-estudiantil' ? Plane :
                    category === 'movilidad-docente' ? Plane :
                    FileText;

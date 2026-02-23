@@ -48,11 +48,10 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
-    { icon: ScrollText, label: "Resoluciones", href: "/documents?category=resoluciones" },
     { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
     { icon: Plane, label: "Movilidad Estudiantil", href: "/documents?category=movilidad-estudiantil" },
     { icon: Plane, label: "Movilidad Docente", href: "/documents?category=movilidad-docente" },
-    { icon: Gavel, label: "Reglamentos", href: "/documents?category=reglamentos" },
+    { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones-reglamentos" },
   ];
 
   const ADMIN_ITEMS = [
