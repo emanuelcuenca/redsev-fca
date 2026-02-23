@@ -121,7 +121,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                        <Calendar className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha</p>
@@ -132,7 +132,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                        <User className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Autores</p>
@@ -141,7 +141,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <Tag className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                        <Tag className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div className="overflow-hidden">
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Etiquetas</p>
