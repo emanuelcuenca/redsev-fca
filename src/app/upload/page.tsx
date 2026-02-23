@@ -19,7 +19,8 @@ import {
   Gavel,
   Compass,
   Link as LinkIcon,
-  FileUp
+  FileUp,
+  Clock
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
