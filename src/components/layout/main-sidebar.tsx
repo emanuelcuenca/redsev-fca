@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -11,7 +10,6 @@ import {
   UploadCloud,
   Users,
   ScrollText,
-  GraduationCap,
   Plane
 } from "lucide-react";
 import {
@@ -47,7 +45,6 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
-    { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
     { icon: Plane, label: "Movilidad", href: "/documents?category=movilidad" },
     { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones-reglamentos" },
   ];
@@ -66,7 +63,8 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
-        <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center">
+        {/* Logo SEV: Cuadrado perfecto con bordes rectos (90 grados) */}
+        <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center border border-white/10">
           <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">

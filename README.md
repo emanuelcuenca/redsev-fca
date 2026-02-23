@@ -2,44 +2,32 @@
 
 Sistema de gestión de documentos para la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.
 
-## Guía para el Personal Técnico (IT)
+## 🚀 Cómo publicar la App (Despliegue en Firebase)
 
-Para alojar esta aplicación en un servidor institucional, siga estos pasos:
+Para que tus compañeros puedan ver la aplicación en sus móviles, debes seguir estos pasos:
 
-### 1. Requisitos Previos
-- **Node.js**: Versión 18.17 o superior.
-- **Acceso a Internet**: Necesario para conectar con Firebase y Google Gemini API.
-- **Gestor de Procesos**: Se recomienda `PM2` para asegurar que el sitio esté siempre activo.
+1. **Subir a GitHub**: Crea un repositorio en GitHub y sube todo el código de esta carpeta.
+2. **Consola de Firebase**: Ve a [console.firebase.google.com](https://console.firebase.google.com/).
+3. **App Hosting**: En el menú lateral, ve a **Compilación > App Hosting**.
+4. **Conectar**: Haz clic en "Comenzar" y conecta tu repositorio de GitHub.
+5. **Configurar**: Deja las opciones por defecto y haz clic en "Desplegar".
 
-### 2. Configuración Inicial
-1. Clonar el repositorio o subir los archivos al servidor.
-2. Crear un archivo `.env` en la raíz con la clave de API:
-   ```env
-   GEMINI_API_KEY=tu_clave_aqui
-   ```
-
-### 3. Despliegue (Build)
-```bash
-npm install
-npm run build
-pm2 start npm --name "vinculo-agro" -- start
-```
+Una vez finalizado, Firebase te dará una URL pública (ej: `vinculo-agro.web.app`) que podrás compartir con toda la oficina.
 
 ---
 
-## Mantenimiento y Actualizaciones (Soporte)
+## Mantenimiento y Actualizaciones
 
-Este sistema está diseñado para que el usuario final no necesite conocimientos técnicos. El flujo de actualización es el siguiente:
+Este sistema está diseñado para que el usuario final no necesite conocimientos técnicos avanzados.
 
 ### ¿Cómo aplicar cambios realizados por el Prototipador?
-Cuando el titular de la Secretaría solicite una actualización o soporte:
-1. **Sincronizar cambios (Git Pull)**: El técnico debe ejecutar `git pull` para descargar las nuevas mejoras visuales o funcionales.
-2. **Re-construir**: Se debe ejecutar `npm run build` para que los cambios se procesen.
-3. **Reiniciar servicio**: Ejecutar `pm2 reload vinculo-agro` para que el sitio se actualice sin dejar de funcionar ni un segundo.
+Cuando solicites una mejora visual o funcional:
+1. **Sincronizar cambios**: Si usas Git, realiza un `git commit` y `git push`.
+2. **Auto-Despliegue**: Firebase App Hosting detectará el cambio automáticamente y actualizará el sitio público en pocos minutos.
 
 ### Soporte de Datos
-- **Base de Datos**: Los documentos se gestionan vía Firebase Console. No requiere intervención en el servidor.
-- **IA**: Si los resúmenes fallan, verifique la validez de la clave en el archivo `.env`.
+- **Base de Datos**: Los documentos se gestionan vía Firebase Console > Firestore.
+- **IA**: La inteligencia (estilo Google Lens) requiere que la clave `GEMINI_API_KEY` esté configurada en el archivo `.env` o en los Secretos de App Hosting en la consola de Firebase.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
