@@ -1,10 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for summarizing documents, supporting both text and media (PDF/Images).
- *
- * - summarizeDocument - A function that handles the document summarization process.
- * - DocumentSummarizationInput - The input type for the summarizeDocument function.
- * - DocumentSummarizationOutput - The return type for the summarizeDocument function.
+ * Enhanced with Vision capabilities for processing scanned documents (OCR).
  */
 
 import {ai} from '@/ai/genkit';
@@ -43,27 +40,33 @@ const documentSummarizationPrompt = ai.definePrompt({
   name: 'documentSummarizationPrompt',
   input: {schema: DocumentSummarizationInputSchema},
   output: {schema: DocumentSummarizationOutputSchema},
-  prompt: `You are an expert assistant specialized in analyzing and summarizing institutional agricultural documents for the UNCA.
+  config: {
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+    ],
+  },
+  prompt: `Eres un Asistente de Inteligencia de Documentos avanzado para la UNCA (FCA). 
+Tu especialidad es el análisis visual y la extracción de texto (OCR) de documentos institucionales, convenios y proyectos.
 
-Your task is to analyze the provided source and generate a concise summary in Spanish.
+INSTRUCCIONES CRÍTICAS:
+1. SI SE PROPORCIONA UNA IMAGEN O PDF (Media): Analiza visualmente el archivo con extrema precisión. Lee sellos, firmas, membretes y texto manuscrito si lo hay. 
+2. EXTRAE: Propósito del documento, actores involucrados (instituciones, personas), fechas clave y montos si aplica.
+3. SI ES UN ESCANEO: No digas que es difícil de leer; haz tu mejor esfuerzo para extraer los puntos clave.
+4. IDIOMA: Responde siempre en Español de forma profesional y concisa.
 
-The source may be text, a PDF document, or a scanned image. 
-- If media is provided (PDF or Image), read it carefully, performing OCR if necessary.
-- If text is provided, use it as additional context or content.
-- Determine if the document is a convenio, project, or resolution and extract:
-  1. Main purpose
-  2. Institutions or actors involved
-  3. Key dates or financial amounts (if applicable)
-
-Document Text Context:
+Contexto del Texto (si existe):
 {{documentContent}}
 
 {{#if documentMediaUri}}
-Document Content (File):
+CONTENIDO DEL ARCHIVO (Analiza visualmente este recurso):
 {{media url=documentMediaUri}}
 {{/if}}
 
-Always respond in Spanish, focusing on being concise and professional.`,
+Genera un resumen ejecutivo que permita entender de qué trata el documento sin tener que leerlo completo.`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(

@@ -110,21 +110,21 @@ export default function UploadPage() {
       }
 
       const result = await summarizeDocument({ 
-        documentContent: title || description || `Nuevo documento de tipo ${type}`,
+        documentContent: title || description || `Nuevo documento institucional de tipo ${type}`,
         documentMediaUri
       });
 
       setDescription(result.summary);
       toast({
-        title: "Resumen generado",
-        description: "La IA ha procesado el contenido del documento exitosamente.",
+        title: "Análisis completado",
+        description: "La IA ha procesado el documento visualmente y generado el resumen.",
       });
     } catch (error) {
       console.error("AI Error:", error);
       toast({
         variant: "destructive",
         title: "Error de IA",
-        description: "No se pudo procesar el documento. Asegúrese de que el archivo sea legible.",
+        description: "No se pudo procesar el documento. Intente con un archivo de menor tamaño o más claro.",
       });
     } finally {
       setIsSummarizing(false);
