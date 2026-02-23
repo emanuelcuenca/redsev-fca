@@ -14,7 +14,8 @@ import {
   Lock,
   Camera,
   UserCircle,
-  ShieldAlert
+  ShieldAlert,
+  UserRound
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -23,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Select, 
   SelectContent, 
@@ -100,7 +102,6 @@ export default function ProfilePage() {
     setIsSaving(true);
     
     try {
-      // 1. Si es admin y cambió el email, o si un usuario común intenta cambiarlo (bloqueado por UI pero por si acaso)
       if (formData.email !== user.email && isAdmin) {
         if (!currentPassword) {
           toast({
@@ -117,7 +118,6 @@ export default function ProfilePage() {
         await updateEmail(user, formData.email);
       }
 
-      // 2. Actualizar perfil de Auth (Nombre y Foto) - Solo si es admin o si son campos de cargo/dependencia que sí puede editar
       const fullName = `${formData.firstName} ${formData.lastName}`;
       if (isAdmin) {
         await updateProfile(user, {
@@ -125,13 +125,11 @@ export default function ProfilePage() {
           photoURL: formData.photoUrl
         });
       } else {
-        // Usuario común solo puede actualizar su foto si se lo permitimos (aquí lo dejamos habilitado)
         await updateProfile(user, {
           photoURL: formData.photoUrl
         });
       }
 
-      // 3. Actualizar documento en Firestore
       updateDocumentNonBlocking(userProfileRef, {
         ...formData,
         name: fullName,
@@ -217,6 +215,33 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
+              {/* Sección de Foto de Perfil con esquema de cabeza */}
+              <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">
+                <div className="relative group cursor-pointer mb-4">
+                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
+                    <Avatar className="w-full h-full rounded-none">
+                      <AvatarImage src={formData.photoUrl} className="object-cover" />
+                      <AvatarFallback className="bg-transparent">
+                        <UserRound className="w-16 h-16 text-primary/30" strokeWidth={1.5} />
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="w-full max-w-sm space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex justify-center">Foto de Perfil (Enlace / URL)</Label>
+                  <Input 
+                    type="url"
+                    value={formData.photoUrl}
+                    onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
+                    placeholder="Pegue aquí el enlace de su imagen..."
+                    className="h-10 rounded-xl bg-white border-muted-foreground/20 text-center text-xs font-bold"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nombre</Label>
@@ -255,20 +280,6 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Foto de Perfil (URL)</Label>
-                  <div className="relative">
-                    <Camera className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
-                    <Input 
-                      type="url"
-                      value={formData.photoUrl}
-                      onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
-                      placeholder="https://ejemplo.com/foto.jpg"
-                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cargo Docente</Label>
                   <div className="relative">
                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
@@ -286,7 +297,7 @@ export default function ProfilePage() {
                     </Select>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Dependencia Académica</Label>
                   <div className="relative">
                     <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
@@ -311,7 +322,7 @@ export default function ProfilePage() {
                     <h4 className="font-headline font-bold text-accent-foreground uppercase text-sm tracking-tight">Confirmación de Seguridad</h4>
                   </div>
                   <p className="text-xs text-muted-foreground font-medium mb-4">
-                    Para cambiar su correo electrónico, por favor ingrese su contraseña actual. Esto asegurará que sus futuros accesos utilicen la nueva dirección.
+                    Para cambiar su correo electrónico, por favor ingrese su contraseña actual.
                   </p>
                   <Input 
                     type="password"
