@@ -23,7 +23,8 @@ import {
   ScrollText,
   GraduationCap,
   Gavel,
-  Compass
+  Compass,
+  Trash2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -43,6 +44,7 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
+  DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { 
@@ -53,9 +55,10 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
 import { AgriculturalDocument } from "@/lib/mock-data";
+import { toast } from "@/hooks/use-toast";
 
 export default function DocumentsListPage() {
   const [mounted, setMounted] = useState(false);
@@ -90,7 +93,6 @@ export default function DocumentsListPage() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  // Solo ejecutar la consulta si el usuario está autenticado
   const docsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
@@ -103,7 +105,6 @@ export default function DocumentsListPage() {
   const filteredDocs = useMemo(() => {
     if (!allDocs) return [];
     return allDocs.filter(doc => {
-      // Filtrado por categorías principales
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && !['Proyecto', 'Informe'].includes(doc.type)) return false;
       if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
@@ -137,6 +138,16 @@ export default function DocumentsListPage() {
       return true;
     });
   }, [allDocs, searchQuery, category, isConvenios, filterVigente, filterYear, filterType, filterCounterpart]);
+
+  const handleDelete = (docId: string, title: string) => {
+    if (!isAdmin) return;
+    
+    deleteDocumentNonBlocking(doc(db, 'documents', docId));
+    toast({
+      title: "Documento eliminado",
+      description: `El documento "${title}" ha sido removido del repositorio.`,
+    });
+  };
 
   const years = useMemo(() => {
     if (!allDocs) return [];
@@ -315,6 +326,17 @@ export default function DocumentsListPage() {
                                 <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
                               </Link>
                             </DropdownMenuItem>
+                            {isAdmin && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
+                                  onClick={() => handleDelete(doc.id, doc.title)}
+                                >
+                                  <Trash2 className="w-4 h-4" /> <span>Eliminar</span>
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -427,6 +449,17 @@ export default function DocumentsListPage() {
                                 <DropdownMenuItem className="gap-2 font-bold">
                                   <Download className="w-4 h-4" /> Descargar
                                 </DropdownMenuItem>
+                                {isAdmin && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                      className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
+                                      onClick={() => handleDelete(doc.id, doc.title)}
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Eliminar
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
