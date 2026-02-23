@@ -154,7 +154,7 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-xl relative z-10 py-10">
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="bg-primary px-5 py-3 rounded-md shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center min-w-[70px]">
+          <Link href="/" className="bg-primary w-16 h-16 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
           <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>

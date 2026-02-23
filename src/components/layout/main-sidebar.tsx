@@ -60,7 +60,7 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
-        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-md shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center">
+        <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center">
           <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
