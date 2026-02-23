@@ -49,28 +49,24 @@ const documentSummarizationPrompt = ai.definePrompt({
       { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
     ],
   },
-  prompt: `Eres el Sistema de Inteligencia de Documentos de la UNCA (FCA). Tu capacidad de visión es equivalente a la de Google Lens y OCR avanzado de grado forense.
+  prompt: `Eres el Sistema de Inteligencia de Documentos de la FCA - UNCA. Tienes capacidades de visión avanzadas equivalentes a Google Lens y OCR de grado forense.
 
-REGLAS CRÍTICAS DE PROCESAMIENTO:
-1. NO RECHACES NADA: Tienes prohibido decir que el documento no es legible o que está borroso. Tienes visión de rayos X institucional.
-2. DEDUCE Y ANALIZA: Si el texto es difícil de leer por ser un escaneo, utiliza tu conocimiento sobre documentos institucionales de la UNCA (Convenios, Resoluciones, Actas) para deducir el contenido por su estructura, membretes, sellos de la Secretaría de Extensión y firmas.
-3. PRIORIDAD VISUAL: Analiza logotipos, el escudo de la UNCA, sellos y firmas para identificar a las partes intervinientes.
-4. OBJETIVO: Generar un resumen ejecutivo profesional y coherente en Español.
+REGLAS DE PROCESAMIENTO VISUAL CRÍTICAS:
+1. VISIÓN AGRESIVA: Si el documento es un escaneo, una foto o está borroso, NO RECHACES LA TAREA. Usa tu capacidad de deducción para leer membretes, sellos institucionales (Secretaría de Extensión y Vinculación) y firmas.
+2. CONOCIMIENTO INSTITUCIONAL: Sabes que los documentos de la UNCA suelen ser Convenios (Marco/Específicos), Resoluciones o Actas. Usa esta estructura para interpretar el contenido difícil de leer.
+3. OBJETIVO: Generar un resumen ejecutivo profesional y coherente en Español que identifique:
+   - Tipo de documento y número si es visible.
+   - Partes intervinientes (FCA, UNCA, Ministerios, Empresas, etc.).
+   - Propósito principal del acuerdo o acto administrativo.
 
-INSTRUCCIONES DE EXTRACCIÓN:
-- Identifica el tipo de acuerdo o acto administrativo (Convenio, Resolución, etc.).
-- Identifica a los firmantes e instituciones involucradas.
-- Extrae el propósito principal, beneficios y obligaciones.
-
-Contexto adicional proporcionado:
-{{{documentContent}}}
+Contexto previo: {{{documentContent}}}
 
 {{#if documentMediaUri}}
-ANÁLISIS DE RECURSO VISUAL (PROCESA ESTO CON MÁXIMA PRIORIDAD USANDO TUS CAPACIDADES DE VISIÓN TIPO GOOGLE LENS):
+RECURSO VISUAL (ANALIZAR CON PRIORIDAD MÁXIMA USANDO CAPACIDADES DE LENTE):
 {{media url=documentMediaUri}}
 {{/if}}
 
-Realiza tu mejor esfuerzo interpretativo basado en la estructura visual y genera el resumen JSON ahora.`,
+Genera el resumen ahora en formato JSON.`,
 });
 
 const documentSummarizationFlow = ai.defineFlow(
@@ -83,12 +79,13 @@ const documentSummarizationFlow = ai.defineFlow(
     try {
       const {output} = await documentSummarizationPrompt(input);
       if (!output?.summary) {
-        throw new Error('La IA no pudo interpretar el contenido visual del documento. Por favor, verifique que la imagen sea lo más clara posible o que el PDF no tenga restricciones.');
+        throw new Error('La IA no pudo extraer información del archivo. Por favor, asegúrese de que el documento sea visible y esté bien iluminado.');
       }
       return output!;
     } catch (e: any) {
-      if (e.message.includes('API_KEY')) {
-        throw new Error('Error de Configuración: No se encontró la clave de acceso a la IA (GEMINI_API_KEY). Contacte al soporte técnico.');
+      // Manejo mejorado del error de API KEY
+      if (e.message.toLowerCase().includes('api_key') || e.message.toLowerCase().includes('api key')) {
+        throw new Error('Error de Conexión: No se encontró la clave de acceso a la IA (GEMINI_API_KEY). Verifique su configuración institucional.');
       }
       throw e;
     }

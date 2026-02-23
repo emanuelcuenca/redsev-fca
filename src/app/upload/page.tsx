@@ -155,7 +155,7 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    // Asegurar mayúscula inicial respetando el resto del texto
+    // Asegurar mayúscula inicial respetando el resto del texto ingresado
     const formattedTitle = title.trim().charAt(0).toUpperCase() + title.trim().slice(1);
 
     const documentData: any = {
@@ -223,7 +223,7 @@ export default function UploadPage() {
           <form onSubmit={handleSubmit} className="space-y-8 pb-20">
             <section className="bg-primary/5 p-6 md:p-8 rounded-[2rem] border border-primary/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="bg-primary text-white p-2 rounded-xl">
+                <div className="bg-primary text-white p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold">1</Badge>
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Selección de Categoría</h2>
@@ -258,7 +258,7 @@ export default function UploadPage() {
 
             <section className={`transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-primary/20 text-primary p-2 rounded-xl">
+                <div className="bg-primary/20 text-primary p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">2</Badge>
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Origen del Contenido</h2>
@@ -332,7 +332,7 @@ export default function UploadPage() {
 
             <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${(file || externalUrl) ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
-                <div className="bg-primary/20 text-primary p-2 rounded-xl">
+                <div className="bg-primary/20 text-primary p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
