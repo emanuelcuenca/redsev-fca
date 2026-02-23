@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,12 +12,13 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  MoreVertical
+  Calendar,
+  Clock
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
-import { collection, doc, query, orderBy } from "firebase/firestore";
+import { collection, doc, query, orderBy, Timestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 
 interface AppUser {
@@ -38,6 +40,11 @@ interface AppUser {
   email: string;
   createdAt: string;
   role: string;
+}
+
+interface AdminRole {
+  id: string;
+  assignedAt?: string | Timestamp;
 }
 
 export default function AdminUsersPage() {
@@ -51,14 +58,12 @@ export default function AdminUsersPage() {
     setMounted(true);
   }, []);
 
-  // Verificar si el usuario actual es admin
   const adminCheckRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
   );
   const { data: currentAdminDoc, isLoading: isAdminCheckLoading } = useDoc(adminCheckRef);
 
-  // Redirigir si no es admin después de cargar
   useEffect(() => {
     if (mounted && !isUserLoading && !isAdminCheckLoading) {
       if (!user || !currentAdminDoc) {
@@ -72,18 +77,16 @@ export default function AdminUsersPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
-  // Consultar todos los usuarios
   const usersQuery = useMemoFirebase(() => 
     query(collection(db, 'users'), orderBy('name', 'asc')),
     [db]
   );
   const { data: allUsers, isLoading: isUsersLoading } = useCollection<AppUser>(usersQuery);
 
-  // Consultar todos los registros de roles_admin para cruzar datos
   const adminsQuery = useMemoFirebase(() => collection(db, 'roles_admin'), [db]);
-  const { data: adminRoles } = useCollection(adminsQuery);
+  const { data: adminRoles } = useCollection<AdminRole>(adminsQuery);
 
-  const adminIds = new Set(adminRoles?.map(a => a.id) || []);
+  const adminMap = new Map(adminRoles?.map(a => [a.id, a.assignedAt]) || []);
 
   const filteredUsers = allUsers?.filter(u => 
     u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -113,6 +116,18 @@ export default function AdminUsersPage() {
         title: "Permisos otorgados",
         description: "El usuario ahora es administrador.",
       });
+    }
+  };
+
+  const formatDate = (dateValue: any) => {
+    if (!dateValue) return 'Fecha no registrada';
+    try {
+      if (dateValue instanceof Timestamp) {
+        return dateValue.toDate().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      return new Date(dateValue).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return 'Formato inválido';
     }
   };
 
@@ -183,27 +198,37 @@ export default function AdminUsersPage() {
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest text-muted-foreground">Usuario</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Estado Admin</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Registro</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Rol Institucional</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Fecha de Registro</TableHead>
                       <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest text-muted-foreground">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((u) => {
-                      const isAdmin = adminIds.has(u.id);
+                      const assignedAt = adminMap.get(u.id);
+                      const isAdmin = adminMap.has(u.id);
+                      const isMe = u.id === user?.uid;
+                      
                       return (
                         <TableRow key={u.id} className="group transition-colors hover:bg-primary/[0.02]">
                           <TableCell className="py-5 pl-8">
                             <div className="flex flex-col">
-                              <span className="font-bold text-base group-hover:text-primary transition-colors">{u.name || 'Sin nombre'}</span>
+                              <span className="font-bold text-base group-hover:text-primary transition-colors">
+                                {u.name || 'Sin nombre'} {isMe && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-2">TÚ</span>}
+                              </span>
                               <span className="text-xs text-muted-foreground font-medium">{u.email}</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             {isAdmin ? (
-                              <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 font-black text-[9px] uppercase tracking-widest px-3">
-                                <ShieldCheck className="w-3 h-3 mr-1.5" /> Administrador
-                              </Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 font-black text-[9px] uppercase tracking-widest px-3 w-fit">
+                                  <ShieldCheck className="w-3 h-3 mr-1.5" /> Administrador
+                                </Badge>
+                                <span className="text-[9px] text-muted-foreground font-bold flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> Asignado: {formatDate(assignedAt)}
+                                </span>
+                              </div>
                             ) : (
                               <Badge variant="outline" className="text-muted-foreground font-black text-[9px] uppercase tracking-widest px-3">
                                 <XCircle className="w-3 h-3 mr-1.5" /> Usuario Común
@@ -211,7 +236,10 @@ export default function AdminUsersPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-xs font-bold text-muted-foreground">
-                            {new Date(u.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3 h-3" />
+                              {u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                            </div>
                           </TableCell>
                           <TableCell className="pr-8 text-right">
                             <Button 
@@ -219,7 +247,7 @@ export default function AdminUsersPage() {
                               size="sm"
                               className="rounded-xl h-8 text-[9px] font-black uppercase tracking-widest px-4 transition-all"
                               onClick={() => toggleAdminRole(u.id, isAdmin)}
-                              disabled={u.id === user?.uid}
+                              disabled={isMe}
                             >
                               {isAdmin ? "Quitar Admin" : "Hacer Admin"}
                             </Button>
