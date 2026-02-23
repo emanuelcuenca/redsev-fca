@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Handshake,
   Sprout,
-  ShieldCheck,
   BookOpen,
   Leaf
 } from "lucide-react";
@@ -37,6 +36,11 @@ import { doc } from "firebase/firestore";
 export default function Dashboard() {
   const { user } = useUser();
   const db = useFirestore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
@@ -47,6 +51,8 @@ export default function Dashboard() {
   const isAdmin = !!adminDoc;
 
   const recentDocuments = MOCK_DOCUMENTS.slice(0, 6);
+
+  const formattedName = user?.displayName ? user.displayName.split(' ')[0].toUpperCase() : '';
 
   return (
     <SidebarProvider>
@@ -85,7 +91,7 @@ export default function Dashboard() {
                 <LayoutDashboard className="w-6 h-6 text-primary" />
               </div>
               <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">
-                BIENVENIDO{user?.displayName ? `, ${user.displayName.split(' ')[0].toUpperCase()}` : ''}
+                BIENVENIDO{formattedName ? `, ${formattedName}` : ''}
               </h2>
             </div>
             <p className="text-muted-foreground text-sm md:text-lg font-bold max-w-3xl leading-relaxed uppercase tracking-tight">
@@ -155,7 +161,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {recentDocuments.map((doc) => (
-              <DocumentCard key={doc.id} document={doc} />
+              <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
             ))}
           </div>
         </main>
@@ -164,7 +170,7 @@ export default function Dashboard() {
   );
 }
 
-function DocumentCard({ document }: { document: AgriculturalDocument }) {
+function DocumentCard({ document, isMounted }: { document: AgriculturalDocument, isMounted: boolean }) {
   return (
     <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl border-2 border-transparent hover:border-primary/5">
       <div className="relative aspect-[16/10] overflow-hidden">
@@ -186,7 +192,8 @@ function DocumentCard({ document }: { document: AgriculturalDocument }) {
           {document.title}
         </CardTitle>
         <CardDescription className="flex items-center gap-2 mt-3 font-black text-[10px] md:text-xs uppercase tracking-widest text-primary/70">
-          <Calendar className="w-4 h-4" /> {new Date(document.date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+          <Calendar className="w-4 h-4" /> 
+          {isMounted ? new Date(document.date).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Cargando...'}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-6 py-0 flex flex-col gap-4">

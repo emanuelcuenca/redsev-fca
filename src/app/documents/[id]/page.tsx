@@ -32,8 +32,10 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const [doc, setDoc] = useState<AgriculturalDocument | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const foundDoc = MOCK_DOCUMENTS.find(d => d.id === resolvedParams.id);
     if (foundDoc) {
       setDoc(foundDoc);
@@ -125,7 +127,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha</p>
-                        <p className="font-semibold text-sm md:text-base">{new Date(doc.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p className="font-semibold text-sm md:text-base">
+                          {mounted ? new Date(doc.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}
+                        </p>
                       </div>
                     </div>
                   </div>
