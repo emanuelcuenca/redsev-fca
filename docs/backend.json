@@ -119,10 +119,6 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "keywords": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
         "durationYears": {
           "type": "integer"
         },
@@ -142,6 +138,15 @@
           "type": "string"
         },
         "convocatoria": {
+          "type": "string"
+        },
+        "destinationInstitution": {
+          "type": "string"
+        },
+        "destinationProvince": {
+          "type": "string"
+        },
+        "destinationCountry": {
           "type": "string"
         },
         "projectCode": {

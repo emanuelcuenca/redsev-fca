@@ -29,7 +29,10 @@ import {
   Timer,
   ArrowLeftRight,
   Fingerprint,
-  ChevronDown
+  ChevronDown,
+  MapPin,
+  Globe,
+  Landmark
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -92,6 +95,9 @@ export default function UploadPage() {
   const [beneficiaryLastName, setBeneficiaryLastName] = useState("");
   const [programName, setProgramName] = useState("");
   const [convocatoria, setConvocatoria] = useState("");
+  const [destinationInstitution, setDestinationInstitution] = useState("");
+  const [destinationProvince, setDestinationProvince] = useState("");
+  const [destinationCountry, setDestinationCountry] = useState("");
 
   const [extensionDocType, setExtensionDocType] = useState("");
   const [presentationDate, setPresentationDate] = useState("");
@@ -149,6 +155,9 @@ export default function UploadPage() {
     setBeneficiaryLastName("");
     setProgramName("");
     setConvocatoria("");
+    setDestinationInstitution("");
+    setDestinationProvince("");
+    setDestinationCountry("");
     setExtensionDocType("");
     setPresentationDate("");
     setReportPeriod("");
@@ -297,6 +306,9 @@ export default function UploadPage() {
       documentData.beneficiaryName = `${beneficiaryFirstName} ${beneficiaryLastName}`.trim();
       documentData.programName = programName;
       documentData.convocatoria = convocatoria;
+      documentData.destinationInstitution = destinationInstitution;
+      documentData.destinationProvince = destinationProvince;
+      documentData.destinationCountry = destinationCountry;
     }
 
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
@@ -316,7 +328,7 @@ export default function UploadPage() {
   const getPlaceholder = () => {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica en Hualfín, Catamarca";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
-    if (isSpecialType) return `Ej: Registro de ${type} Estudiantil 2024...`;
+    if (isSpecialType) return `Ej: Resolución de ${type} Estudiantil 2024...`;
     return "Ingrese el título oficial del registro...";
   };
 
@@ -841,6 +853,17 @@ export default function UploadPage() {
 
                     {isSpecialType && (
                       <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
+                        <div className="space-y-3 col-span-2">
+                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título de la Resolución / Registro</Label>
+                          <Input 
+                            id="title" 
+                            placeholder={getPlaceholder()}
+                            className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold" 
+                            required 
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                          />
+                        </div>
                         <div className="space-y-3">
                           <Label htmlFor="firstName" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                             <User className="w-3.5 h-3.5" /> Nombre
@@ -882,16 +905,54 @@ export default function UploadPage() {
                         </div>
                         <div className="space-y-3">
                           <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Semestre
+                            <ClipboardList className="w-3.5 h-3.5" /> Semestre / Convocatoria
                           </Label>
                           <Input 
                             id="convocatoria" 
-                            placeholder="Ej: Convocatoria 2024 - 1er Semestre" 
+                            placeholder="Ej: 1er Semestre 2024" 
                             className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                             required={isSpecialType}
                             value={convocatoria}
                             onChange={(e) => setConvocatoria(e.target.value)}
                           />
+                        </div>
+                        <div className="col-span-2 h-px bg-primary/10 my-2" />
+                        <div className="space-y-3 col-span-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5" /> Destino de la Movilidad
+                          </Label>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">Institución Receptora</p>
+                              <Input 
+                                placeholder="Ej: Univ. de Zaragoza"
+                                className="h-10 rounded-xl border-primary/10 bg-white font-bold"
+                                value={destinationInstitution}
+                                onChange={(e) => setDestinationInstitution(e.target.value)}
+                                required={isSpecialType}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">Provincia / Estado</p>
+                              <Input 
+                                placeholder="Ej: Aragón"
+                                className="h-10 rounded-xl border-primary/10 bg-white font-bold"
+                                value={destinationProvince}
+                                onChange={(e) => setDestinationProvince(e.target.value)}
+                                required={isSpecialType}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">País</p>
+                              <Input 
+                                placeholder="Ej: España"
+                                className="h-10 rounded-xl border-primary/10 bg-white font-bold"
+                                value={destinationCountry}
+                                onChange={(e) => setDestinationCountry(e.target.value)}
+                                required={isSpecialType}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -969,7 +1030,7 @@ export default function UploadPage() {
                   <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
                       <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                        <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
+                        <FileUp className="w-4 h-4" /> Archivo (PDF Institucional)
                       </TabsTrigger>
                       <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
                         <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
@@ -998,7 +1059,7 @@ export default function UploadPage() {
                             </div>
                             <div className="text-center">
                               <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Documentación</p>
-                              <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Formato PDF (Máx 20MB)</p>
+                              <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">PDF de la Resolución / Proyecto (Máx 20MB)</p>
                               <Label htmlFor="file-upload" className="cursor-pointer">
                                 <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
                                   Seleccionar Archivo

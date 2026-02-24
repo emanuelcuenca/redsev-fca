@@ -29,7 +29,10 @@ import {
   ArrowLeftRight,
   ScrollText,
   Clock,
-  Fingerprint
+  Fingerprint,
+  MapPin,
+  Globe,
+  Landmark
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -253,7 +256,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
                   <div className="flex items-center gap-3">
                     {documentData.type === "Movilidad" ? <Plane className="w-6 h-6 text-primary" /> : <GraduationCap className="w-6 h-6 text-primary" />}
-                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Beneficiario</h2>
+                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Beneficiario y Destino</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
@@ -261,14 +264,28 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <p className="font-bold text-lg text-primary">{documentData.beneficiaryName || 'No registrado'}</p>
                     </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Programa Institucional</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Siglas del Programa</p>
                       <p className="font-bold text-lg">{documentData.programName || 'No registrado'}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border md:col-span-2">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Convocatoria Correspondiente</p>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Semestre / Convocatoria</p>
                       <p className="font-bold text-lg flex items-center gap-2">
                         <ClipboardList className="w-5 h-5 text-primary" />
                         {documentData.convocatoria || 'No especificada'}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Institución de Destino</p>
+                      <p className="font-bold text-lg flex items-center gap-2">
+                        <Landmark className="w-5 h-5 text-primary" />
+                        {documentData.destinationInstitution || 'No registrada'}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border col-span-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Ubicación Geográfica</p>
+                      <p className="font-bold text-lg flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-primary" />
+                        {documentData.destinationProvince}, {documentData.destinationCountry}
                       </p>
                     </div>
                   </div>
@@ -288,7 +305,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <p className="font-semibold text-sm md:text-base">{documentData.type} {isConvenio && `(${documentData.convenioSubType})`}</p>
                       </div>
                     </div>
-                    {isProyecto && documentData.projectCode && (
+                    {documentData.projectCode && (
                        <div className="flex items-start gap-3 md:gap-4">
                         <div className="bg-secondary p-2 rounded-lg shrink-0">
                           <Fingerprint className="w-4 h-4 md:w-5 h-5 text-primary" />
@@ -347,19 +364,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || (isConvenio ? 'Sin responsable asignado' : 'Secretaría de Extensión')}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <Tag className="w-4 h-4 md:w-5 h-5 text-primary" />
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Palabras Clave</p>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {documentData.keywords?.map(tag => (
-                            <Badge key={tag} variant="secondary" className="font-medium text-[9px] md:text-[10px]">{tag}</Badge>
-                          )) || <span className="text-xs italic text-muted-foreground">Sin etiquetas</span>}
+                    {documentData.destinationCountry && (
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className="bg-secondary p-2 rounded-lg shrink-0">
+                          <Globe className="w-4 h-4 md:w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Destino Internacional</p>
+                          <p className="font-semibold text-sm md:text-base">{documentData.destinationCountry}</p>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </section>
