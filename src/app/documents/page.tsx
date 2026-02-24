@@ -114,14 +114,19 @@ export default function DocumentsListPage() {
       
       if (!matchesSearch) return false;
 
+      // Filtrado por año para convenios y resoluciones
+      if (category === 'convenios' || category === 'resoluciones-reglamentos') {
+        const docYear = (doc.signingYear || doc.resolutionYear)?.toString();
+        if (filterYear !== "all" && docYear !== filterYear) {
+          return false;
+        }
+      }
+
       if (category === 'convenios') {
         if (filterVigente !== "all") {
           const isVig = isDocumentVigente(doc);
           const filterIsVigente = filterVigente === "vigente";
           if (isVig !== filterIsVigente) return false;
-        }
-        if (filterYear !== "all" && doc.signingYear?.toString() !== filterYear) {
-          return false;
         }
         if (filterType !== "all" && doc.convenioSubType !== filterType) {
           return false;
@@ -147,7 +152,8 @@ export default function DocumentsListPage() {
 
   const years = useMemo(() => {
     if (!allDocs) return [];
-    return Array.from(new Set(allDocs.map(d => d.signingYear).filter(Boolean))).sort((a, b) => (b as number) - (a as number));
+    const allYears = allDocs.map(d => d.signingYear || d.resolutionYear).filter(Boolean);
+    return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
   }, [allDocs]);
 
   const counterparts = useMemo(() => {
@@ -168,6 +174,8 @@ export default function DocumentsListPage() {
                    category === 'pasantias' ? GraduationCap :
                    category === 'movilidad' ? Plane :
                    FileText;
+
+  const showYearFilter = category === 'convenios' || category === 'resoluciones-reglamentos';
 
   if (isUserLoading || !mounted) {
     return (
@@ -221,54 +229,62 @@ export default function DocumentsListPage() {
               </div>
             </div>
 
-            {category === 'convenios' && (
+            {(category === 'convenios' || category === 'resoluciones-reglamentos') && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Select value={filterVigente} onValueChange={setFilterVigente}>
-                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
-                    <SelectValue placeholder="Estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los Estados</SelectItem>
-                    <SelectItem value="vigente">Vigente</SelectItem>
-                    <SelectItem value="vencido">No Vigente</SelectItem>
-                  </SelectContent>
-                </Select>
+                {category === 'convenios' && (
+                  <Select value={filterVigente} onValueChange={setFilterVigente}>
+                    <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los Estados</SelectItem>
+                      <SelectItem value="vigente">Vigente</SelectItem>
+                      <SelectItem value="vencido">No Vigente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
 
-                <Select value={filterYear} onValueChange={setFilterYear}>
-                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
-                    <SelectValue placeholder="Año de firma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Cualquier Año</SelectItem>
-                    {years.map(year => (
-                      <SelectItem key={year as number} value={year!.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {showYearFilter && (
+                  <Select value={filterYear} onValueChange={setFilterYear}>
+                    <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                      <SelectValue placeholder="Año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Cualquier Año</SelectItem>
+                      {years.map(year => (
+                        <SelectItem key={year as number} value={year!.toString()}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
-                <Select value={filterCounterpart} onValueChange={setFilterCounterpart}>
-                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
-                    <SelectValue placeholder="Contraparte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las Contrapartes</SelectItem>
-                    {counterparts.map(cp => (
-                      <SelectItem key={cp as string} value={cp as string}>{cp}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {category === 'convenios' && (
+                  <>
+                    <Select value={filterCounterpart} onValueChange={setFilterCounterpart}>
+                      <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                        <SelectValue placeholder="Contraparte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las Contrapartes</SelectItem>
+                        {counterparts.map(cp => (
+                          <SelectItem key={cp as string} value={cp as string}>{cp}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Marco o Específico</SelectItem>
-                    <SelectItem value="Marco">Marco</SelectItem>
-                    <SelectItem value="Específico">Específico</SelectItem>
-                    <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <Select value={filterType} onValueChange={setFilterType}>
+                      <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Marco o Específico</SelectItem>
+                        <SelectItem value="Marco">Marco</SelectItem>
+                        <SelectItem value="Específico">Específico</SelectItem>
+                        <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
 
                 <Button 
                   variant="ghost" 
@@ -351,10 +367,12 @@ export default function DocumentsListPage() {
                               <span className="font-bold text-primary">{doc.counterpart}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="w-4 h-4 text-primary" />
-                            <span className="font-bold truncate">{doc.authors?.join(', ') || 'SEyV FCA'}</span>
-                          </div>
+                          {doc.authors && doc.authors.length > 0 && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="w-4 h-4 text-primary" />
+                              <span className="font-bold truncate">{doc.authors.join(', ')}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="font-bold">
@@ -363,7 +381,7 @@ export default function DocumentsListPage() {
                           </div>
                         </div>
                         <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{category === 'convenios' ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.projectCode || doc.extensionDocType || doc.type)}</span>
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{category === 'convenios' ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.resolutionYear || doc.projectCode || doc.extensionDocType || doc.type)}</span>
                           <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                             <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                           </Button>
@@ -383,7 +401,7 @@ export default function DocumentsListPage() {
                         {category === 'convenios' ? 'Contraparte' : 'Tipo / Código'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        {category === 'convenios' ? 'Vigencia' : 'Proyecto / Detalle'}
+                        {category === 'convenios' ? 'Vigencia' : 'Año / Detalle'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
                       <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
@@ -401,9 +419,11 @@ export default function DocumentsListPage() {
                               </div>
                               <div>
                                 <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
-                                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
-                                  <User className="w-4 h-4 text-primary/60" /> {doc.authors?.join(', ') || 'SEyV FCA'}
-                                </p>
+                                {doc.authors && doc.authors.length > 0 && (
+                                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
+                                    <User className="w-4 h-4 text-primary/60" /> {doc.authors.join(', ')}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </TableCell>
@@ -440,7 +460,7 @@ export default function DocumentsListPage() {
                               </div>
                             ) : (
                               <span className="font-bold text-muted-foreground/90 truncate max-w-[150px] inline-block">
-                                {doc.project || doc.executionPeriod || doc.type}
+                                {doc.resolutionYear || doc.project || doc.executionPeriod || doc.type}
                               </span>
                             )}
                           </TableCell>

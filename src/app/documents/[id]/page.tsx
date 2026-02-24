@@ -120,6 +120,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const isProyecto = documentData.type === 'Proyecto';
   const isPasantia = documentData.type === 'Pasantía';
   const isMovilidad = documentData.type === 'Movilidad';
+  const isResolutionDoc = documentData.type === 'Resolución' || documentData.type === 'Reglamento' || documentData.extensionDocType?.includes('Resolución');
   const isInforme = documentData.extensionDocType?.includes('Informe');
   const vigente = isDocumentVigente(documentData);
 
@@ -320,14 +321,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         </p>
                       </div>
                     </div>
-                    {documentData.projectCode && (
+                    {(documentData.projectCode || documentData.resolutionYear) && (
                        <div className="flex items-start gap-3 md:gap-4">
                         <div className="bg-secondary p-2 rounded-lg shrink-0">
                           <Fingerprint className="w-4 h-4 md:w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Código Institucional</p>
-                          <p className="font-semibold text-sm md:text-base">{documentData.projectCode}</p>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                            {documentData.projectCode ? 'Código Institucional' : 'Año de Resolución'}
+                          </p>
+                          <p className="font-semibold text-sm md:text-base">{documentData.projectCode || documentData.resolutionYear}</p>
                         </div>
                       </div>
                     )}
@@ -368,17 +371,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        {isConvenio && documentData.hasInstitutionalResponsible ? <UserCheck className="w-4 h-4 md:w-5 h-5 text-primary" /> : <User className="w-4 h-4 md:w-5 h-5 text-primary" />}
+                    {documentData.authors && documentData.authors.length > 0 && (
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className="bg-secondary p-2 rounded-lg shrink-0">
+                          {isConvenio && documentData.hasInstitutionalResponsible ? <UserCheck className="w-4 h-4 md:w-5 h-5 text-primary" /> : <User className="w-4 h-4 md:w-5 h-5 text-primary" />}
+                        </div>
+                        <div>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                            {isProyecto ? 'Autores' : 'Responsables'} {isConvenio && "(Seguimiento)"}
+                          </p>
+                          <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors.join(', ')}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                          {isProyecto ? 'Autores' : 'Responsables'} {isConvenio && "(Seguimiento)"}
-                        </p>
-                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || (isConvenio ? 'Sin responsable asignado' : 'Secretaría de Extensión')}</p>
-                      </div>
-                    </div>
+                    )}
                     {documentData.destinationCountry && (
                       <div className="flex items-start gap-3 md:gap-4">
                         <div className="bg-secondary p-2 rounded-lg shrink-0">
@@ -425,14 +430,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     <Button 
                       className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base md:text-lg shadow-lg shadow-accent/20 transition-all group"
                       onClick={handleSummarize}
-                      disabled={isSummarizing || isResolution}
+                      disabled={isSummarizing || isResolutionDoc}
                     >
                       {isSummarizing ? (
                         <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
                       ) : (
                         <span className="flex items-center gap-2">
-                          {isResolution ? "Resumen no disponible para Resoluciones" : "Analizar Documento"} 
-                          {!isResolution && <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />}
+                          {isResolutionDoc ? "Resumen no disponible para Normativas" : "Analizar Documento"} 
+                          {!isResolutionDoc && <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />}
                         </span>
                       )}
                     </Button>

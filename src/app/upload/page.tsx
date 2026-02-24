@@ -77,6 +77,7 @@ export default function UploadPage() {
 
   const [type, setType] = useState("");
   const [resolutionType, setResolutionType] = useState<string>("");
+  const [resolutionYear, setResolutionYear] = useState<string>(new Date().getFullYear().toString());
   const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
@@ -124,7 +125,7 @@ export default function UploadPage() {
   const [pasantiaRange, setPasantiaRange] = useState<DateRange | undefined>(undefined);
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
-  const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución";
+  const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución" || type === "Reglamento";
 
   useEffect(() => {
     if (approvalDate) {
@@ -153,6 +154,7 @@ export default function UploadPage() {
   const resetForm = () => {
     setType("");
     setResolutionType("");
+    setResolutionYear(new Date().getFullYear().toString());
     setFile(null);
     setExternalUrl("");
     setTitle("");
@@ -250,11 +252,11 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !type || (!title && type !== "Resolución")) {
+    if (!user || !type || (!title && !isResolution)) {
       toast({
         variant: "destructive",
         title: "Campos incompletos",
-        description: "Por favor complete el título y tipo de documento.",
+        description: "Por favor complete la información requerida.",
       });
       return;
     }
@@ -264,13 +266,18 @@ export default function UploadPage() {
     const trimmedTitle = title.trim();
     const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
 
-    const finalTitle = type === "Resolución" ? `Resolución ${resolutionType} ${title}` : formattedTitle;
+    let finalTitle = formattedTitle;
+    if (type === "Resolución") {
+      finalTitle = `Resolución ${resolutionType} N° ${title}/${resolutionYear}`;
+    } else if (type === "Reglamento") {
+      finalTitle = `Reglamento N° ${title}/${resolutionYear}`;
+    }
 
     const documentData: any = {
       title: finalTitle,
       type,
       date,
-      authors: authors.split(',').map(a => a.trim()).filter(Boolean),
+      authors: (type === "Resolución" || type === "Reglamento") ? [] : authors.split(',').map(a => a.trim()).filter(Boolean),
       description: isResolution ? "" : description,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
@@ -279,8 +286,9 @@ export default function UploadPage() {
       fileUrl: uploadMethod === "file" ? "#" : externalUrl,
     };
 
-    if (type === "Resolución") {
+    if (type === "Resolución" || type === "Reglamento") {
       documentData.resolutionType = resolutionType;
+      documentData.resolutionYear = parseInt(resolutionYear);
     }
 
     const currentYear = new Date().getFullYear();
@@ -351,7 +359,7 @@ export default function UploadPage() {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica en Hualfín, Catamarca";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
     if (type === "Pasantía") return "Ej: Practica/Pasantía de Juan Pérez en Empresa Agrícola...";
-    if (type === "Resolución") return "Ej: N° 123/2024";
+    if (type === "Resolución" || type === "Reglamento") return "N° 123";
     if (isSpecialType) return `Ej: Resolución de ${type} Estudiantil 2024...`;
     return "Ingrese el título oficial del registro...";
   };
@@ -1026,7 +1034,7 @@ export default function UploadPage() {
                           </Select>
                         </div>
                         <div className="space-y-3 col-span-2 md:col-span-1">
-                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número / Identificación</Label>
+                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número</Label>
                           <Input 
                             id="title" 
                             placeholder={getPlaceholder()}
@@ -1036,7 +1044,20 @@ export default function UploadPage() {
                             onChange={(e) => setTitle(e.target.value)}
                           />
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-3 col-span-2 md:col-span-1">
+                          <Label htmlFor="resYear" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año</Label>
+                          <Select value={resolutionYear} onValueChange={setResolutionYear}>
+                            <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
+                              <SelectValue placeholder="Año" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {YEARS.map(y => (
+                                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-3 col-span-2 md:col-span-1">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
                             <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
                           </Label>
@@ -1062,17 +1083,6 @@ export default function UploadPage() {
                               />
                             </PopoverContent>
                           </Popover>
-                        </div>
-                        <div className="space-y-3">
-                          <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Autores (separados por coma)</Label>
-                          <Input 
-                            id="authors" 
-                            placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                            className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                            required 
-                            value={authors}
-                            onChange={(e) => setAuthors(e.target.value)}
-                          />
                         </div>
                       </>
                     )}
@@ -1210,7 +1220,7 @@ export default function UploadPage() {
                 <Button 
                   type="submit" 
                   className="w-full md:w-auto h-14 px-12 rounded-xl font-black bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 uppercase tracking-widest text-[11px]" 
-                  disabled={isSaving || (!file && !externalUrl) || (!title && type !== "Resolución")}
+                  disabled={isSaving || (!file && !externalUrl) || (!title && !isResolution)}
                 >
                   {isSaving ? (
                     <span className="flex items-center gap-3">

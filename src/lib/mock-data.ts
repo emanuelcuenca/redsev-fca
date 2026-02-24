@@ -13,10 +13,11 @@ export interface AgriculturalDocument {
   imageUrl?: string;
   fileUrl: string;
   fileType: string;
-  // Campos específicos para Convenios
+  // Campos específicos para Convenios y Resoluciones
   isVigente?: boolean;
   durationYears?: number;
   signingYear?: number;
+  resolutionYear?: number; // Año específico para resoluciones
   counterpart?: string;
   convenioSubType?: 'Marco' | 'Específico' | 'Práctica/Pasantía';
   hasInstitutionalResponsible?: boolean;
