@@ -1,7 +1,7 @@
 export interface AgriculturalDocument {
   id: string;
   title: string;
-  type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Reglamento' | 'Otro';
+  type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Otro';
   resolutionType?: 'CD' | 'CS' | 'Decanal' | 'Rectoral' | 'SEU' | 'Ministerial';
   project?: string;
   projectCode?: string; // Código unificador para proyectos (Formato: FCA-EXT-001-2024)
@@ -17,6 +17,7 @@ export interface AgriculturalDocument {
   // Campos específicos para Convenios y Resoluciones
   isVigente?: boolean;
   durationYears?: number;
+  hasAutomaticRenewal?: boolean;
   signingYear?: number;
   resolutionYear?: number; // Año específico para resoluciones
   counterpart?: string;
@@ -45,6 +46,7 @@ export interface AgriculturalDocument {
 
 export function isDocumentVigente(doc: AgriculturalDocument): boolean {
   if (doc.type !== 'Convenio') return true;
+  if (doc.hasAutomaticRenewal) return true;
   if (!doc.date || !doc.durationYears) return true;
   
   const signingDate = new Date(doc.date);
@@ -64,6 +66,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     authors: ['Dr. Mario Rojas'],
     description: 'Este documento establece las bases para la cooperación técnica en la mejora de la fertilidad de los suelos en la región andina.',
     durationYears: 2,
+    hasAutomaticRenewal: false,
     signingYear: 2024,
     counterpart: 'INTA',
     convenioSubType: 'Marco',

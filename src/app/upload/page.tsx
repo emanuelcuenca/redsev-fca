@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,7 +33,8 @@ import {
   Globe,
   Landmark,
   ListTodo,
-  CheckCircle2
+  CheckCircle2,
+  RotateCcw
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -103,6 +103,7 @@ export default function UploadPage() {
   const [aiError, setAiError] = useState<string | null>(null);
 
   const [durationYears, setDurationYears] = useState<string>("1");
+  const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
   const [convenioCategory, setConvenioCategory] = useState("");
@@ -171,6 +172,7 @@ export default function UploadPage() {
     setAuthors("");
     setDescription("");
     setDurationYears("1");
+    setHasAutomaticRenewal(false);
     setCounterpart("");
     setConvenioSubType("Marco");
     setConvenioCategory("");
@@ -288,15 +290,13 @@ export default function UploadPage() {
     let finalTitle = formattedTitle;
     if (type === "Resolución") {
       finalTitle = `Resolución ${resolutionType} N° ${title}/${resolutionYear}`;
-    } else if (type === "Reglamento") {
-      finalTitle = `Reglamento N° ${title}/${resolutionYear}`;
     }
 
     const documentData: any = {
       title: finalTitle,
       type,
       date,
-      authors: (type === "Resolución" || type === "Reglamento") ? [] : authors.split(',').map(a => a.trim()).filter(Boolean),
+      authors: (type === "Resolución") ? [] : authors.split(',').map(a => a.trim()).filter(Boolean),
       description: isResolution ? "" : description,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
@@ -305,7 +305,7 @@ export default function UploadPage() {
       fileUrl: isPasantia ? "#" : (uploadMethod === "file" ? "#" : externalUrl),
     };
 
-    if (type === "Resolución" || type === "Reglamento") {
+    if (type === "Resolución") {
       documentData.resolutionType = resolutionType;
       documentData.resolutionYear = parseInt(resolutionYear);
     }
@@ -314,6 +314,7 @@ export default function UploadPage() {
 
     if (type === "Convenio") {
       documentData.durationYears = parseInt(durationYears) || 1;
+      documentData.hasAutomaticRenewal = hasAutomaticRenewal;
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
       documentData.convenioCategory = convenioCategory === "Otro..." ? convenioCategoryOther : convenioCategory;
@@ -397,7 +398,7 @@ export default function UploadPage() {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica...";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
     if (type === "Pasantía") return "Ej: Práctica/Pasantía de Juan Pérez en Empresa Agrícola...";
-    if (type === "Resolución" || type === "Reglamento") return "N° 123";
+    if (type === "Resolución") return "N° 123";
     if (type === "Movilidad") return "Ej: Resolución de Movilidad Estudiantil 2024...";
     return "Ingrese el título oficial del registro...";
   };
@@ -532,14 +533,13 @@ export default function UploadPage() {
                 <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Selección de Categoría</h2>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                 {[
                   { id: "Convenio", label: "Convenio", icon: Handshake },
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
                   { id: "Movilidad", label: "Movilidad", icon: Plane },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
-                  { id: "Resolución", label: "Resolución", icon: ScrollText },
-                  { id: "Reglamento", label: "Reglamento", icon: ScrollText }
+                  { id: "Resolución", label: "Resolución", icon: ScrollText }
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -837,12 +837,28 @@ export default function UploadPage() {
                         />
                       </div>
                       
-                      <div className="md:col-span-2 flex items-center justify-between p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20">
-                        <div className="flex flex-col">
-                          <span className="font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary leading-tight">Responsable Institucional</span>
-                          <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase leading-tight">¿El convenio tiene un responsable?</span>
+                      <div className="flex flex-col gap-4 md:col-span-2">
+                        <div className="flex items-center justify-between p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20">
+                          <div className="flex items-center gap-3">
+                            <RotateCcw className="w-4 h-4 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary leading-tight">Renovación Automática</span>
+                              <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase leading-tight">¿El convenio se renueva solo?</span>
+                            </div>
+                          </div>
+                          <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
                         </div>
-                        <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+
+                        <div className="flex items-center justify-between p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20">
+                          <div className="flex items-center gap-3">
+                            <UserCheck className="w-4 h-4 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary leading-tight">Responsable Institucional</span>
+                              <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase leading-tight">¿El convenio tiene un responsable?</span>
+                            </div>
+                          </div>
+                          <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                        </div>
                       </div>
 
                       {hasInstitutionalResponsible && (
@@ -949,7 +965,7 @@ export default function UploadPage() {
                     </div>
                   )}
 
-                  {(type === "Resolución" || type === "Reglamento") && (
+                  {type === "Resolución" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Resolución</Label>

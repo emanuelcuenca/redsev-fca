@@ -41,14 +41,14 @@
           "type": "string",
           "description": "Dependencia académica del usuario.",
           "enum": [
-            "Tecnología y Cs. Aplicadas",
-            "Cs. Exactas y Naturales",
             "Cs. Agrarias",
-            "Cs. Económicas y de Adm.",
             "Cs. de la Salud",
+            "Cs. Económicas y de Adm.",
+            "Cs. Exactas y Naturales",
             "Derecho",
+            "Esc. de Arqueología",
             "Humanidades",
-            "Esc. de Arqueología"
+            "Tecnología y Cs. Aplicadas"
           ]
         },
         "role": {
@@ -115,7 +115,7 @@
         },
         "type": {
           "type": "string",
-          "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución", "Reglamento"]
+          "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución"]
         },
         "resolutionType": {
           "type": "string",
@@ -132,6 +132,10 @@
         },
         "durationYears": {
           "type": "integer"
+        },
+        "hasAutomaticRenewal": {
+          "type": "boolean",
+          "description": "Indica si el convenio posee renovación automática."
         },
         "signingYear": {
           "type": "integer"

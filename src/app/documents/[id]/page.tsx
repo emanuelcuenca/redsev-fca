@@ -34,7 +34,8 @@ import {
   Landmark,
   ListTodo,
   CheckSquare,
-  LayoutGrid
+  LayoutGrid,
+  RotateCcw
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -205,9 +206,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               {/* Información específica para Convenios */}
               {isConvenio && (
                 <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <Handshake className="w-6 h-6 text-primary" />
-                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Acuerdo</h2>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Handshake className="w-6 h-6 text-primary" />
+                      <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Acuerdo</h2>
+                    </div>
+                    {documentData.hasAutomaticRenewal && (
+                      <Badge className="bg-accent/10 text-accent-foreground border-accent/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
+                        <RotateCcw className="w-3 h-3 mr-1.5" /> Renovación Automática
+                      </Badge>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
