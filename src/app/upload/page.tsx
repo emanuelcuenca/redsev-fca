@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -816,9 +817,9 @@ export default function UploadPage() {
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
-                              captionLayout="dropdown-buttons"
-                              fromYear={1980}
-                              toYear={new Date().getFullYear() + 10}
+                              captionLayout="dropdown"
+                              fromYear={1950}
+                              toYear={2050}
                               selected={approvalDate}
                               onSelect={setApprovalDate}
                               initialFocus
@@ -1020,9 +1021,9 @@ export default function UploadPage() {
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar 
                               mode="single" 
-                              captionLayout="dropdown-buttons"
-                              fromYear={1980}
-                              toYear={new Date().getFullYear() + 10}
+                              captionLayout="dropdown"
+                              fromYear={1950}
+                              toYear={2050}
                               selected={approvalDate} 
                               onSelect={setApprovalDate} 
                               initialFocus 

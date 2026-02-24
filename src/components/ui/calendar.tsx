@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -18,13 +19,13 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 bg-white", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center gap-1",
-        caption_label: "text-sm font-medium",
-        caption_dropdowns: "flex justify-center gap-1 items-center",
+        caption_label: "text-sm font-bold flex items-center gap-1",
+        caption_dropdowns: "flex justify-center gap-1 items-center z-20",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -53,9 +54,9 @@ function Calendar({
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         vhidden: "hidden",
-        dropdown: "flex h-8 w-fit items-center rounded-md border border-input bg-background px-1 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-        dropdown_month: "flex-1",
-        dropdown_year: "flex-1",
+        dropdown_container: "relative inline-flex items-center",
+        dropdown: "flex h-8 w-full items-center justify-between rounded-md border border-input bg-background px-2 py-1 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-6 cursor-pointer",
+        dropdown_icon: "absolute right-1 h-3 w-3 opacity-50 pointer-events-none",
         ...classNames,
       }}
       components={{
