@@ -17,13 +17,8 @@ import {
   Target,
   FileUp,
   Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  UserCheck,
   Search,
   FileCheck,
-  Building2,
-  Fingerprint,
   User,
   Users
 } from "lucide-react";
@@ -66,10 +61,7 @@ export default function UploadPage() {
   const [extensionDocType, setExtensionDocType] = useState<string>("");
   const [title, setTitle] = useState("");
   
-  // Nombres separados para Director
   const [director, setDirector] = useState<PersonName>({ firstName: "", lastName: "" });
-  
-  // Equipo técnico dinámico (3 por defecto)
   const [technicalTeam, setTechnicalTeam] = useState<PersonName[]>([
     { firstName: "", lastName: "" },
     { firstName: "", lastName: "" },
@@ -108,7 +100,7 @@ export default function UploadPage() {
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length >= 2 && word === word.toUpperCase()) return word;
+        if (word.length >= 2 && (word === "UNCA" || word === "FCA" || word === "INTA" || word === "CONICET")) return word;
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');
@@ -184,6 +176,12 @@ export default function UploadPage() {
     const newTeam = [...technicalTeam];
     newTeam[index] = { ...newTeam[index], [field]: formatText(value) };
     setTechnicalTeam(newTeam);
+  };
+
+  const handleObjectiveChange = (index: number, value: string) => {
+    const newObjectives = [...objetivosEspecificos];
+    newObjectives[index] = value;
+    setObjetivosEspecificos(newObjectives);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -387,12 +385,8 @@ export default function UploadPage() {
 
                 {isExtensionLinkedSubtype && foundProject && (
                   <div className="p-6 bg-muted/20 rounded-3xl border border-muted space-y-4 animate-in fade-in">
-                    <div className="flex items-center gap-2 text-primary"><Fingerprint className="w-5 h-5" /><span className="font-black uppercase text-xs tracking-widest">Proyecto Vinculado</span></div>
+                    <div className="flex items-center gap-2 text-primary"><FileUp className="w-5 h-5" /><span className="font-black uppercase text-xs tracking-widest">Proyecto Vinculado</span></div>
                     <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Título:</p><p className="text-sm font-bold leading-tight">{foundProject.title}</p></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Código:</p><p className="text-sm font-bold text-primary">{foundProject.projectCode}</p></div>
-                      <div><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Director:</p><p className="text-sm font-bold">{foundProject.director?.lastName}, {foundProject.director?.firstName}</p></div>
-                    </div>
                   </div>
                 )}
               </section>
@@ -477,26 +471,43 @@ export default function UploadPage() {
             {type && (!isExtensionLinkedSubtype || foundProject) && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3"><div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div><div><h3 className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Archivo de Respaldo</h3><p className="text-[10px] text-muted-foreground font-medium uppercase">Cargue el PDF original</p></div></div>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="h-12 px-6 rounded-xl border-2 border-primary/30 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all">{fileName ? "Cambiar Archivo" : "Seleccionar Archivo"}</button>
+                  <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
+                    {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Subir Archivo</span>}
+                  </Button>
                   <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
+                  {fileName && (
+                    <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3 animate-in fade-in">
+                      <ScrollText className="w-5 h-5 text-primary/60" />
+                      <span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span>
+                    </div>
+                  )}
                 </div>
-                {fileName && <div className="flex items-center gap-2 bg-white/50 p-3 rounded-xl border border-primary/10 animate-in fade-in"><CheckCircle2 className="w-4 h-4 text-green-600" /><span className="text-xs font-bold text-primary truncate">{fileName}</span></div>}
-                <div className="pt-4 border-t border-primary/10">
-                  <div className="flex items-center justify-between gap-4 mb-4"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen</Label><Button type="button" onClick={handleSummarize} disabled={isSummarizing || !fileDataUri} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">{isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA</Button></div>
-                  <Textarea placeholder="Resumen..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
+                
+                <div className="pt-6 border-t border-primary/10">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                    <Button type="button" onClick={handleSummarize} disabled={isSummarizing || !fileDataUri} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
+                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
+                    </Button>
+                  </div>
+                  <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
               </section>
             )}
 
             {isExtensionLinkedSubtype && !foundProject && (
-              <div className="py-20 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted animate-pulse"><FileCheck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" /><p className="text-muted-foreground font-black uppercase text-xs tracking-widest px-8">Vincule un proyecto para habilitar la carga</p></div>
+              <div className="py-20 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted animate-pulse">
+                <FileCheck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-muted-foreground font-black uppercase text-xs tracking-widest px-8">Vincule un proyecto para habilitar la carga</p>
+              </div>
             )}
 
             {type && (
               <div className="flex justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving || (isExtensionLinkedSubtype && !foundProject)}>{isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}</Button>
+                <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving || (isExtensionLinkedSubtype && !foundProject)}>
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}
+                </Button>
               </div>
             )}
           </form>

@@ -10,13 +10,11 @@ import {
   Pencil,
   X,
   Plus,
-  Target,
   FileUp,
   Sparkles,
-  CheckCircle2,
-  UserCheck,
   User,
-  Users
+  Users,
+  ScrollText
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -169,7 +167,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length >= 2 && word === word.toUpperCase()) return word;
+        if (word.length >= 2 && (word === "UNCA" || word === "FCA" || word === "INTA" || word === "CONICET")) return word;
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');
@@ -366,9 +364,27 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 <div className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6 mt-8">
-                  <div className="flex items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div><span className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Archivo PDF</span></div><Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="rounded-xl border-primary/30 text-primary font-black uppercase text-[10px] h-10 px-6">{fileName ? "Cambiar" : "Subir"}</Button></div>
-                  {fileName && <div className="bg-white/50 p-3 rounded-xl border border-primary/10 text-xs font-bold text-primary">{fileName}</div>}
-                  <div className="pt-4 border-t border-primary/10"><div className="flex items-center justify-between gap-4 mb-4"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen</Label><Button type="button" onClick={handleSummarize} disabled={isSummarizing || (!fileDataUri && !docData?.fileUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all">{isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA</Button></div><Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" /></div>
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
+                      {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Subir Archivo</span>}
+                    </Button>
+                    {fileName && (
+                      <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3 animate-in fade-in">
+                        <ScrollText className="w-5 h-5 text-primary/60" />
+                        <span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="pt-6 border-t border-primary/10">
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                      <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (!fileDataUri && !docData?.fileUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all">
+                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
+                      </Button>
+                    </div>
+                    <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
+                  </div>
                 </div>
 
                 <div className="pt-8 border-t border-dashed flex items-center justify-between gap-4">
