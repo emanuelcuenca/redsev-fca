@@ -71,14 +71,14 @@ const MONTHS = [
 const YEARS = Array.from({ length: 21 }, (_, i) => new Date().getFullYear() - 10 + i);
 
 const CONVENIO_CATEGORIES = [
-  "Colaboración",
   "Capacitación",
+  "Colaboración",
   "Extensión",
-  "Actividades de investigación",
-  "Prácticas/pasantías",
+  "Investigación",
   "Movilidad docente",
   "Movilidad estudiantil",
-  "Otro"
+  "Otro...",
+  "Prácticas/Pasantías"
 ];
 
 const RESOLUTION_TYPES = ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"].sort();
@@ -301,7 +301,7 @@ export default function UploadPage() {
       documentData.durationYears = parseInt(durationYears) || 1;
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
-      documentData.convenioCategory = convenioCategory === "Otro" ? convenioCategoryOther : convenioCategory;
+      documentData.convenioCategory = convenioCategory === "Otro..." ? convenioCategoryOther : convenioCategory;
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
       if (!hasInstitutionalResponsible) {
         documentData.authors = [];
@@ -711,13 +711,13 @@ export default function UploadPage() {
                         </Select>
                       </div>
 
-                      {convenioCategory === "Otro" && (
+                      {convenioCategory === "Otro..." && (
                         <div className="space-y-2 md:col-span-2 animate-in fade-in slide-in-from-top-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Especifique el Área</Label>
                           <Input 
                             placeholder="Ingrese el área de aplicación..." 
                             className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                            required={convenioCategory === "Otro"}
+                            required={convenioCategory === "Otro..."}
                             value={convenioCategoryOther}
                             onChange={(e) => setConvenioCategoryOther(e.target.value)}
                           />
