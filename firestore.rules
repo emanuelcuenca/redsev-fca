@@ -13,6 +13,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get: if isSignedIn();
+      allow list: if isAdmin();
       allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 

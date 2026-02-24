@@ -77,13 +77,17 @@ export default function AdminUsersPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
+  // Solo realizar la consulta si estamos seguros de que es administrador
   const usersQuery = useMemoFirebase(() => 
-    query(collection(db, 'users'), orderBy('name', 'asc')),
-    [db]
+    (user && currentAdminDoc) ? query(collection(db, 'users'), orderBy('name', 'asc')) : null,
+    [db, user, currentAdminDoc]
   );
   const { data: allUsers, isLoading: isUsersLoading } = useCollection<AppUser>(usersQuery);
 
-  const adminsQuery = useMemoFirebase(() => collection(db, 'roles_admin'), [db]);
+  const adminsQuery = useMemoFirebase(() => 
+    (user && currentAdminDoc) ? collection(db, 'roles_admin') : null, 
+    [db, user, currentAdminDoc]
+  );
   const { data: adminRoles } = useCollection<AdminRole>(adminsQuery);
 
   const adminMap = new Map(adminRoles?.map(a => [a.id, a.assignedAt]) || []);

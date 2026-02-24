@@ -88,9 +88,10 @@ export default function StaffAdminPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
+  // Solo realizar la consulta si estamos seguros de que es administrador
   const staffQuery = useMemoFirebase(() => 
-    query(collection(db, 'staff'), orderBy('lastName', 'asc')),
-    [db]
+    (user && currentAdminDoc) ? query(collection(db, 'staff'), orderBy('lastName', 'asc')) : null,
+    [db, user, currentAdminDoc]
   );
   const { data: staffList, isLoading: isStaffLoading } = useCollection<StaffMember>(staffQuery);
 
