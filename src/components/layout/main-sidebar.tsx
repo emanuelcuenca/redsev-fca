@@ -12,7 +12,8 @@ import {
   Users,
   ScrollText,
   Plane,
-  GraduationCap
+  GraduationCap,
+  Contact
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +55,7 @@ export function MainSidebar() {
 
   const ADMIN_ITEMS = [
     { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
+    { icon: Contact, label: "Padrón de Personas", href: "/admin/staff" },
     { icon: Users, label: "Gestión de Usuarios", href: "/admin" },
   ];
 
@@ -66,7 +68,6 @@ export function MainSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
-        {/* Logo SEV: Cuadrado perfecto con bordes rectos (90 grados) */}
         <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center border border-white/10">
           <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>

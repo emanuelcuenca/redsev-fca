@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -6,76 +7,34 @@
       "type": "object",
       "description": "Represents a user of the VínculoAgro application, with distinct roles and institutional data.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
-        },
-        "firstName": {
-          "type": "string",
-          "description": "First name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "Last name of the user."
-        },
-        "name": {
-          "type": "string",
-          "description": "Full name of the user."
-        },
-        "photoUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "Optional profile photo URL."
-        },
-        "academicRank": {
-          "type": "string",
-          "description": "Cargo docente del usuario.",
-          "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"]
-        },
-        "department": {
-          "type": "string",
-          "description": "Dependencia académica del usuario.",
-          "enum": [
-            "Cs. Agrarias",
-            "Cs. de la Salud",
-            "Cs. Económicas y de Adm.",
-            "Cs. Exactas y Naturales",
-            "Derecho",
-            "Esc. de Arqueología",
-            "Humanidades",
-            "Tecnología y Cs. Aplicadas"
-          ]
-        },
-        "role": {
-          "type": "string",
-          "description": "Role within the application.",
-          "default": "Viewer"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "name": { "type": "string" },
+        "photoUrl": { "type": "string", "format": "uri" },
+        "academicRank": { "type": "string", "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"] },
+        "department": { "type": "string" },
+        "role": { "type": "string", "default": "Viewer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "email",
-        "firstName",
-        "lastName",
-        "academicRank",
-        "department",
-        "role",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "email", "firstName", "lastName", "role"]
+    },
+    "Staff": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Staff",
+      "type": "object",
+      "description": "Padrón central de personas vinculadas a la facultad (Docentes, Alumnos, etc).",
+      "properties": {
+        "dni": { "type": "string", "description": "ID único y DNI de la persona." },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "category": { "type": "string", "enum": ["Docente", "Estudiante", "No Docente", "Externo"] },
+        "email": { "type": "string", "format": "email" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dni", "firstName", "lastName", "category"]
     },
     "Document": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -83,108 +42,61 @@
       "type": "object",
       "description": "Represents a document stored in the VínculoAgro repository.",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "objetivoGeneral": {
-          "type": "string"
-        },
-        "objetivosEspecificos": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "fileUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "fileType": {
-          "type": "string"
-        },
-        "uploadDate": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "uploadedByUserId": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución"]
-        },
-        "extensionDocType": {
-          "type": "string",
-          "enum": ["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"]
-        },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución"] },
+        "extensionDocType": { "type": "string" },
+        "projectCode": { "type": "string" },
         "director": {
           "type": "object",
           "properties": {
+            "dni": { "type": "string" },
             "firstName": { "type": "string" },
             "lastName": { "type": "string" }
-          },
-          "description": "Director del proyecto de extensión con nombre y apellido separados."
+          }
         },
         "authors": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
+              "dni": { "type": "string" },
               "firstName": { "type": "string" },
               "lastName": { "type": "string" }
             }
-          },
-          "description": "Equipo técnico o responsables con nombres y apellidos separados."
+          }
         },
-        "projectCode": {
-          "type": "string",
-          "description": "Código unificador para proyectos de extensión."
-        },
-        "date": {
-          "type": "string",
-          "format": "date"
-        },
-        "durationYears": {
-          "type": "integer"
-        },
-        "hasAutomaticRenewal": {
-          "type": "boolean"
-        },
-        "counterparts": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+        "date": { "type": "string", "format": "date-time" },
+        "uploadDate": { "type": "string", "format": "date-time" },
+        "uploadedByUserId": { "type": "string" },
+        "description": { "type": "string" },
+        "fileUrl": { "type": "string" }
       },
-      "required": [
-        "id",
-        "title",
-        "uploadDate",
-        "uploadedByUserId",
-        "type"
-      ]
+      "required": ["id", "title", "type", "uploadDate"]
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["password"]
   },
   "firestore": {
     "structure": [
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "User",
           "schema": { "$ref": "#/backend/entities/User" },
           "description": "Perfiles de usuario."
         }
       },
       {
+        "path": "/staff/{dni}",
+        "definition": {
+          "schema": { "$ref": "#/backend/entities/Staff" },
+          "description": "Padrón de personas (Docentes, Estudiantes)."
+        }
+      },
+      {
         "path": "/documents/{documentId}",
         "definition": {
-          "entityName": "Document",
           "schema": { "$ref": "#/backend/entities/Document" },
           "description": "Repositorio central de documentos."
         }

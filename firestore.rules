@@ -1,12 +1,7 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * VínculoAgro Security Rules
-     */
-
-    // --- Global Helper Functions ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -16,56 +11,23 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isExistingAdmin() {
-      return resource != null && isAdmin();
-    }
-
-    // --- Collection Rules ---
-
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /roles_admin/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      // Permite que un administrador cree o elimine otros administradores.
-      // NOTA: El primer administrador debe ser creado manualmente en la consola de Firebase.
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /staff/{dni} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     match /documents/{documentId} {
-      allow get, list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
-    }
-
-    match /agreementTypes/{agreementTypeId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /projects/{projectId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /authors/{authorId} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
-    match /keywords/{keywordId} {
-      allow get, list: if isSignedIn();
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
   }
