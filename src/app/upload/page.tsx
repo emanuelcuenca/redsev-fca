@@ -258,7 +258,6 @@ export default function UploadPage() {
           documentData.projectCode = `FCA-EXT-${randNum}-${currentYear}`;
         }
       } else if (projectCodeNumber) {
-        // Formato solicitado: FCA-EXT-001-AÑO
         documentData.projectCode = `FCA-EXT-${projectCodeNumber.padStart(3, '0')}-${currentYear}`;
       }
     }
@@ -480,19 +479,22 @@ export default function UploadPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
-                      </Label>
-                      <Input 
-                        id="date" 
-                        type="date" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Proyecto"}
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                      />
-                    </div>
+                    {/* Fecha de Aprobación: Solo si NO es informe */}
+                    {!(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
+                      <div className="space-y-3 animate-in fade-in duration-300">
+                        <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                        </Label>
+                        <Input 
+                          id="date" 
+                          type="date" 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={type === "Proyecto" && !(extensionDocType === "Informe de avance" || extensionDocType === "Informe final")}
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                        />
+                      </div>
+                    )}
 
                     {extensionDocType !== "Proyecto" && extensionDocType !== "" && (
                       <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">

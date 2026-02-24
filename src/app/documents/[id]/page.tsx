@@ -115,6 +115,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
+  const isInforme = documentData.extensionDocType?.includes('Informe');
   const vigente = isDocumentVigente(documentData);
 
   const getDocIcon = () => {
@@ -210,13 +211,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Tipo de Registro</p>
                       <p className="font-bold text-lg">{documentData.extensionDocType || 'Proyecto'}</p>
                     </div>
-                    {documentData.executionPeriod && (
+                    {documentData.executionPeriod && documentData.extensionDocType === "Proyecto" && (
                       <div className="bg-white p-4 rounded-xl shadow-sm border">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período de Ejecución</p>
                         <p className="font-bold text-lg">{documentData.executionPeriod}</p>
                       </div>
                     )}
-                    {documentData.presentationDate && (
+                    {documentData.presentationDate && isInforme && (
                       <div className="bg-white p-4 rounded-xl shadow-sm border">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Fecha de Presentación</p>
                         <p className="font-bold text-lg flex items-center gap-2">
@@ -225,7 +226,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         </p>
                       </div>
                     )}
-                    {documentData.reportPeriod && (
+                    {documentData.reportPeriod && documentData.extensionDocType === "Informe de avance" && (
                       <div className="bg-white p-4 rounded-xl shadow-sm border">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período que abarca el informe</p>
                         <p className="font-bold text-lg flex items-center gap-2">
@@ -234,7 +235,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         </p>
                       </div>
                     )}
-                    {documentData.date && (
+                    {documentData.date && !isInforme && (
                       <div className="bg-white p-4 rounded-xl shadow-sm border">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Fecha de Aprobación</p>
                         <p className="font-bold text-lg flex items-center gap-2">
@@ -326,10 +327,10 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                          {isConvenio ? 'Fecha de Firma' : isProyecto ? 'Fecha de Aprobación' : 'Fecha de Registro'}
+                          {isConvenio ? 'Fecha de Firma' : isProyecto ? (isInforme ? 'Fecha de Presentación' : 'Fecha de Aprobación') : 'Fecha de Registro'}
                         </p>
                         <p className="font-semibold text-sm md:text-base">
-                          {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}
+                          {mounted ? (isInforme && documentData.presentationDate ? new Date(documentData.presentationDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : (displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...')) : '...'}
                         </p>
                       </div>
                     </div>
