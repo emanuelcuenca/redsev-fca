@@ -49,12 +49,15 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, getCountFromServer, getDocs, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -102,8 +105,38 @@ export default function UploadPage() {
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
+  // States for calendar popovers
+  const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
+  const [presDate, setPresDate] = useState<Date | undefined>(undefined);
+  const [executionRange, setExecutionRange] = useState<{from: Date | undefined, to: Date | undefined}>({
+    from: undefined,
+    to: undefined
+  });
+
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
   const isResolution = extensionDocType === "Resolución de aprobación";
+
+  useEffect(() => {
+    if (approvalDate) {
+      setDate(approvalDate.toISOString().split('T')[0]);
+    }
+  }, [approvalDate]);
+
+  useEffect(() => {
+    if (presDate) {
+      setPresentationDate(presDate.toISOString().split('T')[0]);
+    }
+  }, [presDate]);
+
+  useEffect(() => {
+    if (executionRange.from && executionRange.to) {
+      setExecutionPeriod(`${format(executionRange.from, "dd/MM/yyyy")} - ${format(executionRange.to, "dd/MM/yyyy")}`);
+    } else if (executionRange.from) {
+      setExecutionPeriod(format(executionRange.from, "dd/MM/yyyy"));
+    } else {
+      setExecutionPeriod("");
+    }
+  }, [executionRange]);
 
   useEffect(() => {
     async function fetchProjectData() {
@@ -182,6 +215,9 @@ export default function UploadPage() {
     setProjectCodeNumber("");
     setLinkedProjectFound(false);
     setAiError(null);
+    setApprovalDate(undefined);
+    setPresDate(undefined);
+    setExecutionRange({ from: undefined, to: undefined });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -430,7 +466,7 @@ export default function UploadPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
                     <div className="space-y-3">
                       <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
                       <Select value={extensionDocType} onValueChange={setExtensionDocType}>
@@ -446,7 +482,7 @@ export default function UploadPage() {
                       </Select>
                     </div>
 
-                    {isSecondaryExtensionDoc && (
+                    {isSecondaryExtensionDoc ? (
                       <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                         <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                           <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto Vinculado
@@ -467,22 +503,36 @@ export default function UploadPage() {
                           {isProjectDataLoading && <Loader2 className="w-4 h-4 animate-spin ml-2 text-primary" />}
                         </div>
                       </div>
-                    )}
-
-                    {extensionDocType && !extensionDocType.includes('Informe') && (extensionDocType === "Proyecto" || linkedProjectFound) && (
-                      <div className="space-y-3 animate-in fade-in duration-300">
-                        <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
-                        </Label>
-                        <Input 
-                          id="date" 
-                          type="date" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={extensionDocType === "Proyecto"}
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                        />
-                      </div>
+                    ) : (
+                      extensionDocType === "Proyecto" && (
+                        <div className="space-y-3 animate-in fade-in duration-300">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white",
+                                  !date && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={approvalDate}
+                                onSelect={setApprovalDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )
                     )}
                   </div>
                 )}
@@ -517,29 +567,66 @@ export default function UploadPage() {
                       </div>
 
                       <div className="space-y-3 col-span-2">
-                        <Label htmlFor="executionPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
-                        <Input 
-                          id="executionPeriod" 
-                          placeholder="Ej: 2024 - 2025" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80" 
-                          required={extensionDocType === "Proyecto"}
-                          value={executionPeriod}
-                          onChange={(e) => setExecutionPeriod(e.target.value)}
-                          disabled={isSecondaryExtensionDoc}
-                        />
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
+                        {isSecondaryExtensionDoc ? (
+                          <Input 
+                            value={executionPeriod}
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80"
+                            disabled
+                          />
+                        ) : (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white",
+                                  !executionPeriod && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {executionPeriod ? executionPeriod : <span>Seleccione el período</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={executionRange.from}
+                                selected={{ from: executionRange.from, to: executionRange.to }}
+                                onSelect={(range) => setExecutionRange({ from: range?.from, to: range?.to })}
+                                numberOfMonths={2}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
                       </div>
 
                       {extensionDocType?.includes('Informe') && (
                         <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
-                          <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
-                          <Input 
-                            id="presentationDate" 
-                            type="date"
-                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                            required={extensionDocType?.includes('Informe')}
-                            value={presentationDate}
-                            onChange={(e) => setPresentationDate(e.target.value)}
-                          />
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white",
+                                  !presentationDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {presentationDate ? format(new Date(presentationDate), "PPP", { locale: es }) : <span>Seleccione fecha de presentación</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={presDate}
+                                onSelect={setPresDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       )}
 
@@ -640,17 +727,31 @@ export default function UploadPage() {
                           </Select>
                         </div>
                         <div className="space-y-3">
-                          <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                             <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
                           </Label>
-                          <Input 
-                            id="date" 
-                            type="date" 
-                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                            required={type === "Convenio"}
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white",
+                                  !date && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha de firma</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={approvalDate}
+                                onSelect={setApprovalDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div className="space-y-3">
                           <Label htmlFor="duration" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
@@ -755,17 +856,31 @@ export default function UploadPage() {
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
                             <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
                           </Label>
-                          <Input 
-                            id="date" 
-                            type="date" 
-                            className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                            required 
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-muted-foreground/20 bg-muted/20",
+                                  !date && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={approvalDate}
+                                onSelect={setApprovalDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div className="space-y-3">
                           <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Autores (separados por coma)</Label>
