@@ -118,6 +118,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
+  const isPasantia = documentData.type === 'Pasantía';
+  const isMovilidad = documentData.type === 'Movilidad';
   const isInforme = documentData.extensionDocType?.includes('Informe');
   const vigente = isDocumentVigente(documentData);
 
@@ -252,30 +254,40 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               )}
 
               {/* Información específica para Movilidad / Pasantía */}
-              {(documentData.type === "Movilidad" || documentData.type === "Pasantía") && (
+              {(isMovilidad || isPasantia) && (
                 <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
                   <div className="flex items-center gap-3">
-                    {documentData.type === "Movilidad" ? <Plane className="w-6 h-6 text-primary" /> : <GraduationCap className="w-6 h-6 text-primary" />}
-                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Beneficiario y Destino</h2>
+                    {isMovilidad ? <Plane className="w-6 h-6 text-primary" /> : <GraduationCap className="w-6 h-6 text-primary" />}
+                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">
+                      {isMovilidad ? "Detalles del Beneficiario y Destino" : "Detalles del Pasante y Lugar"}
+                    </h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Nombre del Beneficiario / Pasante</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">
+                        {isMovilidad ? "Nombre del Beneficiario" : "Nombre del Pasante"}
+                      </p>
                       <p className="font-bold text-lg text-primary">{documentData.beneficiaryName || 'No registrado'}</p>
                     </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Siglas del Programa</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">
+                        {isPasantia ? "Programa" : "Siglas del Programa"}
+                      </p>
                       <p className="font-bold text-lg">{documentData.programName || 'No registrado'}</p>
                     </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Semestre / Convocatoria</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">
+                        {isPasantia ? "Período" : "Semestre / Convocatoria"}
+                      </p>
                       <p className="font-bold text-lg flex items-center gap-2">
-                        <ClipboardList className="w-5 h-5 text-primary" />
-                        {documentData.convocatoria || 'No especificada'}
+                        {isPasantia ? <Clock className="w-5 h-5 text-primary" /> : <ClipboardList className="w-5 h-5 text-primary" />}
+                        {isPasantia ? documentData.executionPeriod : documentData.convocatoria || 'No especificada'}
                       </p>
                     </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Institución de Destino</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">
+                        {isPasantia ? "Institución/Empresa" : "Institución de Destino"}
+                      </p>
                       <p className="font-bold text-lg flex items-center gap-2">
                         <Landmark className="w-5 h-5 text-primary" />
                         {documentData.destinationInstitution || 'No registrada'}
@@ -370,7 +382,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           <Globe className="w-4 h-4 md:w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Destino Internacional</p>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Ubicación</p>
                           <p className="font-semibold text-sm md:text-base">{documentData.destinationCountry}</p>
                         </div>
                       </div>

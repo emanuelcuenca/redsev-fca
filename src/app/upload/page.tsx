@@ -61,6 +61,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -119,9 +120,10 @@ export default function UploadPage() {
   // States for calendar popovers
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
   const [presDate, setPresDate] = useState<Date | undefined>(undefined);
+  const [pasantiaRange, setPasantiaRange] = useState<DateRange | undefined>(undefined);
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
-  const isResolution = extensionDocType === "Resolución de aprobación";
+  const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución";
 
   useEffect(() => {
     if (approvalDate) {
@@ -134,6 +136,14 @@ export default function UploadPage() {
       setPresentationDate(presDate.toISOString().split('T')[0]);
     }
   }, [presDate]);
+
+  useEffect(() => {
+    if (pasantiaRange?.from && pasantiaRange?.to) {
+      const fromStr = format(pasantiaRange.from, "dd/MM/yyyy");
+      const toStr = format(pasantiaRange.to, "dd/MM/yyyy");
+      setExecutionPeriod(`${fromStr} - ${toStr}`);
+    }
+  }, [pasantiaRange]);
 
   const updateExecutionPeriod = (sm: string, sy: string, em: string, ey: string) => {
     setExecutionPeriod(`${sm} ${sy} - ${em} ${ey}`);
@@ -167,6 +177,7 @@ export default function UploadPage() {
     setAiError(null);
     setApprovalDate(undefined);
     setPresDate(undefined);
+    setPasantiaRange(undefined);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,6 +320,9 @@ export default function UploadPage() {
       documentData.destinationInstitution = destinationInstitution;
       documentData.destinationProvince = destinationProvince;
       documentData.destinationCountry = destinationCountry;
+      if (type === "Pasantía") {
+        documentData.executionPeriod = executionPeriod;
+      }
     }
 
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
@@ -328,6 +342,7 @@ export default function UploadPage() {
   const getPlaceholder = () => {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica en Hualfín, Catamarca";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
+    if (type === "Pasantía") return "Ej: Practica/Pasantía de Juan Pérez en Empresa Agrícola...";
     if (isSpecialType) return `Ej: Resolución de ${type} Estudiantil 2024...`;
     return "Ingrese el título oficial del registro...";
   };
@@ -892,11 +907,11 @@ export default function UploadPage() {
                         </div>
                         <div className="space-y-3">
                           <Label htmlFor="program" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <BookOpen className="w-3.5 h-3.5" /> Siglas del Programa
+                            <BookOpen className="w-3.5 h-3.5" /> {type === "Pasantía" ? "Siglas del Programa" : "Programa"}
                           </Label>
                           <Input 
                             id="program" 
-                            placeholder="Ej: ARFITEC, JIMA, MAGMA..." 
+                            placeholder={type === "Pasantía" ? "Ej: Practicas Pre-profesionales" : "Ej: ARFITEC, JIMA, MAGMA..."} 
                             className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                             required={isSpecialType}
                             value={programName}
@@ -904,28 +919,55 @@ export default function UploadPage() {
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <ClipboardList className="w-3.5 h-3.5" /> Semestre / Convocatoria
+                          <Label htmlFor="periodo" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <ClipboardList className="w-3.5 h-3.5" /> {type === "Pasantía" ? "Período (Desde - Hasta)" : "Semestre / Convocatoria"}
                           </Label>
-                          <Input 
-                            id="convocatoria" 
-                            placeholder="Ej: 1er Semestre 2024" 
-                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                            required={isSpecialType}
-                            value={convocatoria}
-                            onChange={(e) => setConvocatoria(e.target.value)}
-                          />
+                          {type === "Pasantía" ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white",
+                                    !executionPeriod && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {executionPeriod ? executionPeriod : <span>Seleccione fecha desde - hasta</span>}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="range"
+                                  selected={pasantiaRange}
+                                  onSelect={setPasantiaRange}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          ) : (
+                            <Input 
+                              id="convocatoria" 
+                              placeholder="Ej: 1er Semestre 2024" 
+                              className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                              required={isSpecialType}
+                              value={convocatoria}
+                              onChange={(e) => setConvocatoria(e.target.value)}
+                            />
+                          )}
                         </div>
                         <div className="col-span-2 h-px bg-primary/10 my-2" />
                         <div className="space-y-3 col-span-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5" /> Destino de la Movilidad
+                            <MapPin className="w-3.5 h-3.5" /> {type === "Pasantía" ? "Lugar de la Pasantía" : "Destino de la Movilidad"}
                           </Label>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                              <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">Institución Receptora</p>
+                              <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">
+                                {type === "Pasantía" ? "Institución/Empresa" : "Institución Receptora"}
+                              </p>
                               <Input 
-                                placeholder="Ej: Univ. de Zaragoza"
+                                placeholder={type === "Pasantía" ? "Ej: Empresa Agrícola X" : "Ej: Univ. de Zaragoza"}
                                 className="h-10 rounded-xl border-primary/10 bg-white font-bold"
                                 value={destinationInstitution}
                                 onChange={(e) => setDestinationInstitution(e.target.value)}
@@ -935,7 +977,7 @@ export default function UploadPage() {
                             <div className="space-y-2">
                               <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">Provincia / Estado</p>
                               <Input 
-                                placeholder="Ej: Aragón"
+                                placeholder="Ej: Catamarca"
                                 className="h-10 rounded-xl border-primary/10 bg-white font-bold"
                                 value={destinationProvince}
                                 onChange={(e) => setDestinationProvince(e.target.value)}
@@ -945,7 +987,7 @@ export default function UploadPage() {
                             <div className="space-y-2">
                               <p className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">País</p>
                               <Input 
-                                placeholder="Ej: España"
+                                placeholder="Ej: Argentina"
                                 className="h-10 rounded-xl border-primary/10 bg-white font-bold"
                                 value={destinationCountry}
                                 onChange={(e) => setDestinationCountry(e.target.value)}
