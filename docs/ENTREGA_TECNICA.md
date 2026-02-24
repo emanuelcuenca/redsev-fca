@@ -8,7 +8,7 @@ Este documento detalla los requisitos técnicos para migrar y alojar el sistema 
 - **Memoria Mínima**: 1GB RAM (2GB recomendados para compilación).
 - **Almacenamiento**: ~500MB para el código y dependencias.
 
-## 🔑 Variables de Entorno (.env)
+## 🔑 Variables de Envío (.env)
 El equipo técnico deberá configurar las siguientes variables en el servidor de producción:
 
 ```env
