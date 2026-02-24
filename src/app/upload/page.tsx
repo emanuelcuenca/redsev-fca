@@ -26,7 +26,8 @@ import {
   BookOpen,
   ClipboardList,
   UserCheck,
-  Timer
+  Timer,
+  ArrowLeftRight
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -82,6 +83,12 @@ export default function UploadPage() {
   const [programName, setProgramName] = useState("");
   const [convocatoria, setConvocatoria] = useState("");
 
+  // Campos para Proyectos de Extensión
+  const [extensionDocType, setExtensionDocType] = useState("");
+  const [presentationDate, setPresentationDate] = useState("");
+  const [reportPeriod, setReportPeriod] = useState("");
+  const [executionPeriod, setExecutionPeriod] = useState("");
+
   const resetForm = () => {
     setType("");
     setFile(null);
@@ -99,6 +106,10 @@ export default function UploadPage() {
     setBeneficiaryName("");
     setProgramName("");
     setConvocatoria("");
+    setExtensionDocType("");
+    setPresentationDate("");
+    setReportPeriod("");
+    setExecutionPeriod("");
     setAiError(null);
   };
 
@@ -199,7 +210,7 @@ export default function UploadPage() {
       title: formattedTitle,
       type,
       date,
-      authors: hasInstitutionalResponsible ? authors.split(',').map(a => a.trim()).filter(Boolean) : [],
+      authors: authors.split(',').map(a => a.trim()).filter(Boolean),
       description,
       keywords,
       uploadDate: new Date().toISOString(),
@@ -214,9 +225,19 @@ export default function UploadPage() {
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
+      if (!hasInstitutionalResponsible) {
+        documentData.authors = [];
+      }
       if (date) {
         documentData.signingYear = new Date(date).getFullYear();
       }
+    }
+
+    if (type === "Proyecto") {
+      documentData.extensionDocType = extensionDocType;
+      documentData.presentationDate = presentationDate;
+      documentData.reportPeriod = reportPeriod;
+      documentData.executionPeriod = executionPeriod;
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -288,7 +309,7 @@ export default function UploadPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
                   { id: "Convenio", label: "Convenio", icon: Handshake },
-                  { id: "Proyecto", label: "Proyecto de Extensión", icon: FileText },
+                  { id: "Proyecto", label: "Proyecto de Extensión", icon: ArrowLeftRight },
                   { id: "Movilidad", label: "Movilidad", icon: Plane },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
                   { id: "Resolución", label: "Resolución", icon: ScrollText },
@@ -419,6 +440,93 @@ export default function UploadPage() {
                   </div>
                 )}
 
+                {type === "Proyecto" && (
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                    <div className="space-y-3">
+                      <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
+                      <Select value={extensionDocType} onValueChange={setExtensionDocType}>
+                        <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
+                          <SelectValue placeholder="Seleccione tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Proyecto">Proyecto</SelectItem>
+                          <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
+                          <SelectItem value="Informe de avance">Informe de avance</SelectItem>
+                          <SelectItem value="Informe final">Informe final</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                      </Label>
+                      <Input 
+                        id="date" 
+                        type="date" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Proyecto"}
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-3 col-span-2">
+                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores (separados por coma)</Label>
+                      <Input 
+                        id="authors" 
+                        placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Proyecto"}
+                        value={authors}
+                        onChange={(e) => setAuthors(e.target.value)}
+                      />
+                    </div>
+
+                    {extensionDocType === "Proyecto" && (
+                      <div className="space-y-3 col-span-2">
+                        <Label htmlFor="executionPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
+                        <Input 
+                          id="executionPeriod" 
+                          placeholder="Ej: 2024 - 2025" 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={extensionDocType === "Proyecto"}
+                          value={executionPeriod}
+                          onChange={(e) => setExecutionPeriod(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
+                      <div className="space-y-3 col-span-2">
+                        <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
+                        <Input 
+                          id="presentationDate" 
+                          type="date"
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={extensionDocType?.includes('Informe')}
+                          value={presentationDate}
+                          onChange={(e) => setPresentationDate(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {extensionDocType === "Informe de avance" && (
+                      <div className="space-y-3 col-span-2">
+                        <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe</Label>
+                        <Input 
+                          id="reportPeriod" 
+                          placeholder="Ej: Enero - Junio 2024" 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={extensionDocType === "Informe de avance"}
+                          value={reportPeriod}
+                          onChange={(e) => setReportPeriod(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {isSpecialType && (
                   <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
                     <div className="space-y-3">
@@ -463,7 +571,7 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {type !== "Convenio" && type && (
+                {(type === "Resolución" || type === "Reglamento") && (
                   <>
                     <div className="space-y-3">
                       <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
@@ -479,7 +587,7 @@ export default function UploadPage() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (separados por coma)</Label>
+                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Autores (separados por coma)</Label>
                       <Input 
                         id="authors" 
                         placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
@@ -531,11 +639,11 @@ export default function UploadPage() {
                 </h2>
               </div>
 
-              {isSpecialType && (
+              {(isSpecialType || type === "Proyecto") && (
                 <div className="mb-6 p-4 bg-primary/5 border border-dashed border-primary/20 rounded-2xl flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-primary shrink-0" />
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
-                    Adjunte Convenios, Resoluciones o Actas que avalen este registro de {type}.
+                    Adjunte {type === "Proyecto" ? "Proyectos, Resoluciones o Informes" : "Convenios, Resoluciones o Actas"} que avalen este registro de {type}.
                   </p>
                 </div>
               )}

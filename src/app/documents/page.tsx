@@ -97,8 +97,6 @@ export default function DocumentsListPage() {
   
   const { data: allDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
-  const isConvenios = category === 'convenios';
-
   const filteredDocs = useMemo(() => {
     if (!allDocs) return [];
     return allDocs.filter(doc => {
@@ -115,7 +113,7 @@ export default function DocumentsListPage() {
       
       if (!matchesSearch) return false;
 
-      if (isConvenios) {
+      if (category === 'convenios') {
         if (filterVigente !== "all") {
           const isVig = isDocumentVigente(doc);
           const filterIsVigente = filterVigente === "vigente";
@@ -134,7 +132,7 @@ export default function DocumentsListPage() {
 
       return true;
     });
-  }, [allDocs, searchQuery, category, isConvenios, filterVigente, filterYear, filterType, filterCounterpart]);
+  }, [allDocs, searchQuery, category, filterVigente, filterYear, filterType, filterCounterpart]);
 
   const handleDelete = (docId: string, title: string) => {
     if (!isAdmin) return;
@@ -214,7 +212,7 @@ export default function DocumentsListPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input 
-                  placeholder={isConvenios ? "Buscar convenios..." : "Buscar por título, proyecto o autor..."} 
+                  placeholder={category === 'convenios' ? "Buscar convenios..." : "Buscar por título, autor o palabra clave..."} 
                   className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -222,7 +220,7 @@ export default function DocumentsListPage() {
               </div>
             </div>
 
-            {isConvenios && (
+            {category === 'convenios' && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <Select value={filterVigente} onValueChange={setFilterVigente}>
                   <SelectTrigger className="h-11 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs uppercase tracking-wider">
@@ -304,9 +302,9 @@ export default function DocumentsListPage() {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex gap-2">
                             <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
-                              {doc.type}
+                              {doc.extensionDocType || doc.type}
                             </Badge>
-                            {isConvenios && (
+                            {category === 'convenios' && (
                               <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${vigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                                 {vigente ? 'Vigente' : 'Vencido'}
                               </Badge>
@@ -340,7 +338,7 @@ export default function DocumentsListPage() {
                         </div>
                         <h3 className="font-headline font-bold text-lg leading-tight mb-4 uppercase">{doc.title}</h3>
                         <div className="space-y-3">
-                          {isConvenios && doc.counterpart && (
+                          {category === 'convenios' && doc.counterpart && (
                             <div className="flex items-center gap-2 text-sm">
                               <Building2 className="w-4 h-4 text-primary" />
                               <span className="font-bold text-primary">{doc.counterpart}</span>
@@ -358,7 +356,7 @@ export default function DocumentsListPage() {
                           </div>
                         </div>
                         <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.type)}</span>
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{category === 'convenios' ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.extensionDocType || doc.type)}</span>
                           <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                             <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                           </Button>
@@ -375,10 +373,10 @@ export default function DocumentsListPage() {
                     <TableRow className="hover:bg-transparent border-none">
                       <TableHead className="font-black text-[12px] py-7 pl-12 uppercase tracking-[0.2em] text-muted-foreground/70">Documento</TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        {isConvenios ? 'Contraparte' : 'Tipo'}
+                        {category === 'convenios' ? 'Contraparte' : 'Tipo'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        {isConvenios ? 'Vigencia' : 'Proyecto / Sección'}
+                        {category === 'convenios' ? 'Vigencia' : 'Proyecto / Detalle'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Fecha</TableHead>
                       <TableHead className="font-black text-right pr-12 text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">Acciones</TableHead>
@@ -392,7 +390,7 @@ export default function DocumentsListPage() {
                           <TableCell className="py-8 pl-12">
                             <div className="flex items-center gap-6">
                               <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                                {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                                {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : doc.type === 'Proyecto' ? <ArrowLeftRight className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                               </div>
                               <div>
                                 <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
@@ -403,19 +401,19 @@ export default function DocumentsListPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {isConvenios ? (
+                            {category === 'convenios' ? (
                               <div className="flex flex-col">
                                 <span className="font-black text-primary">{doc.counterpart}</span>
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
                               </div>
                             ) : (
                               <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
-                                {doc.type}
+                                {doc.extensionDocType || doc.type}
                               </Badge>
                             )}
                           </TableCell>
                           <TableCell>
-                            {isConvenios ? (
+                            {category === 'convenios' ? (
                               <div className="flex items-center gap-2">
                                 {vigente ? (
                                   <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -427,7 +425,9 @@ export default function DocumentsListPage() {
                                 </span>
                               </div>
                             ) : (
-                              <span className="font-bold text-muted-foreground/90">{doc.project || doc.type}</span>
+                              <span className="font-bold text-muted-foreground/90 truncate max-w-[150px] inline-block">
+                                {doc.project || doc.executionPeriod || doc.type}
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="text-muted-foreground font-bold">

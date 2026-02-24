@@ -4,7 +4,7 @@ export interface AgriculturalDocument {
   title: string;
   type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Reglamento' | 'Otro';
   project?: string;
-  date: string;
+  date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
   authors: string[];
   keywords: string[];
   description: string;
@@ -21,6 +21,11 @@ export interface AgriculturalDocument {
   beneficiaryName?: string;
   programName?: string;
   convocatoria?: string;
+  // Campos específicos para Proyectos de Extensión
+  extensionDocType?: 'Proyecto' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
+  presentationDate?: string;
+  reportPeriod?: string;
+  executionPeriod?: string;
   uploadDate: string;
 }
 
@@ -59,6 +64,8 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     uploadDate: '2023-11-05T14:30:00Z',
     authors: ['Lic. Rosa Martínez', 'Prof. Juan Pérez'],
     keywords: ['Comunidad', 'Huertas', 'Capacitación'],
-    description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.'
+    description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
+    extensionDocType: 'Proyecto',
+    executionPeriod: '2023-2024'
   }
 ];

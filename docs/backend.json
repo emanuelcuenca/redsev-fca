@@ -111,13 +111,20 @@
           "type": "string",
           "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución", "Reglamento"]
         },
-        "isVigente": {
-          "type": "boolean",
-          "description": "Este campo ahora se calcula dinámicamente en el frontend basado en la duración."
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "authors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
         },
         "durationYears": {
-          "type": "integer",
-          "description": "Duración del convenio en años."
+          "type": "integer"
         },
         "signingYear": {
           "type": "integer"
@@ -126,20 +133,30 @@
           "type": "string"
         },
         "convenioSubType": {
-          "type": "string",
-          "enum": ["Marco", "Específico", "Práctica/Pasantía"]
+          "type": "string"
         },
         "beneficiaryName": {
-          "type": "string",
-          "description": "Nombre del pasante o beneficiario de la movilidad."
+          "type": "string"
         },
         "programName": {
-          "type": "string",
-          "description": "Nombre del programa institucional."
+          "type": "string"
         },
         "convocatoria": {
+          "type": "string"
+        },
+        "extensionDocType": {
           "type": "string",
-          "description": "Convocatoria y año correspondiente."
+          "enum": ["Proyecto", "Resolución de aprobación", "Informe de avance", "Informe final"]
+        },
+        "presentationDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "reportPeriod": {
+          "type": "string"
+        },
+        "executionPeriod": {
+          "type": "string"
         }
       },
       "required": [

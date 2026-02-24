@@ -25,7 +25,10 @@ import {
   UserCheck,
   Timer,
   CheckCircle2,
-  XCircle
+  XCircle,
+  ArrowLeftRight,
+  ScrollText,
+  Clock
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -110,7 +113,20 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
+  const isProyecto = documentData.type === 'Proyecto';
   const vigente = isDocumentVigente(documentData);
+
+  const getDocIcon = () => {
+    switch (documentData.type) {
+      case 'Convenio': return <Handshake className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Proyecto': return <ArrowLeftRight className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Movilidad': return <Plane className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Pasantía': return <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Resolución':
+      case 'Reglamento': return <ScrollText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      default: return <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -145,7 +161,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="flex items-center justify-between mb-3 md:mb-4">
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
-                      <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
+                      {getDocIcon()} Visualización
                     </h2>
                     {isConvenio && (
                       <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
@@ -155,7 +171,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     )}
                   </div>
                   <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
-                    {documentData.type}
+                    {documentData.extensionDocType || documentData.type}
                   </Badge>
                 </div>
                 <div className="relative aspect-[3/4] w-full bg-muted rounded-2xl md:rounded-3xl overflow-hidden border-2 border-muted shadow-lg">
@@ -173,6 +189,46 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
               </section>
+
+              {/* Información específica para Proyectos de Extensión */}
+              {isProyecto && (
+                <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <ArrowLeftRight className="w-6 h-6 text-primary" />
+                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles de Extensión</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Tipo de Documento</p>
+                      <p className="font-bold text-lg text-primary">{documentData.extensionDocType || 'Proyecto'}</p>
+                    </div>
+                    {documentData.executionPeriod && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período de Ejecución</p>
+                        <p className="font-bold text-lg">{documentData.executionPeriod}</p>
+                      </div>
+                    )}
+                    {documentData.presentationDate && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Fecha de Presentación</p>
+                        <p className="font-bold text-lg flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-primary" />
+                          {new Date(documentData.presentationDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                    )}
+                    {documentData.reportPeriod && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período que abarca el informe</p>
+                        <p className="font-bold text-lg flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-primary" />
+                          {documentData.reportPeriod}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
 
               {/* Información específica para Movilidad / Pasantía */}
               {(documentData.type === "Movilidad" || documentData.type === "Pasantía") && (
@@ -207,7 +263,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        {isConvenio ? <Handshake className="w-4 h-4 md:w-5 h-5 text-primary" /> : <FileText className="w-4 h-4 md:w-5 h-5 text-primary" />}
+                        {isConvenio ? <Handshake className="w-4 h-4 md:w-5 h-5 text-primary" /> : isProyecto ? <ArrowLeftRight className="w-4 h-4 md:w-5 h-5 text-primary" /> : <FileText className="w-4 h-4 md:w-5 h-5 text-primary" />}
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Registro</p>
@@ -241,7 +297,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <Calendar className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">{isConvenio ? 'Fecha de Firma' : 'Fecha de Registro'}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                          {isConvenio ? 'Fecha de Firma' : isProyecto ? 'Fecha de Aprobación' : 'Fecha de Registro'}
+                        </p>
                         <p className="font-semibold text-sm md:text-base">
                           {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}
                         </p>
@@ -254,7 +312,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         {isConvenio && documentData.hasInstitutionalResponsible ? <UserCheck className="w-4 h-4 md:w-5 h-5 text-primary" /> : <User className="w-4 h-4 md:w-5 h-5 text-primary" />}
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Responsables {isConvenio && "(Seguimiento)"}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                          {isProyecto ? 'Autores' : 'Responsables'} {isConvenio && "(Seguimiento)"}
+                        </p>
                         <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || (isConvenio ? 'Sin responsable asignado' : 'Secretaría de Extensión')}</p>
                       </div>
                     </div>
