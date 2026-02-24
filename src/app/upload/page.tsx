@@ -417,12 +417,12 @@ export default function UploadPage() {
         </header>
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full">
-          <div className="mb-8">
+          <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">Cargar Registro</h1>
             <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] mt-1">Repositorio Digital Institucional</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 pb-20">
+          <form onSubmit={handleSubmit} className={cn("space-y-6 md:space-y-8", type ? "pb-20" : "pb-10")}>
             <section className="bg-primary/5 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-primary/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary text-white p-2 rounded-none">
@@ -457,412 +457,416 @@ export default function UploadPage() {
               </div>
             </section>
 
-            <section className={`bg-white p-5 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-xl border border-muted transition-all duration-300 ${type ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-              <div className="flex items-center gap-3 mb-6 md:mb-8">
-                <div className="bg-primary/20 text-primary p-2 rounded-none">
-                  <Badge className="bg-transparent border-none p-0 text-base md:text-lg font-bold text-primary">2</Badge>
+            {type && (
+              <section className="bg-white p-5 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center gap-3 mb-6 md:mb-8">
+                  <div className="bg-primary/20 text-primary p-2 rounded-none">
+                    <Badge className="bg-transparent border-none p-0 text-base md:text-lg font-bold text-primary">2</Badge>
+                  </div>
+                  <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
                 </div>
-                <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
-              </div>
 
-              <div className="grid grid-cols-1 gap-6 md:gap-8 items-start">
-                {type === "Proyecto" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
-                      <Select value={extensionDocType} onValueChange={setExtensionDocType}>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Seleccione tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Proyecto">Proyecto</SelectItem>
-                          <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
-                          <SelectItem value="Informe de avance">Informe de avance</SelectItem>
-                          <SelectItem value="Informe final">Informe final</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {isSecondaryExtensionDoc ? (
-                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                          <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto
-                        </Label>
-                        <div className="flex items-center gap-0">
-                          <div className="h-11 md:h-12 px-3 md:px-4 rounded-l-xl bg-primary text-white flex items-center font-black text-[10px] md:text-sm uppercase tracking-widest border border-primary border-r-0 whitespace-nowrap">
-                            FCA-EXT-
-                          </div>
-                          <Input 
-                            placeholder="001" 
-                            maxLength={3}
-                            className="h-11 md:h-12 rounded-l-none rounded-r-xl border-primary/20 bg-white font-bold focus:ring-primary/10 min-w-0" 
-                            required={isSecondaryExtensionDoc}
-                            value={projectCodeNumber}
-                            onChange={(e) => setProjectCodeNumber(e.target.value.replace(/\D/g, ""))}
-                          />
-                        </div>
+                <div className="grid grid-cols-1 gap-6 md:gap-8 items-start">
+                  {type === "Proyecto" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
+                        <Select value={extensionDocType} onValueChange={setExtensionDocType}>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                            <SelectValue placeholder="Seleccione tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Proyecto">Proyecto</SelectItem>
+                            <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
+                            <SelectItem value="Informe de avance">Informe de avance</SelectItem>
+                            <SelectItem value="Informe final">Informe final</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    ) : (
-                      extensionDocType === "Proyecto" && (
-                        <div className="space-y-2 animate-in fade-in duration-300">
+
+                      {isSecondaryExtensionDoc ? (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                            <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto
                           </Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
-                                  !date && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={approvalDate}
-                                onSelect={setApprovalDate}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+                          <div className="flex items-center gap-0">
+                            <div className="h-11 md:h-12 px-3 md:px-4 rounded-l-xl bg-primary text-white flex items-center font-black text-[10px] md:text-sm uppercase tracking-widest border border-primary border-r-0 whitespace-nowrap">
+                              FCA-EXT-
+                            </div>
+                            <Input 
+                              placeholder="001" 
+                              maxLength={3}
+                              className="h-11 md:h-12 rounded-l-none rounded-r-xl border-primary/20 bg-white font-bold focus:ring-primary/10 min-w-0" 
+                              required={isSecondaryExtensionDoc}
+                              value={projectCodeNumber}
+                              onChange={(e) => setProjectCodeNumber(e.target.value.replace(/\D/g, ""))}
+                            />
+                          </div>
                         </div>
-                      )
-                    )}
-                  </div>
-                )}
+                      ) : (
+                        extensionDocType === "Proyecto" && (
+                          <div className="space-y-2 animate-in fade-in duration-300">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                              <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                            </Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
+                                    !date && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={approvalDate}
+                                  onSelect={setApprovalDate}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
 
-                {(type === "Proyecto" && (extensionDocType === "Proyecto" || linkedProjectFound)) && (
-                  <div className="space-y-2 animate-in fade-in duration-500">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
-                    <Input 
-                      placeholder={getPlaceholder()}
-                      className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80 text-xs md:text-sm" 
-                      required 
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      disabled={isSecondaryExtensionDoc}
-                    />
-                  </div>
-                )}
-
-                {type === "Convenio" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Convenio</Label>
+                  {(type === "Proyecto" && (extensionDocType === "Proyecto" || linkedProjectFound)) && (
+                    <div className="space-y-2 animate-in fade-in duration-500">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
                       <Input 
                         placeholder={getPlaceholder()}
-                        className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs md:text-sm" 
-                        required={type === "Convenio"}
+                        className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80 text-xs md:text-sm" 
+                        required 
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
+                        disabled={isSecondaryExtensionDoc}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5" /> Institución Contraparte
-                      </Label>
-                      <Input 
-                        placeholder="Ej: INTA, SENASA..." 
-                        className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                        required={type === "Convenio"}
-                        value={counterpart}
-                        onChange={(e) => setCounterpart(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Convenio</Label>
-                      <Select value={convenioSubType} onValueChange={setConvenioSubType}>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Seleccione subtipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Marco">Marco</SelectItem>
-                          <SelectItem value="Específico">Específico</SelectItem>
-                          <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={approvalDate}
-                            onSelect={setApprovalDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <Timer className="w-3.5 h-3.5" /> Duración (Años)
-                      </Label>
-                      <Input 
-                        type="number"
-                        min="1"
-                        className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                        required={type === "Convenio"}
-                        value={durationYears}
-                        onChange={(e) => setDurationYears(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2 flex items-center justify-between p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20">
-                      <div className="flex flex-col">
-                        <span className="font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary leading-tight">Responsable Institucional</span>
-                        <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase leading-tight">¿El convenio tiene un responsable?</span>
-                      </div>
-                      <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
-                    </div>
+                  )}
 
-                    {hasInstitutionalResponsible && (
-                      <div className="md:col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Responsables (separados por coma)</Label>
+                  {type === "Convenio" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Convenio</Label>
                         <Input 
-                          placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                          className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                          required={hasInstitutionalResponsible}
-                          value={authors}
-                          onChange={(e) => setAuthors(e.target.value)}
+                          placeholder={getPlaceholder()}
+                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs md:text-sm" 
+                          required={type === "Convenio"}
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
                         />
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {(type === "Movilidad" || type === "Pasantía") && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Registro</Label>
-                      <Input 
-                        placeholder={getPlaceholder()}
-                        className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs md:text-sm" 
-                        required 
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Nombre</Label>
-                      <Input 
-                        placeholder="Ej: Juan" 
-                        className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                        required 
-                        value={beneficiaryFirstName}
-                        onChange={(e) => setBeneficiaryFirstName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Apellido</Label>
-                      <Input 
-                        placeholder="Ej: Pérez" 
-                        className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                        required 
-                        value={beneficiaryLastName}
-                        onChange={(e) => setBeneficiaryLastName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">
-                        Siglas del Programa
-                      </Label>
-                      <Input 
-                        placeholder={type === "Pasantía" ? "Ej: Practicas Pre-profesionales" : "Ej: ARFITEC, JIMA..."} 
-                        className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                        required 
-                        value={programName}
-                        onChange={(e) => setProgramName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">
-                        {type === "Pasantía" ? "Período (Desde - Hasta)" : "Semestre / Convocatoria"}
-                      </Label>
-                      {type === "Pasantía" ? (
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5" /> Institución Contraparte
+                        </Label>
+                        <Input 
+                          placeholder="Ej: INTA, SENASA..." 
+                          className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                          required={type === "Convenio"}
+                          value={counterpart}
+                          onChange={(e) => setCounterpart(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Convenio</Label>
+                        <Select value={convenioSubType} onValueChange={setConvenioSubType}>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                            <SelectValue placeholder="Seleccione subtipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Marco">Marco</SelectItem>
+                            <SelectItem value="Específico">Específico</SelectItem>
+                            <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
+                        </Label>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full h-11 md:h-12 justify-start font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm">
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
+                                !date && "text-muted-foreground"
+                              )}
+                            >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {pasantiaRange.from && pasantiaRange.to ? `${format(pasantiaRange.from, "P", { locale: es })} - ${format(pasantiaRange.to, "P", { locale: es })}` : "Seleccionar fechas"}
+                              {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="range" selected={{from: pasantiaRange.from, to: pasantiaRange.to}} onSelect={(range) => {
-                              setPasantiaRange({from: range?.from, to: range?.to});
-                              if (range?.from && range?.to) {
-                                setExecutionPeriod(`${format(range.from, "dd/MM/yyyy")} - ${format(range.to, "dd/MM/yyyy")}`);
-                              }
-                            }} initialFocus />
+                            <Calendar
+                              mode="single"
+                              selected={approvalDate}
+                              onSelect={setApprovalDate}
+                              initialFocus
+                            />
                           </PopoverContent>
                         </Popover>
-                      ) : (
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Timer className="w-3.5 h-3.5" /> Duración (Años)
+                        </Label>
                         <Input 
-                          placeholder="Ej: 1er Semestre 2024" 
+                          type="number"
+                          min="1"
                           className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
-                          required 
-                          value={convocatoria}
-                          onChange={(e) => setConvocatoria(e.target.value)}
+                          required={type === "Convenio"}
+                          value={durationYears}
+                          onChange={(e) => setDurationYears(e.target.value)}
                         />
+                      </div>
+                      
+                      <div className="md:col-span-2 flex items-center justify-between p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20">
+                        <div className="flex flex-col">
+                          <span className="font-black uppercase text-[9px] md:text-[10px] tracking-widest text-primary leading-tight">Responsable Institucional</span>
+                          <span className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase leading-tight">¿El convenio tiene un responsable?</span>
+                        </div>
+                        <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                      </div>
+
+                      {hasInstitutionalResponsible && (
+                        <div className="md:col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Responsables (separados por coma)</Label>
+                          <Input 
+                            placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                            className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                            required={hasInstitutionalResponsible}
+                            value={authors}
+                            onChange={(e) => setAuthors(e.target.value)}
+                          />
+                        </div>
                       )}
                     </div>
-                    <div className="md:col-span-2 h-px bg-primary/10 my-2" />
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5" /> {type === "Pasantía" ? "Lugar de la Pasantía" : "Destino de la Movilidad"}
-                      </Label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <Input placeholder="Institución/Empresa" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationInstitution} onChange={(e) => setDestinationInstitution(e.target.value)} required />
-                        <Input placeholder="Provincia/Estado" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationProvince} onChange={(e) => setDestinationProvince(e.target.value)} required />
-                        <Input placeholder="País" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationCountry} onChange={(e) => setDestinationCountry(e.target.value)} required />
+                  )}
+
+                  {(type === "Movilidad" || type === "Pasantía") && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Registro</Label>
+                        <Input 
+                          placeholder={getPlaceholder()}
+                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs md:text-sm" 
+                          required 
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                        />
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {(type === "Resolución" || type === "Reglamento") && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Resolución</Label>
-                      <Select value={resolutionType} onValueChange={setResolutionType}>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Seleccione tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CD">CD</SelectItem>
-                          <SelectItem value="Decanal">Decanal</SelectItem>
-                          <SelectItem value="Rectoral">Rectoral</SelectItem>
-                          <SelectItem value="SEU">SEU</SelectItem>
-                          <SelectItem value="Ministerial">Ministerial</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número</Label>
-                      <Input 
-                        placeholder={getPlaceholder()}
-                        className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold text-xs md:text-sm" 
-                        required 
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año</Label>
-                      <Select value={resolutionYear} onValueChange={setResolutionYear}>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Año" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {YEARS.map(y => (
-                            <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full h-11 md:h-12 justify-start font-bold rounded-xl border-muted-foreground/20 bg-muted/20 text-xs md:text-sm">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={approvalDate} onSelect={setApprovalDate} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className={`transition-all duration-300 ${(title || linkedProjectFound) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-primary/20 text-primary p-2 rounded-none">
-                  <Badge className="bg-transparent border-none p-0 text-base md:text-lg font-bold text-primary">3</Badge>
-                </div>
-                <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Documentación y Análisis</h2>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
-                <div className="space-y-4">
-                  <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/50 p-1 mb-4 md:mb-6">
-                      <TabsTrigger value="file" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-                        <FileUp className="w-3 h-3 md:w-4 md:h-4" /> Archivo PDF
-                      </TabsTrigger>
-                      <TabsTrigger value="url" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-                        <LinkIcon className="w-3 h-3 md:w-4 md:h-4" /> Enlace Externo
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="file">
-                      <div className={`border-2 border-dashed rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20'}`}>
-                        {file ? (
-                          <div className="text-center">
-                            <FileText className="w-8 h-8 md:w-12 md:h-12 text-primary mx-auto mb-3" />
-                            <p className="font-black truncate max-w-[200px] md:max-w-[300px] text-xs md:text-sm">{file.name}</p>
-                            <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="mt-2 text-destructive font-bold text-[9px] md:text-[10px]">ELIMINAR Y CAMBIAR</Button>
-                          </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Nombre</Label>
+                        <Input 
+                          placeholder="Ej: Juan" 
+                          className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                          required 
+                          value={beneficiaryFirstName}
+                          onChange={(e) => setBeneficiaryFirstName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Apellido</Label>
+                        <Input 
+                          placeholder="Ej: Pérez" 
+                          className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                          required 
+                          value={beneficiaryLastName}
+                          onChange={(e) => setBeneficiaryLastName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">
+                          Siglas del Programa
+                        </Label>
+                        <Input 
+                          placeholder={type === "Pasantía" ? "Ej: Practicas Pre-profesionales" : "Ej: ARFITEC, JIMA..."} 
+                          className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                          required 
+                          value={programName}
+                          onChange={(e) => setProgramName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">
+                          {type === "Pasantía" ? "Período (Desde - Hasta)" : "Semestre / Convocatoria"}
+                        </Label>
+                        {type === "Pasantía" ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full h-11 md:h-12 justify-start font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {pasantiaRange.from && pasantiaRange.to ? `${format(pasantiaRange.from, "P", { locale: es })} - ${format(pasantiaRange.to, "P", { locale: es })}` : "Seleccionar fechas"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="range" selected={{from: pasantiaRange.from, to: pasantiaRange.to}} onSelect={(range) => {
+                                setPasantiaRange({from: range?.from, to: range?.to});
+                                if (range?.from && range?.to) {
+                                  setExecutionPeriod(`${format(range.from, "dd/MM/yyyy")} - ${format(range.to, "dd/MM/yyyy")}`);
+                                }
+                              }} initialFocus />
+                            </PopoverContent>
+                          </Popover>
                         ) : (
-                          <Label htmlFor="file-upload" className="cursor-pointer text-center">
-                            <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary mx-auto mb-3 md:mb-4" />
-                            <p className="text-lg md:text-xl font-black uppercase">Subir Documentación</p>
-                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
-                          </Label>
+                          <Input 
+                            placeholder="Ej: 1er Semestre 2024" 
+                            className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                            required 
+                            value={convocatoria}
+                            onChange={(e) => setConvocatoria(e.target.value)}
+                          />
                         )}
                       </div>
-                    </TabsContent>
-                    <TabsContent value="url">
-                      <Input placeholder="https://..." className="h-11 md:h-12 rounded-xl bg-white font-bold text-xs md:text-sm" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
-                    </TabsContent>
-                  </Tabs>
+                      <div className="md:col-span-2 h-px bg-primary/10 my-2" />
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5" /> {type === "Pasantía" ? "Lugar de la Pasantía" : "Destino de la Movilidad"}
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <Input placeholder="Institución/Empresa" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationInstitution} onChange={(e) => setDestinationInstitution(e.target.value)} required />
+                          <Input placeholder="Provincia/Estado" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationProvince} onChange={(e) => setDestinationProvince(e.target.value)} required />
+                          <Input placeholder="País" className="h-10 rounded-xl border-primary/10 bg-white font-bold text-xs md:text-sm" value={destinationCountry} onChange={(e) => setDestinationCountry(e.target.value)} required />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(type === "Resolución" || type === "Reglamento") && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Resolución</Label>
+                        <Select value={resolutionType} onValueChange={setResolutionType}>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                            <SelectValue placeholder="Seleccione tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CD">CD</SelectItem>
+                            <SelectItem value="Decanal">Decanal</SelectItem>
+                            <SelectItem value="Rectoral">Rectoral</SelectItem>
+                            <SelectItem value="SEU">SEU</SelectItem>
+                            <SelectItem value="Ministerial">Ministerial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número</Label>
+                        <Input 
+                          placeholder={getPlaceholder()}
+                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold text-xs md:text-sm" 
+                          required 
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año</Label>
+                        <Select value={resolutionYear} onValueChange={setResolutionYear}>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                            <SelectValue placeholder="Año" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {YEARS.map(y => (
+                              <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full h-11 md:h-12 justify-start font-bold rounded-xl border-muted-foreground/20 bg-muted/20 text-xs md:text-sm">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={approvalDate} onSelect={setApprovalDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {(type && (title || linkedProjectFound)) && (
+              <section className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="bg-primary/20 text-primary p-2 rounded-none">
+                    <Badge className="bg-transparent border-none p-0 text-base md:text-lg font-bold text-primary">3</Badge>
+                  </div>
+                  <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Documentación y Análisis</h2>
                 </div>
 
-                {!isResolution && (
-                  <div className="space-y-4 animate-in fade-in duration-300">
-                    <div className="flex items-center justify-between">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
-                      <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
-                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
-                      </Button>
-                    </div>
-                    <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
+                  <div className="space-y-4">
+                    <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/50 p-1 mb-4 md:mb-6">
+                        <TabsTrigger value="file" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                          <FileUp className="w-3 h-3 md:w-4 md:h-4" /> Archivo PDF
+                        </TabsTrigger>
+                        <TabsTrigger value="url" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                          <LinkIcon className="w-3 h-3 md:w-4 md:h-4" /> Enlace Externo
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="file">
+                        <div className={`border-2 border-dashed rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20'}`}>
+                          {file ? (
+                            <div className="text-center">
+                              <FileText className="w-8 h-8 md:w-12 md:h-12 text-primary mx-auto mb-3" />
+                              <p className="font-black truncate max-w-[200px] md:max-w-[300px] text-xs md:text-sm">{file.name}</p>
+                              <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="mt-2 text-destructive font-bold text-[9px] md:text-[10px]">ELIMINAR Y CAMBIAR</Button>
+                            </div>
+                          ) : (
+                            <Label htmlFor="file-upload" className="cursor-pointer text-center">
+                              <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary mx-auto mb-3 md:mb-4" />
+                              <p className="text-lg md:text-xl font-black uppercase">Subir Documentación</p>
+                              <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                            </Label>
+                          )}
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="url">
+                        <Input placeholder="https://..." className="h-11 md:h-12 rounded-xl bg-white font-bold text-xs md:text-sm" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
+                      </TabsContent>
+                    </Tabs>
                   </div>
-                )}
-              </div>
 
-              <div className="flex flex-col md:flex-row justify-end gap-3 md:gap-4 mt-8 md:mt-12 pt-6 md:pt-8 border-t border-dashed">
-                <Button type="button" variant="ghost" className="h-11 md:h-12 rounded-xl font-black uppercase text-[10px] order-2 md:order-1" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                <Button type="submit" className="h-12 md:h-14 px-8 md:px-12 rounded-xl font-black bg-primary text-white uppercase text-[10px] md:text-[11px] order-1 md:order-2" disabled={isSaving || (!file && !externalUrl)}>
-                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Almacenar Registro</span>}
-                </Button>
-              </div>
-            </section>
+                  {!isResolution && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
+                        <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
+                          {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
+                        </Button>
+                      </div>
+                      <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-end gap-3 md:gap-4 mt-8 md:mt-12 pt-6 md:pt-8 border-t border-dashed">
+                  <Button type="button" variant="ghost" className="h-11 md:h-12 rounded-xl font-black uppercase text-[10px] order-2 md:order-1" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
+                  <Button type="submit" className="h-12 md:h-14 px-8 md:px-12 rounded-xl font-black bg-primary text-white uppercase text-[10px] md:text-[11px] order-1 md:order-2" disabled={isSaving || (!file && !externalUrl)}>
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Almacenar Registro</span>}
+                  </Button>
+                </div>
+              </section>
+            )}
           </form>
         </main>
       </SidebarInset>
