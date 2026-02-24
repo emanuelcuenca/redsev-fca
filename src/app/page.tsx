@@ -243,22 +243,14 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
   const displayDate = document.date || document.uploadDate;
   
   return (
-    <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl border-2 border-transparent hover:border-primary/5">
-      <div className="relative aspect-[16/10] overflow-hidden">
-        <Image 
-          src={document.imageUrl || "https://picsum.photos/seed/" + document.id + "/600/400"} 
-          alt={document.title} 
-          fill 
-          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
-          data-ai-hint="agriculture landscape"
-        />
-        <div className="absolute top-4 left-4">
-          <Badge variant="secondary" className="bg-background/95 backdrop-blur text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">
+    <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl border-2 border-muted/20 hover:border-primary/5">
+      <CardHeader className="p-6 pb-2 flex-grow">
+        <div className="flex items-center justify-between mb-3">
+          <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">
             {document.type}
           </Badge>
+          <div className="text-primary/40"><FileText className="w-5 h-5" /></div>
         </div>
-      </div>
-      <CardHeader className="p-6 pb-4 flex-grow">
         <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2 uppercase">
           {document.title}
         </CardTitle>
@@ -267,23 +259,23 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
           {isMounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : '...'}
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-6 py-0 flex flex-col gap-4">
+      <CardContent className="px-6 py-4 flex flex-col gap-4">
         <div className="flex items-center gap-3 text-sm text-muted-foreground font-bold">
           <User className="w-4 h-4 text-primary" />
           <span className="truncate">{document.authors?.join(', ') || 'Responsable SEyV'}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {document.keywords?.map(tag => (
-            <Badge key={tag} variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-muted-foreground/10 bg-muted/50">
-              {tag}
+          {document.projectCode && (
+            <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-primary/20 text-primary bg-primary/5">
+              {document.projectCode}
             </Badge>
-          ))}
+          )}
         </div>
       </CardContent>
-      <CardFooter className="p-6 mt-auto">
-        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-black h-auto text-sm md:text-base hover:no-underline">
-          <Link href={`/documents/${document.id}`} className="flex items-center gap-2">
-            Ver Detalles <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
+      <CardFooter className="p-6 mt-auto border-t border-dashed">
+        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-black h-auto text-sm md:text-base hover:no-underline w-full justify-between">
+          <Link href={`/documents/${document.id}`} className="flex items-center gap-2 w-full justify-between">
+            ACCEDER AL REGISTRO <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
           </Link>
         </Button>
       </CardFooter>
