@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
@@ -152,7 +153,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
-  const [pasantiaRange, setPasantiaRange] = useState<{from?: Date, to?: Date}>({});
 
   useEffect(() => {
     if (docData) {
@@ -176,14 +176,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningYearSelect(d.getFullYear().toString());
         setApprovalDate(d);
       }
-
-      if (docData.type === "Pasantía" && docData.executionPeriod) {
-        // Simple attempt to parse back dates for UI
-        const parts = docData.executionPeriod.split(" - ");
-        if (parts.length === 2) {
-          // Just for UI feedback, not strictly needed for logic if executionPeriod is kept
-        }
-      }
     }
   }, [docData]);
 
@@ -195,24 +187,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       }
     }
   }, [user, adminDoc, isUserLoading, isAdminLoading, mounted, router]);
-
-  const handleAiSummarize = async () => {
-    setIsSummarizing(true);
-    try {
-      const result = await summarizeDocument({ 
-        documentContent: formData.title || `Analizando documento de tipo ${formData.type}`,
-        documentMediaUri: docData?.imageUrl && docData.imageUrl.startsWith('data:') ? docData.imageUrl : undefined
-      });
-      if (result.summary) {
-        setFormData({ ...formData, description: result.summary });
-        toast({ title: "Análisis completado" });
-      }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error de IA", description: error.message });
-    } finally {
-      setIsSummarizing(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,8 +233,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isProyecto = formData.type === "Proyecto";
   const isConvenio = formData.type === "Convenio";
-  const isPasantia = formData.type === "Pasantía";
-  const isMovilidad = formData.type === "Movilidad";
   const isResolution = formData.type === "Resolución" || formData.extensionDocType === "Resolución de aprobación";
 
   return (
@@ -292,7 +264,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
               <Pencil className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">Editar Metadatos</h1>
+              <h1 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">Editar</h1>
               <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] mt-1">Corrección de registro institucional</p>
             </div>
           </div>

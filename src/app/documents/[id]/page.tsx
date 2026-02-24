@@ -173,8 +173,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             )}
             {!isPasantia && (
               <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
-                <Download className="w-4 h-4" /> Descargar
-              </Button>
+                <Download className="w-4 h-4" /> Descargar</Button>
             )}
             <UserMenu />
           </div>
@@ -551,7 +550,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   )}
                   {isAdmin && (
                     <Button asChild className="w-full rounded-xl h-12 font-bold border-primary text-primary hover:bg-primary/5" variant="outline">
-                      <Link href={`/documents/${resolvedParams.id}/edit`}><Pencil className="w-4 h-4 mr-2" /> Editar Metadatos</Link>
+                      <Link href={`/documents/${resolvedParams.id}/edit`}><Pencil className="w-4 h-4 mr-2" /> Editar</Link>
                     </Button>
                   )}
                 </div>

@@ -343,7 +343,7 @@ export default function DocumentsListPage() {
                                 <>
                                   <DropdownMenuItem asChild>
                                     <Link href={`/documents/${doc.id}/edit`} className="flex items-center gap-2">
-                                      <Pencil className="w-4 h-4" /> <span>Editar Metadatos</span>
+                                      <Pencil className="w-4 h-4" /> <span>Editar</span>
                                     </Link>
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
@@ -505,7 +505,7 @@ export default function DocumentsListPage() {
                                     <>
                                       <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer">
                                         <Link href={`/documents/${doc.id}/edit`}>
-                                          <Pencil className="w-4 h-4" /> Editar Metadatos
+                                          <Pencil className="w-4 h-4" /> Editar
                                         </Link>
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
