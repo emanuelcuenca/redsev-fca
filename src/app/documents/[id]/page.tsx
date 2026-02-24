@@ -362,7 +362,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                          {isConvenio ? 'Fecha de Firma' : isProyecto ? (isInforme ? 'Fecha de Presentación' : 'Fecha de Aprobación') : 'Fecha de Registro'}
+                          {isConvenio ? 'Fecha de Firma' : isProyecto ? (isInforme ? 'Fecha de Presentación' : 'Fecha de Aprobación') : isResolutionDoc ? 'Fecha de Aprobación' : 'Fecha de Registro'}
                         </p>
                         <p className="font-semibold text-sm md:text-base">
                           {mounted ? (isInforme && documentData.presentationDate ? new Date(documentData.presentationDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : (displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...')) : '...'}

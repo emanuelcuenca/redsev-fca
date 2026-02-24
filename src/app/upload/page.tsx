@@ -1059,7 +1059,7 @@ export default function UploadPage() {
                         </div>
                         <div className="space-y-3 col-span-2 md:col-span-1">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
+                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
                           </Label>
                           <Popover>
                             <PopoverTrigger asChild>
