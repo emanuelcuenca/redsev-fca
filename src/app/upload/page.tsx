@@ -77,8 +77,8 @@ const CONVENIO_CATEGORIES = [
   "Investigación",
   "Movilidad docente",
   "Movilidad estudiantil",
-  "Otro...",
-  "Prácticas/Pasantías"
+  "Prácticas/Pasantías",
+  "Otro..."
 ];
 
 const RESOLUTION_TYPES = ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"].sort();
