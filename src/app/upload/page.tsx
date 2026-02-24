@@ -18,7 +18,8 @@ import {
   FileUp,
   Sparkles,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -124,7 +125,7 @@ export default function UploadPage() {
     try {
       const result = await summarizeDocument({
         documentMediaUri: fileDataUri,
-        documentContent: title // Pasar el título como contexto
+        documentContent: title
       });
       
       if (result?.summary) {
@@ -182,7 +183,7 @@ export default function UploadPage() {
       documentData.counterparts = filteredCp;
       documentData.counterpart = filteredCp.join(", ");
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
-      documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
+      documentData.authors = hasInstitutionalResponsible ? authors.split(',').map(a => a.trim()).filter(Boolean) : [];
     } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
@@ -391,16 +392,84 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && type !== "Proyecto" && (
+            {type === "Convenio" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Convenio</Label>
                   <Input placeholder="Ej: Acuerdo de Cooperación Técnica..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Aprobación</Label>
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                      <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                      <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
+                    <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
+                  <div className="space-y-3">
+                    {counterparts.map((cp, i) => (
+                      <div key={i} className="flex gap-2">
+                        <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => {
+                          const newCp = [...counterparts];
+                          newCp[i] = e.target.value;
+                          setCounterparts(newCp);
+                        }} required={i === 0} />
+                        <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <span className="font-black uppercase text-[10px] tracking-widest text-primary">Renovación Automática</span>
+                    <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
+                  </div>
+                  <div className="flex flex-col gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span>
+                      <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                    </div>
+                    {hasInstitutionalResponsible && (
+                      <div className="animate-in slide-in-from-top-2 duration-300">
+                        <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground mb-1 block">Nombres de Responsables</Label>
+                        <div className="relative">
+                          <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40" />
+                          <Input 
+                            placeholder="Dr. Mario Rojas, Lic. Ana Gómez..." 
+                            className="h-9 rounded-lg text-xs font-bold pl-9" 
+                            value={authors} 
+                            onChange={(e) => setAuthors(e.target.value)} 
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {type && type !== "Proyecto" && type !== "Convenio" && (
+              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
+                <div className="space-y-2">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
+                  <Input placeholder="Ej: Registro de..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Registro</Label>
                     <div className="grid grid-cols-3 gap-1">
                       <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
                       <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
@@ -413,51 +482,14 @@ export default function UploadPage() {
                   </div>
                 </div>
 
-                {type === "Convenio" && (
-                  <>
-                    <div className="space-y-4">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
-                      <div className="space-y-3">
-                        {counterparts.map((cp, i) => (
-                          <div key={i} className="flex gap-2">
-                            <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => {
-                              const newCp = [...counterparts];
-                              newCp[i] = e.target.value;
-                              setCounterparts(newCp);
-                            }} required={i === 0} />
-                            <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
-                          </div>
-                        ))}
-                        <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
-                        <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
-                      </div>
-                      <div className="space-y-4 pt-6">
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                          <span className="font-black uppercase text-[10px] tracking-widest">Renovación Automática</span>
-                          <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                          <span className="font-black uppercase text-[10px] tracking-widest">Responsable Institucional</span>
-                          <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto / Expediente</Label>
-                    <Input placeholder="FCA-EXT-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código / Expediente</Label>
+                    <Input placeholder="FCA-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
-                    <Input placeholder="2024-2025" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label>
+                    <Input placeholder="2024" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
                   </div>
                 </div>
               </section>

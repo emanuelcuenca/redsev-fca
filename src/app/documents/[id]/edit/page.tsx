@@ -14,7 +14,8 @@ import {
   FileUp,
   Sparkles,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -222,7 +223,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     const updateData: any = {
       ...formData,
       title: formatTitle(formData.title),
-      authors: authorsArr,
+      authors: (formData.type === "Convenio" && !formData.hasInstitutionalResponsible) ? [] : authorsArr,
       date: isExtensionProyectoSubtype ? (formData.date || new Date().toISOString()) : finalDate,
       updatedAt: new Date().toISOString(),
       counterparts: filteredCounterparts,
@@ -280,14 +281,18 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
-                    <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
-                  </div>
+                  {!isConvenio && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
+                      <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
+                    </div>
+                  )}
 
                   {!isExtensionProyectoSubtype && (
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Fecha de Referencia / Firma</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                        {isConvenio ? "Fecha de Firma" : "Fecha de Referencia"}
+                      </Label>
                       <div className="grid grid-cols-3 gap-1">
                         <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
                         <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
@@ -387,9 +392,25 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           <span className="font-black uppercase text-[10px] text-primary tracking-widest">Renovación Automática</span>
                           <Switch checked={formData.hasAutomaticRenewal} onCheckedChange={(v) => setFormData({...formData, hasAutomaticRenewal: v})} />
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
-                          <span className="font-black uppercase text-[10px] text-primary tracking-widest">Responsable Institucional</span>
-                          <Switch checked={formData.hasInstitutionalResponsible} onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} />
+                        <div className="flex flex-col gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <div className="flex items-center justify-between">
+                            <span className="font-black uppercase text-[10px] text-primary tracking-widest">Responsable Institucional</span>
+                            <Switch checked={formData.hasInstitutionalResponsible} onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} />
+                          </div>
+                          {formData.hasInstitutionalResponsible && (
+                            <div className="animate-in slide-in-from-top-2 duration-300">
+                              <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground mb-1 block">Nombres de Responsables</Label>
+                              <div className="relative">
+                                <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40" />
+                                <Input 
+                                  placeholder="Dr. Mario Rojas, Lic. Ana Gómez..." 
+                                  className="h-9 rounded-lg text-xs font-bold pl-9 bg-white" 
+                                  value={formData.authors} 
+                                  onChange={(e) => setFormData({...formData, authors: e.target.value})} 
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </>

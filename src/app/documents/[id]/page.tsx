@@ -179,7 +179,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <div className="flex items-center gap-3">
                         <Calendar className="w-5 h-5 text-primary/60" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Fecha de Firma / Referencia</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                            {isConvenio ? "Fecha de Firma" : "Fecha de Referencia"}
+                          </p>
                           <p className="font-bold text-sm">
                             {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
                           </p>
@@ -189,12 +191,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div className="flex items-center gap-3">
                           <User className="w-5 h-5 text-primary/60" />
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Responsables SEyV / Autores</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                              {isConvenio ? "Responsable Institucional SEyV" : "Responsables / Autores"}
+                            </p>
                             <p className="font-bold text-sm">{documentData.authors.join(', ')}</p>
                           </div>
                         </div>
                       )}
-                      {(documentData.projectCode || documentData.executionPeriod) && (
+                      {!isConvenio && (documentData.projectCode || documentData.executionPeriod) && (
                         <div className="flex items-center gap-3">
                           <Fingerprint className="w-5 h-5 text-primary/60" />
                           <div>
