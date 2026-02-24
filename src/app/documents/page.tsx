@@ -429,9 +429,19 @@ export default function DocumentsListPage() {
                           </TableCell>
                           <TableCell>
                             {category === 'convenios' ? (
-                              <div className="flex flex-col">
+                              <div className="flex flex-col gap-1">
                                 <span className="font-black text-primary">{doc.counterpart}</span>
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
+                                  {doc.projectCode && (
+                                    <>
+                                      <span className="text-muted-foreground/30">•</span>
+                                      <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
+                                        <Fingerprint className="w-3 h-3" /> {doc.projectCode}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <div className="flex flex-col gap-1">

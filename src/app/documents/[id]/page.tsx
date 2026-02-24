@@ -210,10 +210,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Código del Convenio</p>
+                      <p className="font-bold text-lg text-primary flex items-center gap-2">
+                        <Fingerprint className="w-5 h-5" />
+                        {documentData.projectCode || 'No asignado'}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Subtipo de Convenio</p>
                       <p className="font-bold text-lg">{documentData.convenioSubType}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border md:col-span-2">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Área de Aplicación</p>
                       <p className="font-bold text-lg text-primary flex items-center gap-2">
                         <LayoutGrid className="w-5 h-5" />
