@@ -77,9 +77,8 @@ const CONVENIO_CATEGORIES = [
   "Investigación",
   "Movilidad docente",
   "Movilidad estudiantil",
-  "Prácticas/Pasantías",
-  "Otro..."
-];
+  "Prácticas/Pasantías"
+].sort();
 
 const RESOLUTION_TYPES = ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"].sort();
 
@@ -308,6 +307,19 @@ export default function UploadPage() {
       }
       if (date) {
         documentData.signingYear = new Date(date).getFullYear();
+      }
+
+      // Generation of Institutional Code for Convenios
+      try {
+        const coll = collection(db, 'documents');
+        const q = query(coll, where("type", "==", "Convenio"));
+        const snapshot = await getCountFromServer(q);
+        const nextNum = (snapshot.data().count + 1).toString().padStart(3, '0');
+        documentData.projectCode = `FCA-CONV-${nextNum}-${currentYear}`;
+      } catch (error) {
+        console.error("Error generating convenio code:", error);
+        const randNum = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+        documentData.projectCode = `FCA-CONV-${randNum}-${currentYear}`;
       }
     }
 
@@ -707,6 +719,7 @@ export default function UploadPage() {
                             {CONVENIO_CATEGORIES.map(cat => (
                               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                             ))}
+                            <SelectItem value="Otro...">Otro...</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
