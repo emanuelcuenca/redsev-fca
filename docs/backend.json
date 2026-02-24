@@ -141,6 +141,10 @@
           "type": "string"
         },
         "convenioSubType": {
+          "type": "string",
+          "enum": ["Marco", "Específico"]
+        },
+        "convenioCategory": {
           "type": "string"
         },
         "beneficiaryName": {

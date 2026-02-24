@@ -21,7 +21,8 @@ export interface AgriculturalDocument {
   signingYear?: number;
   resolutionYear?: number; // Año específico para resoluciones
   counterpart?: string;
-  convenioSubType?: 'Marco' | 'Específico' | 'Práctica/Pasantía';
+  convenioSubType?: 'Marco' | 'Específico';
+  convenioCategory?: string; // Área de aplicación
   hasInstitutionalResponsible?: boolean;
   // Campos específicos para Movilidad y Pasantías
   beneficiaryName?: string;
@@ -63,6 +64,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     signingYear: 2024,
     counterpart: 'INTA',
     convenioSubType: 'Marco',
+    convenioCategory: 'Colaboración',
     hasInstitutionalResponsible: true,
     fileUrl: "#",
     fileType: "application/pdf",

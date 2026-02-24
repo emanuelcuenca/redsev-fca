@@ -70,6 +70,19 @@ const MONTHS = [
 
 const YEARS = Array.from({ length: 21 }, (_, i) => new Date().getFullYear() - 10 + i);
 
+const CONVENIO_CATEGORIES = [
+  "Colaboración",
+  "Capacitación",
+  "Extensión",
+  "Actividades de investigación",
+  "Prácticas/pasantías",
+  "Movilidad docente",
+  "Movilidad estudiantil",
+  "Otro"
+];
+
+const RESOLUTION_TYPES = ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"].sort();
+
 export default function UploadPage() {
   const router = useRouter();
   const { user } = useUser();
@@ -92,6 +105,8 @@ export default function UploadPage() {
   const [durationYears, setDurationYears] = useState<string>("1");
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
+  const [convenioCategory, setConvenioCategory] = useState("");
+  const [convenioCategoryOther, setConvenioCategoryOther] = useState("");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   
   const [beneficiaryFirstName, setBeneficiaryFirstName] = useState("");
@@ -115,15 +130,12 @@ export default function UploadPage() {
   const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
   const [specificObjectives, setSpecificObjectives] = useState<string[]>(["", "", ""]);
 
-  const [reportMonth, setReportMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [reportYear, setReportYear] = useState(new Date().getFullYear().toString());
   const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
   const [execStartYear, setExecStartYear] = useState(new Date().getFullYear().toString());
   const [execEndMonth, setExecEndMonth] = useState(MONTHS[new Date().getMonth()]);
   const [execEndYear, setExecEndYear] = useState(new Date().getFullYear().toString());
 
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
-  const [presDate, setPresDate] = useState<Date | undefined>(undefined);
   const [pasantiaRange, setPasantiaRange] = useState<{from?: Date, to?: Date}>({});
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
@@ -134,12 +146,6 @@ export default function UploadPage() {
       setDate(approvalDate.toISOString().split('T')[0]);
     }
   }, [approvalDate]);
-
-  useEffect(() => {
-    if (presDate) {
-      setPresentationDate(presDate.toISOString().split('T')[0]);
-    }
-  }, [presDate]);
 
   const updateExecutionPeriod = (sm: string, sy: string, em: string, ey: string) => {
     setExecutionPeriod(`${sm} ${sy} - ${em} ${ey}`);
@@ -158,6 +164,8 @@ export default function UploadPage() {
     setDurationYears("1");
     setCounterpart("");
     setConvenioSubType("Marco");
+    setConvenioCategory("");
+    setConvenioCategoryOther("");
     setHasInstitutionalResponsible(false);
     setBeneficiaryFirstName("");
     setBeneficiaryLastName("");
@@ -174,7 +182,6 @@ export default function UploadPage() {
     setLinkedProjectFound(false);
     setAiError(null);
     setApprovalDate(undefined);
-    setPresDate(undefined);
     setPasantiaRange({});
     setObjetivoGeneral("");
     setHasSpecificObjectives(false);
@@ -294,6 +301,7 @@ export default function UploadPage() {
       documentData.durationYears = parseInt(durationYears) || 1;
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
+      documentData.convenioCategory = convenioCategory === "Otro" ? convenioCategoryOther : convenioCategory;
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
       if (!hasInstitutionalResponsible) {
         documentData.authors = [];
@@ -356,7 +364,7 @@ export default function UploadPage() {
   const getPlaceholder = () => {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica...";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
-    if (type === "Pasantía") return "Ej: Practica/Pasantía de Juan Pérez en Empresa Agrícola...";
+    if (type === "Pasantía") return "Ej: Práctica/Pasantía de Juan Pérez en Empresa Agrícola...";
     if (type === "Resolución" || type === "Reglamento") return "N° 123";
     if (type === "Movilidad") return "Ej: Resolución de Movilidad Estudiantil 2024...";
     return "Ingrese el título oficial del registro...";
@@ -685,10 +693,37 @@ export default function UploadPage() {
                           <SelectContent>
                             <SelectItem value="Marco">Marco</SelectItem>
                             <SelectItem value="Específico">Específico</SelectItem>
-                            <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Área de Aplicación</Label>
+                        <Select value={convenioCategory} onValueChange={setConvenioCategory}>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                            <SelectValue placeholder="Seleccione área" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CONVENIO_CATEGORIES.map(cat => (
+                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {convenioCategory === "Otro" && (
+                        <div className="space-y-2 md:col-span-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Especifique el Área</Label>
+                          <Input 
+                            placeholder="Ingrese el área de aplicación..." 
+                            className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold text-xs md:text-sm" 
+                            required={convenioCategory === "Otro"}
+                            value={convenioCategoryOther}
+                            onChange={(e) => setConvenioCategoryOther(e.target.value)}
+                          />
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                           <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
@@ -851,12 +886,9 @@ export default function UploadPage() {
                             <SelectValue placeholder="Seleccione tipo" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="CD">CD</SelectItem>
-                            <SelectItem value="CS">CS</SelectItem>
-                            <SelectItem value="Decanal">Decanal</SelectItem>
-                            <SelectItem value="Ministerial">Ministerial</SelectItem>
-                            <SelectItem value="Rectoral">Rectoral</SelectItem>
-                            <SelectItem value="SEU">SEU</SelectItem>
+                            {RESOLUTION_TYPES.map(rt => (
+                              <SelectItem key={rt} value={rt}>{rt}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>

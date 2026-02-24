@@ -34,7 +34,8 @@ import {
   Globe,
   Landmark,
   ListTodo,
-  CheckSquare
+  CheckSquare,
+  LayoutGrid
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -199,6 +200,29 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
               </section>
+
+              {/* Información específica para Convenios */}
+              {isConvenio && (
+                <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <Handshake className="w-6 h-6 text-primary" />
+                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Acuerdo</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Subtipo de Convenio</p>
+                      <p className="font-bold text-lg">{documentData.convenioSubType}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Área de Aplicación</p>
+                      <p className="font-bold text-lg text-primary flex items-center gap-2">
+                        <LayoutGrid className="w-5 h-5" />
+                        {documentData.convenioCategory || 'General'}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* Información específica para Proyectos de Extensión */}
               {isProyecto && (
