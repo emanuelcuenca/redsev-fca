@@ -4,12 +4,15 @@ export interface AgriculturalDocument {
   title: string;
   type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Reglamento' | 'Otro';
   project?: string;
+  projectCode?: string; // Código unificador para proyectos
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
   authors: string[];
   keywords: string[];
   description: string;
   content?: string;
   imageUrl?: string;
+  fileUrl: string;
+  fileType: string;
   // Campos específicos para Convenios
   isVigente?: boolean;
   durationYears?: number;
@@ -27,6 +30,7 @@ export interface AgriculturalDocument {
   reportPeriod?: string;
   executionPeriod?: string;
   uploadDate: string;
+  uploadedByUserId: string;
 }
 
 export function isDocumentVigente(doc: AgriculturalDocument): boolean {
@@ -54,7 +58,10 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     signingYear: 2024,
     counterpart: 'INTA',
     convenioSubType: 'Marco',
-    hasInstitutionalResponsible: true
+    hasInstitutionalResponsible: true,
+    fileUrl: "#",
+    fileType: "application/pdf",
+    uploadedByUserId: "mock"
   },
   {
     id: '3',
@@ -66,6 +73,10 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     keywords: ['Comunidad', 'Huertas', 'Capacitación'],
     description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
     extensionDocType: 'Proyecto',
-    executionPeriod: '2023-2024'
+    executionPeriod: '2023-2024',
+    projectCode: 'EXT-001',
+    fileUrl: "#",
+    fileType: "application/pdf",
+    uploadedByUserId: "mock"
   }
 ];

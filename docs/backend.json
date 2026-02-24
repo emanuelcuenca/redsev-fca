@@ -144,6 +144,10 @@
         "convocatoria": {
           "type": "string"
         },
+        "projectCode": {
+          "type": "string",
+          "description": "Código unificador para proyectos de extensión, resoluciones e informes relacionados."
+        },
         "extensionDocType": {
           "type": "string",
           "enum": ["Proyecto", "Resolución de aprobación", "Informe de avance", "Informe final"]

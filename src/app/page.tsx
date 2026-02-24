@@ -20,7 +20,8 @@ import {
   LogIn,
   UserPlus,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeftRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -165,7 +166,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 <div className="flex gap-4">
                   <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
-                    <Sprout className="w-6 h-6 text-primary" />
+                    <ArrowLeftRight className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3>

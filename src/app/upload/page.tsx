@@ -27,7 +27,8 @@ import {
   ClipboardList,
   UserCheck,
   Timer,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Search
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -48,7 +49,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -88,6 +89,8 @@ export default function UploadPage() {
   const [presentationDate, setPresentationDate] = useState("");
   const [reportPeriod, setReportPeriod] = useState("");
   const [executionPeriod, setExecutionPeriod] = useState("");
+  const [projectCode, setProjectCode] = useState("");
+  const [isProjectSearchLoading, setIsProjectSearchLoading] = useState(false);
 
   const resetForm = () => {
     setType("");
@@ -110,7 +113,47 @@ export default function UploadPage() {
     setPresentationDate("");
     setReportPeriod("");
     setExecutionPeriod("");
+    setProjectCode("");
     setAiError(null);
+  };
+
+  const handleProjectSearch = async () => {
+    if (!projectCode.trim()) return;
+    setIsProjectSearchLoading(true);
+    try {
+      const q = query(
+        collection(db, 'documents'), 
+        where('projectCode', '==', projectCode.trim()),
+        orderBy('uploadDate', 'desc'),
+        limit(1)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        setTitle(data.title || "");
+        setAuthors(data.authors?.join(', ') || "");
+        setExecutionPeriod(data.executionPeriod || "");
+        toast({
+          title: "Proyecto encontrado",
+          description: "Los datos base se han cargado automáticamente.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Código no encontrado",
+          description: "No se encontraron proyectos previos con ese código.",
+        });
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de búsqueda",
+        description: "Hubo un problema al consultar la base de datos.",
+      });
+    } finally {
+      setIsProjectSearchLoading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,6 +281,7 @@ export default function UploadPage() {
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
+      documentData.projectCode = projectCode;
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -341,7 +385,37 @@ export default function UploadPage() {
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                {type === "Proyecto" && (
+                  <div className="col-span-2 space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5" /> Código de Proyecto (Unificador)
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="projectCode" 
+                        placeholder="Ej: FCA-EXT-2024-001" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        value={projectCode}
+                        onChange={(e) => setProjectCode(e.target.value)}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="h-12 px-6 rounded-xl border-primary/20 bg-white font-bold text-primary hover:bg-primary/5"
+                        onClick={handleProjectSearch}
+                        disabled={isProjectSearchLoading}
+                      >
+                        {isProjectSearchLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                        <span className="ml-2 hidden md:inline">Vincular</span>
+                      </Button>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground font-medium px-1 italic">
+                      Ingrese el código para cargar automáticamente los datos de un proyecto ya registrado.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-3 col-span-2">
                   <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
                   <Input 
@@ -441,7 +515,7 @@ export default function UploadPage() {
                 )}
 
                 {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
                     <div className="space-y-3">
                       <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
                       <Select value={extensionDocType} onValueChange={setExtensionDocType}>
@@ -483,14 +557,14 @@ export default function UploadPage() {
                       />
                     </div>
 
-                    {extensionDocType === "Proyecto" && (
+                    {(extensionDocType === "Proyecto" || !extensionDocType) && (
                       <div className="space-y-3 col-span-2">
                         <Label htmlFor="executionPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
                         <Input 
                           id="executionPeriod" 
                           placeholder="Ej: 2024 - 2025" 
                           className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={extensionDocType === "Proyecto"}
+                          required={type === "Proyecto"}
                           value={executionPeriod}
                           onChange={(e) => setExecutionPeriod(e.target.value)}
                         />
@@ -498,7 +572,7 @@ export default function UploadPage() {
                     )}
 
                     {(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
-                      <div className="space-y-3 col-span-2">
+                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
                         <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
                         <Input 
                           id="presentationDate" 
@@ -512,7 +586,7 @@ export default function UploadPage() {
                     )}
 
                     {extensionDocType === "Informe de avance" && (
-                      <div className="space-y-3 col-span-2">
+                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
                         <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe</Label>
                         <Input 
                           id="reportPeriod" 
