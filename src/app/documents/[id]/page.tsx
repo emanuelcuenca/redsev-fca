@@ -28,7 +28,8 @@ import {
   XCircle,
   ArrowLeftRight,
   ScrollText,
-  Clock
+  Clock,
+  Fingerprint
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -198,9 +199,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles de Extensión</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border col-span-2 md:col-span-1">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Código del Proyecto</p>
+                      <p className="font-bold text-lg text-primary flex items-center gap-2">
+                        <Fingerprint className="w-5 h-5" />
+                        {documentData.projectCode || 'No asignado'}
+                      </p>
+                    </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Tipo de Documento</p>
-                      <p className="font-bold text-lg text-primary">{documentData.extensionDocType || 'Proyecto'}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Tipo de Registro</p>
+                      <p className="font-bold text-lg">{documentData.extensionDocType || 'Proyecto'}</p>
                     </div>
                     {documentData.executionPeriod && (
                       <div className="bg-white p-4 rounded-xl shadow-sm border">
@@ -223,6 +231,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <p className="font-bold text-lg flex items-center gap-2">
                           <Clock className="w-5 h-5 text-primary" />
                           {documentData.reportPeriod}
+                        </p>
+                      </div>
+                    )}
+                    {documentData.date && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Fecha de Aprobación</p>
+                        <p className="font-bold text-lg flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-primary" />
+                          {new Date(documentData.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                     )}
@@ -270,6 +287,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <p className="font-semibold text-sm md:text-base">{documentData.type} {isConvenio && `(${documentData.convenioSubType})`}</p>
                       </div>
                     </div>
+                    {isProyecto && documentData.projectCode && (
+                       <div className="flex items-start gap-3 md:gap-4">
+                        <div className="bg-secondary p-2 rounded-lg shrink-0">
+                          <Fingerprint className="w-4 h-4 md:w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Código Institucional</p>
+                          <p className="font-semibold text-sm md:text-base">{documentData.projectCode}</p>
+                        </div>
+                      </div>
+                    )}
                     {isConvenio && (
                       <div className="flex items-start gap-3 md:gap-4">
                         <div className="bg-secondary p-2 rounded-lg shrink-0">

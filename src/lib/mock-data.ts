@@ -74,7 +74,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
     extensionDocType: 'Proyecto',
     executionPeriod: '2023-2024',
-    projectCode: 'EXT-001',
+    projectCode: 'FCA-EXT-001',
     fileUrl: "#",
     fileType: "application/pdf",
     uploadedByUserId: "mock"

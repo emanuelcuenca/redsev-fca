@@ -21,7 +21,8 @@ import {
   Trash2,
   Plane,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Fingerprint
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -107,7 +108,7 @@ export default function DocumentsListPage() {
       if (category === 'movilidad' && doc.type !== 'Movilidad') return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                            (doc.projectCode && doc.projectCode.toLowerCase().includes(searchQuery.toLowerCase())) ||
                             (doc.counterpart && doc.counterpart.toLowerCase().includes(searchQuery.toLowerCase())) ||
                             doc.authors?.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()));
       
@@ -212,7 +213,7 @@ export default function DocumentsListPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input 
-                  placeholder={category === 'convenios' ? "Buscar convenios..." : "Buscar por título, autor o palabra clave..."} 
+                  placeholder={category === 'convenios' ? "Buscar convenios..." : "Buscar por título, código, autor o palabra clave..."} 
                   className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 focus:ring-primary/10 shadow-sm font-medium"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -338,6 +339,12 @@ export default function DocumentsListPage() {
                         </div>
                         <h3 className="font-headline font-bold text-lg leading-tight mb-4 uppercase">{doc.title}</h3>
                         <div className="space-y-3">
+                          {doc.projectCode && (
+                            <div className="flex items-center gap-2 text-sm text-primary font-black">
+                              <Fingerprint className="w-4 h-4" />
+                              <span>{doc.projectCode}</span>
+                            </div>
+                          )}
                           {category === 'convenios' && doc.counterpart && (
                             <div className="flex items-center gap-2 text-sm">
                               <Building2 className="w-4 h-4 text-primary" />
@@ -356,7 +363,7 @@ export default function DocumentsListPage() {
                           </div>
                         </div>
                         <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{category === 'convenios' ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.extensionDocType || doc.type)}</span>
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{category === 'convenios' ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.projectCode || doc.extensionDocType || doc.type)}</span>
                           <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
                             <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
                           </Button>
@@ -373,7 +380,7 @@ export default function DocumentsListPage() {
                     <TableRow className="hover:bg-transparent border-none">
                       <TableHead className="font-black text-[12px] py-7 pl-12 uppercase tracking-[0.2em] text-muted-foreground/70">Documento</TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
-                        {category === 'convenios' ? 'Contraparte' : 'Tipo'}
+                        {category === 'convenios' ? 'Contraparte' : 'Tipo / Código'}
                       </TableHead>
                       <TableHead className="font-black text-[12px] uppercase tracking-[0.2em] text-muted-foreground/70">
                         {category === 'convenios' ? 'Vigencia' : 'Proyecto / Detalle'}
@@ -407,9 +414,16 @@ export default function DocumentsListPage() {
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
                               </div>
                             ) : (
-                              <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
-                                {doc.extensionDocType || doc.type}
-                              </Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary w-fit">
+                                  {doc.extensionDocType || doc.type}
+                                </Badge>
+                                {doc.projectCode && (
+                                  <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
+                                    <Fingerprint className="w-3 h-3" /> {doc.projectCode}
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </TableCell>
                           <TableCell>
