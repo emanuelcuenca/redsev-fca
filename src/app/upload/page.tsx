@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Upload, 
@@ -28,8 +28,8 @@ import {
   UserCheck,
   Timer,
   ArrowLeftRight,
-  Search,
-  Fingerprint
+  Fingerprint,
+  Search
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -50,7 +50,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, where, getCountFromServer } from "firebase/firestore";
+import { collection, query, where, getCountFromServer, getDocs, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -91,6 +91,57 @@ export default function UploadPage() {
   const [reportPeriod, setReportPeriod] = useState("");
   const [executionPeriod, setExecutionPeriod] = useState("");
   const [projectCodeNumber, setProjectCodeNumber] = useState("");
+  const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
+
+  const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
+
+  // Efecto para buscar datos del proyecto vinculado
+  useEffect(() => {
+    async function fetchProjectData() {
+      if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
+        setIsProjectDataLoading(true);
+        try {
+          const currentYear = new Date().getFullYear();
+          const targetCode = `FCA-EXT-${projectCodeNumber}-${currentYear}`;
+          
+          const q = query(
+            collection(db, 'documents'), 
+            where("projectCode", "==", targetCode),
+            where("extensionDocType", "==", "Proyecto"),
+            limit(1)
+          );
+          
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const projectDoc = querySnapshot.docs[0].data();
+            setTitle(projectDoc.title || "");
+            setAuthors(projectDoc.authors?.join(", ") || "");
+            setExecutionPeriod(projectDoc.executionPeriod || "");
+            toast({
+              title: "Proyecto encontrado",
+              description: `Datos cargados para el código ${targetCode}`,
+            });
+          } else {
+            // No se encontró, limpiar campos pero dejar el código
+            setTitle("");
+            setAuthors("");
+            setExecutionPeriod("");
+            toast({
+              variant: "destructive",
+              title: "Proyecto no encontrado",
+              description: "Verifique el número ingresado o asegúrese de que el proyecto esté cargado.",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching project data:", error);
+        } finally {
+          setIsProjectDataLoading(false);
+        }
+      }
+    }
+
+    fetchProjectData();
+  }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
 
   const resetForm = () => {
     setType("");
@@ -331,7 +382,7 @@ export default function UploadPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
                   { id: "Convenio", label: "Convenio", icon: Handshake },
-                  { id: "Proyecto", label: "Proyecto de Extensión", icon: ArrowLeftRight },
+                  { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
                   { id: "Movilidad", label: "Movilidad", icon: Plane },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
                   { id: "Resolución", label: "Resolución", icon: ScrollText },
@@ -364,15 +415,75 @@ export default function UploadPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {type === "Proyecto" && (
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start">
+                    <div className="space-y-3">
+                      <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
+                      <Select value={extensionDocType} onValueChange={setExtensionDocType}>
+                        <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
+                          <SelectValue placeholder="Seleccione tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Proyecto">Proyecto</SelectItem>
+                          <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
+                          <SelectItem value="Informe de avance">Informe de avance</SelectItem>
+                          <SelectItem value="Informe final">Informe final</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {isSecondaryExtensionDoc && (
+                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                        <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto Vinculado
+                        </Label>
+                        <div className="flex items-center gap-0 group">
+                          <div className="h-12 px-4 rounded-l-xl bg-primary text-white flex items-center font-black text-sm uppercase tracking-widest border border-primary border-r-0">
+                            FCA-EXT-
+                          </div>
+                          <Input 
+                            id="projectCode" 
+                            placeholder="001" 
+                            maxLength={3}
+                            className="h-12 rounded-l-none rounded-r-xl border-primary/20 bg-white font-bold focus:ring-primary/10" 
+                            required={isSecondaryExtensionDoc}
+                            value={projectCodeNumber}
+                            onChange={(e) => setProjectCodeNumber(e.target.value.replace(/\D/g, ""))}
+                          />
+                          {isProjectDataLoading && <Loader2 className="w-4 h-4 animate-spin ml-2 text-primary" />}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fecha de Aprobación: Solo si NO es informe */}
+                    {extensionDocType && !extensionDocType.includes('Informe') && (
+                      <div className="space-y-3 animate-in fade-in duration-300">
+                        <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                        </Label>
+                        <Input 
+                          id="date" 
+                          type="date" 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={type === "Proyecto" && !extensionDocType.includes('Informe')}
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-3 col-span-2">
                   <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
                   <Input 
                     id="title" 
                     placeholder={getPlaceholder()}
-                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80" 
                     required 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    disabled={isSecondaryExtensionDoc && !!title}
                   />
                 </div>
 
@@ -464,72 +575,16 @@ export default function UploadPage() {
 
                 {type === "Proyecto" && (
                   <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start">
-                    <div className="space-y-3">
-                      <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
-                      <Select value={extensionDocType} onValueChange={setExtensionDocType}>
-                        <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Seleccione tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Proyecto">Proyecto</SelectItem>
-                          <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
-                          <SelectItem value="Informe de avance">Informe de avance</SelectItem>
-                          <SelectItem value="Informe final">Informe final</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Fecha de Aprobación: Solo si NO es informe */}
-                    {!(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
-                      <div className="space-y-3 animate-in fade-in duration-300">
-                        <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                          <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
-                        </Label>
-                        <Input 
-                          id="date" 
-                          type="date" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={type === "Proyecto" && !(extensionDocType === "Informe de avance" || extensionDocType === "Informe final")}
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                        />
-                      </div>
-                    )}
-
-                    {extensionDocType !== "Proyecto" && extensionDocType !== "" && (
-                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
-                        <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                          <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto Vinculado
-                        </Label>
-                        <div className="flex items-center gap-0 group">
-                          <div className="h-12 px-4 rounded-l-xl bg-primary text-white flex items-center font-black text-sm uppercase tracking-widest border border-primary border-r-0">
-                            FCA-EXT-
-                          </div>
-                          <Input 
-                            id="projectCode" 
-                            placeholder="001" 
-                            maxLength={3}
-                            className="h-12 rounded-l-none rounded-r-xl border-primary/20 bg-white font-bold focus:ring-primary/10" 
-                            required={extensionDocType !== "Proyecto"}
-                            value={projectCodeNumber}
-                            onChange={(e) => setProjectCodeNumber(e.target.value.replace(/\D/g, ""))}
-                          />
-                        </div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight mt-1 ml-1">
-                          Ingrese las 3 cifras del proyecto original para vincular este documento.
-                        </p>
-                      </div>
-                    )}
-
                     <div className="space-y-3 col-span-2">
-                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores (separados por coma)</Label>
+                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores / Responsables</Label>
                       <Input 
                         id="authors" 
                         placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80" 
                         required={type === "Proyecto"}
                         value={authors}
                         onChange={(e) => setAuthors(e.target.value)}
+                        disabled={isSecondaryExtensionDoc && !!authors}
                       />
                     </div>
 
@@ -540,14 +595,23 @@ export default function UploadPage() {
                           id="executionPeriod" 
                           placeholder="Ej: 2024 - 2025" 
                           className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={type === "Proyecto"}
+                          required={type === "Proyecto" && extensionDocType === "Proyecto"}
                           value={executionPeriod}
                           onChange={(e) => setExecutionPeriod(e.target.value)}
                         />
                       </div>
                     )}
 
-                    {(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
+                    {isSecondaryExtensionDoc && (
+                      <div className="space-y-3 col-span-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución Original</Label>
+                        <p className="h-12 px-4 flex items-center rounded-xl bg-white/50 border border-primary/10 font-bold text-primary/70">
+                          {executionPeriod || "No definido"}
+                        </p>
+                      </div>
+                    )}
+
+                    {extensionDocType?.includes('Informe') && (
                       <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
                         <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
                         <Input 
@@ -688,15 +752,6 @@ export default function UploadPage() {
                   Documentación y Análisis
                 </h2>
               </div>
-
-              {(isSpecialType || type === "Proyecto") && (
-                <div className="mb-6 p-4 bg-primary/5 border border-dashed border-primary/20 rounded-2xl flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-primary shrink-0" />
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
-                    Adjunte {type === "Proyecto" ? "Proyectos, Resoluciones o Informes" : "Convenios, Resoluciones o Actas"} que avalen este registro de {type}.
-                  </p>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <div className="space-y-6">
