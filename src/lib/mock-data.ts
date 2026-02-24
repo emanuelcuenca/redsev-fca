@@ -1,4 +1,3 @@
-
 export interface AgriculturalDocument {
   id: string;
   title: string;
@@ -38,6 +37,10 @@ export interface AgriculturalDocument {
   executionPeriod?: string;
   uploadDate: string;
   uploadedByUserId: string;
+  // Asociación con Convenio (Pasantías)
+  hasAssociatedConvenio?: boolean;
+  associatedConvenioNumber?: string;
+  associatedConvenioYear?: number;
 }
 
 export function isDocumentVigente(doc: AgriculturalDocument): boolean {

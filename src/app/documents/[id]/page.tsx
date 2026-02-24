@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -158,9 +157,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
-              <Download className="w-4 h-4" /> Descargar
-            </Button>
+            {!isPasantia && (
+              <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
+                <Download className="w-4 h-4" /> Descargar
+              </Button>
+            )}
             <UserMenu />
           </div>
         </header>
@@ -172,7 +173,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="flex items-center justify-between mb-3 md:mb-4">
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
-                      {getDocIcon()} Visualización
+                      {getDocIcon()} {isPasantia ? "Ficha Institucional" : "Visualización"}
                     </h2>
                     {isConvenio && (
                       <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
@@ -196,7 +197,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 text-white p-4 md:p-6 backdrop-blur-md bg-white/10 rounded-xl md:rounded-2xl border border-white/20">
                     <h3 className="text-lg md:text-xl font-headline font-bold mb-1 md:mb-2 line-clamp-2 uppercase">{documentData.title}</h3>
-                    <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{documentData.description || 'Sin contenido de previsualización disponible.'}</p>
+                    <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{documentData.description || (isPasantia ? 'Ficha de datos estructurada.' : 'Sin contenido de previsualización disponible.')}</p>
                   </div>
                 </div>
               </section>
@@ -349,6 +350,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </p>
                     </div>
                   </div>
+
+                  {isPasantia && documentData.hasAssociatedConvenio && (
+                    <div className="bg-primary/10 p-6 rounded-2xl border-2 border-primary/20 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Handshake className="w-5 h-5 text-primary" />
+                        <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Convenio Vinculado</h3>
+                      </div>
+                      <p className="text-sm font-bold text-primary flex items-center gap-2">
+                        Convenio N° {documentData.associatedConvenioNumber} / {documentData.associatedConvenioYear}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-medium">Esta actividad de pasantía se encuentra amparada por el convenio institucional indicado.</p>
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -448,61 +462,72 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             <div className="space-y-6 md:space-y-8">
-              <Card className="rounded-2xl md:rounded-3xl border-none shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden">
-                <CardHeader className="p-6 md:p-8 pb-3 md:pb-4">
-                  <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-[10px] mb-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Inteligencia Artificial
-                  </div>
-                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold uppercase">Análisis Smart</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 md:p-8 pt-0">
-                  <p className="text-primary-foreground/80 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
-                    Genere un resumen ejecutivo y extraiga los puntos clave con Gemini 2.5 Flash.
-                  </p>
-                  
-                  {summary ? (
-                    <div className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 animate-in fade-in slide-in-from-bottom-4">
-                      <p className="text-xs md:text-sm leading-relaxed text-white">
-                        {summary}
-                      </p>
-                      <Button 
-                        variant="link" 
-                        className="p-0 h-auto text-white font-bold mt-3 md:mt-4 hover:no-underline flex items-center gap-1 opacity-80 text-xs"
-                        onClick={() => setSummary(null)}
-                      >
-                        Limpiar Resumen
-                      </Button>
+              {!isPasantia && (
+                <Card className="rounded-2xl md:rounded-3xl border-none shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden">
+                  <CardHeader className="p-6 md:p-8 pb-3 md:pb-4">
+                    <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-[10px] mb-1">
+                      <Sparkles className="w-3.5 h-3.5" /> Inteligencia Artificial
                     </div>
-                  ) : (
-                    <Button 
-                      className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base md:text-lg shadow-lg shadow-accent/20 transition-all group"
-                      onClick={handleSummarize}
-                      disabled={isSummarizing || isResolutionDoc}
-                    >
-                      {isSummarizing ? (
-                        <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          {isResolutionDoc ? "Resumen no disponible para Normativas" : "Analizar Documento"} 
-                          {!isResolutionDoc && <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />}
-                        </span>
-                      )}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+                    <CardTitle className="text-2xl md:text-3xl font-headline font-bold uppercase">Análisis Smart</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 md:p-8 pt-0">
+                    <p className="text-primary-foreground/80 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
+                      Genere un resumen ejecutivo y extraiga los puntos clave con Gemini 2.5 Flash.
+                    </p>
+                    
+                    {summary ? (
+                      <div className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 animate-in fade-in slide-in-from-bottom-4">
+                        <p className="text-xs md:text-sm leading-relaxed text-white">
+                          {summary}
+                        </p>
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-white font-bold mt-3 md:mt-4 hover:no-underline flex items-center gap-1 opacity-80 text-xs"
+                          onClick={() => setSummary(null)}
+                        >
+                          Limpiar Resumen
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base md:text-lg shadow-lg shadow-accent/20 transition-all group"
+                        onClick={handleSummarize}
+                        disabled={isSummarizing || isResolutionDoc}
+                      >
+                        {isSummarizing ? (
+                          <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            {isResolutionDoc ? "Resumen no disponible para Normativas" : "Analizar Documento"} 
+                            {!isResolutionDoc && <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />}
+                          </span>
+                        )}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <section className="bg-secondary/30 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-secondary space-y-4 md:space-y-6">
                 <h3 className="text-lg md:text-xl font-headline font-bold text-primary uppercase tracking-tight">Acceso Rápido</h3>
                 <div className="space-y-3">
-                  <Button className="w-full rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-12 shadow-sm font-bold" variant="outline" asChild>
-                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer">
-                      <Eye className="w-4 h-4 mr-2" /> Previsualizar PDF
-                    </a>
-                  </Button>
-                  <Button className="w-full rounded-xl h-12 font-bold" variant="default">
-                    <Download className="w-4 h-4 mr-2" /> Descargar Copia
-                  </Button>
+                  {!isPasantia ? (
+                    <>
+                      <Button className="w-full rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-12 shadow-sm font-bold" variant="outline" asChild>
+                        <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer">
+                          <Eye className="w-4 h-4 mr-2" /> Previsualizar PDF
+                        </a>
+                      </Button>
+                      <Button className="w-full rounded-xl h-12 font-bold" variant="default">
+                        <Download className="w-4 h-4 mr-2" /> Descargar Copia
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="bg-white p-4 rounded-xl border border-dashed border-primary/20 text-center">
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest">Ficha de Datos Única</p>
+                      <p className="text-[9px] text-muted-foreground font-bold mt-1">Este registro no posee documento PDF adjunto.</p>
+                    </div>
+                  )}
                 </div>
                 <Separator className="bg-secondary" />
                 <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed italic text-center">

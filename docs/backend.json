@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -182,13 +181,20 @@
         },
         "executionPeriod": {
           "type": "string"
+        },
+        "hasAssociatedConvenio": {
+          "type": "boolean"
+        },
+        "associatedConvenioNumber": {
+          "type": "string"
+        },
+        "associatedConvenioYear": {
+          "type": "integer"
         }
       },
       "required": [
         "id",
         "title",
-        "fileUrl",
-        "fileType",
         "uploadDate",
         "uploadedByUserId",
         "type"

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -137,8 +136,14 @@ export default function UploadPage() {
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
   const [pasantiaRange, setPasantiaRange] = useState<{from?: Date, to?: Date}>({});
 
+  // Asociación con Convenio (Pasantías)
+  const [hasAssociatedConvenio, setHasAssociatedConvenio] = useState(false);
+  const [associatedConvenioNumber, setAssociatedConvenioNumber] = useState("");
+  const [associatedConvenioYear, setAssociatedConvenioYear] = useState(new Date().getFullYear().toString());
+
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
   const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución" || type === "Reglamento";
+  const isPasantia = type === "Pasantía";
 
   useEffect(() => {
     if (approvalDate) {
@@ -185,6 +190,9 @@ export default function UploadPage() {
     setObjetivoGeneral("");
     setHasSpecificObjectives(false);
     setSpecificObjectives(["", "", ""]);
+    setHasAssociatedConvenio(false);
+    setAssociatedConvenioNumber("");
+    setAssociatedConvenioYear(new Date().getFullYear().toString());
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,8 +293,8 @@ export default function UploadPage() {
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       imageUrl: "https://picsum.photos/seed/" + Math.random() + "/600/400",
-      fileType: uploadMethod === "file" ? (file?.type || "application/pdf") : "url",
-      fileUrl: uploadMethod === "file" ? "#" : externalUrl,
+      fileType: isPasantia ? "record" : (uploadMethod === "file" ? (file?.type || "application/pdf") : "url"),
+      fileUrl: isPasantia ? "#" : (uploadMethod === "file" ? "#" : externalUrl),
     };
 
     if (type === "Resolución" || type === "Reglamento") {
@@ -309,7 +317,6 @@ export default function UploadPage() {
         documentData.signingYear = new Date(date).getFullYear();
       }
 
-      // Generation of Institutional Code for Convenios
       try {
         const coll = collection(db, 'documents');
         const q = query(coll, where("type", "==", "Convenio"));
@@ -358,6 +365,11 @@ export default function UploadPage() {
       documentData.destinationCountry = destinationCountry;
       if (type === "Pasantía") {
         documentData.executionPeriod = executionPeriod;
+        documentData.hasAssociatedConvenio = hasAssociatedConvenio;
+        if (hasAssociatedConvenio) {
+          documentData.associatedConvenioNumber = associatedConvenioNumber;
+          documentData.associatedConvenioYear = parseInt(associatedConvenioYear);
+        }
       }
     }
 
@@ -956,59 +968,111 @@ export default function UploadPage() {
                   <div className="bg-primary/20 text-primary p-2 rounded-none">
                     <Badge className="bg-transparent border-none p-0 text-base md:text-lg font-bold text-primary">3</Badge>
                   </div>
-                  <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">Documentación y Análisis</h2>
+                  <h2 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight">
+                    {type === "Pasantía" ? "Asociación Institucional" : "Documentación y Análisis"}
+                  </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
-                  <div className="space-y-4">
-                    <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/50 p-1 mb-4 md:mb-6">
-                        <TabsTrigger value="file" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-                          <FileUp className="w-3 h-3 md:w-4 md:h-4" /> Archivo PDF
-                        </TabsTrigger>
-                        <TabsTrigger value="url" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-                          <LinkIcon className="w-3 h-3 md:w-4 md:h-4" /> Enlace Externo
-                        </TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="file">
-                        <div className={`border-2 border-dashed rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20'}`}>
-                          {file ? (
-                            <div className="text-center">
-                              <FileText className="w-8 h-8 md:w-12 md:h-12 text-primary mx-auto mb-3" />
-                              <p className="font-black truncate max-w-[200px] md:max-w-[300px] text-xs md:text-sm">{file.name}</p>
-                              <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="mt-2 text-destructive font-bold text-[9px] md:text-[10px]">ELIMINAR Y CAMBIAR</Button>
+                  {type === "Pasantía" ? (
+                    <div className="lg:col-span-2 space-y-6">
+                      <div className="bg-primary/5 p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/10 space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Handshake className="w-6 h-6 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="font-black uppercase text-[10px] tracking-widest text-primary leading-tight">Convenio Asociado</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase">¿Existe un convenio para esta actividad?</span>
                             </div>
-                          ) : (
-                            <Label htmlFor="file-upload" className="cursor-pointer text-center">
-                              <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary mx-auto mb-3 md:mb-4" />
-                              <p className="text-lg md:text-xl font-black uppercase">Subir Documentación</p>
-                              <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
-                            </Label>
-                          )}
+                          </div>
+                          <Switch checked={hasAssociatedConvenio} onCheckedChange={setHasAssociatedConvenio} />
                         </div>
-                      </TabsContent>
-                      <TabsContent value="url">
-                        <Input placeholder="https://..." className="h-11 md:h-12 rounded-xl bg-white font-bold text-xs md:text-sm" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
-                      </TabsContent>
-                    </Tabs>
-                  </div>
 
-                  {!isResolution && (
-                    <div className="space-y-4 animate-in fade-in duration-300">
-                      <div className="flex items-center justify-between">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
-                        <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
-                          {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
-                        </Button>
+                        {hasAssociatedConvenio && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-in fade-in slide-in-from-top-2">
+                            <div className="space-y-2">
+                              <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Número de Convenio</Label>
+                              <Input 
+                                placeholder="Ej: 456" 
+                                className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold"
+                                value={associatedConvenioNumber}
+                                onChange={(e) => setAssociatedConvenioNumber(e.target.value)}
+                                required={hasAssociatedConvenio}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año del Convenio</Label>
+                              <Select value={associatedConvenioYear} onValueChange={setAssociatedConvenioYear}>
+                                <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {YEARS.map(y => (
+                                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                      <div className="bg-secondary/20 p-6 rounded-2xl border border-dashed border-muted-foreground/20 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Este registro se guardará como ficha institucional sin documento PDF adjunto.</p>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <div className="space-y-4">
+                        <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 h-12 md:h-14 rounded-xl md:rounded-2xl bg-muted/50 p-1 mb-4 md:mb-6">
+                            <TabsTrigger value="file" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                              <FileUp className="w-3 h-3 md:w-4 md:h-4" /> Archivo PDF
+                            </TabsTrigger>
+                            <TabsTrigger value="url" className="rounded-lg md:rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                              <LinkIcon className="w-3 h-3 md:w-4 md:h-4" /> Enlace Externo
+                            </TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="file">
+                            <div className={`border-2 border-dashed rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20'}`}>
+                              {file ? (
+                                <div className="text-center">
+                                  <FileText className="w-8 h-8 md:w-12 md:h-12 text-primary mx-auto mb-3" />
+                                  <p className="font-black truncate max-w-[200px] md:max-w-[300px] text-xs md:text-sm">{file.name}</p>
+                                  <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="mt-2 text-destructive font-bold text-[9px] md:text-[10px]">ELIMINAR Y CAMBIAR</Button>
+                                </div>
+                              ) : (
+                                <Label htmlFor="file-upload" className="cursor-pointer text-center">
+                                  <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary mx-auto mb-3 md:mb-4" />
+                                  <p className="text-lg md:text-xl font-black uppercase">Subir Documentación</p>
+                                  <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                                </Label>
+                              )}
+                            </div>
+                          </TabsContent>
+                          <TabsContent value="url">
+                            <Input placeholder="https://..." className="h-11 md:h-12 rounded-xl bg-white font-bold text-xs md:text-sm" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
+                          </TabsContent>
+                        </Tabs>
+                      </div>
+
+                      {!isResolution && (
+                        <div className="space-y-4 animate-in fade-in duration-300">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
+                            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
+                              {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
+                            </Button>
+                          </div>
+                          <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-end gap-3 md:gap-4 mt-8 md:mt-12 pt-6 md:pt-8 border-t border-dashed">
                   <Button type="button" variant="ghost" className="h-11 md:h-12 rounded-xl font-black uppercase text-[10px] order-2 md:order-1" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                  <Button type="submit" className="h-12 md:h-14 px-8 md:px-12 rounded-xl font-black bg-primary text-white uppercase text-[10px] md:text-[11px] order-1 md:order-2" disabled={isSaving || (!file && !externalUrl)}>
+                  <Button type="submit" className="h-12 md:h-14 px-8 md:px-12 rounded-xl font-black bg-primary text-white uppercase text-[10px] md:text-[11px] order-1 md:order-2" disabled={isSaving || (type !== "Pasantía" && !file && !externalUrl)}>
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Almacenar Registro</span>}
                   </Button>
                 </div>
