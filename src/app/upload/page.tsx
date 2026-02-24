@@ -70,6 +70,8 @@ const MONTHS = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
+const DAYS = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+
 const YEARS_LIST = Array.from({ length: 41 }, (_, i) => new Date().getFullYear() - 30 + i);
 
 const CONVENIO_CATEGORIES = [
@@ -110,6 +112,11 @@ export default function UploadPage() {
   const [convenioCategory, setConvenioCategory] = useState("");
   const [convenioCategoryOther, setConvenioCategoryOther] = useState("");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
+
+  // Estados para fecha de firma de Convenio (Dropdowns)
+  const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
+  const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
   
   const [beneficiaryFirstName, setBeneficiaryFirstName] = useState("");
   const [beneficiaryLastName, setBeneficiaryLastName] = useState("");
@@ -152,11 +159,21 @@ export default function UploadPage() {
   const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución" || type === "Reglamento";
   const isPasantia = type === "Pasantía";
 
+  // Efecto para sincronizar la fecha de firma del Convenio
   useEffect(() => {
-    if (approvalDate) {
+    if (type === "Convenio") {
+      const monthIdx = MONTHS.indexOf(signingMonth) + 1;
+      const formattedMonth = monthIdx.toString().padStart(2, '0');
+      const formattedDay = signingDay.padStart(2, '0');
+      setDate(`${signingYearSelect}-${formattedMonth}-${formattedDay}`);
+    }
+  }, [signingDay, signingMonth, signingYearSelect, type]);
+
+  useEffect(() => {
+    if (approvalDate && type !== "Convenio") {
       setDate(approvalDate.toISOString().split('T')[0]);
     }
-  }, [approvalDate]);
+  }, [approvalDate, type]);
 
   const updateExecutionPeriod = (sm: string, sy: string, em: string, ey: string) => {
     setExecutionPeriod(`${sm} ${sy} - ${em} ${ey}`);
@@ -801,31 +818,32 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                           <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
-                                !date && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              captionLayout="dropdown"
-                              fromYear={1950}
-                              toYear={2050}
-                              selected={approvalDate}
-                              onSelect={setApprovalDate}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <div className="grid grid-cols-3 gap-1">
+                          <Select value={signingDay} onValueChange={setSigningDay}>
+                            <SelectTrigger className="h-11 rounded-xl border-primary/20 bg-white font-bold text-[10px]">
+                              <SelectValue placeholder="Día" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Select value={signingMonth} onValueChange={setSigningMonth}>
+                            <SelectTrigger className="h-11 rounded-xl border-primary/20 bg-white font-bold text-[10px]">
+                              <SelectValue placeholder="Mes" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}>
+                            <SelectTrigger className="h-11 rounded-xl border-primary/20 bg-white font-bold text-[10px]">
+                              <SelectValue placeholder="Año" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
@@ -1152,10 +1170,22 @@ export default function UploadPage() {
                         </Tabs>
                       </div>
 
-                      {!isResolution && (
+                      {(!isResolution && type !== "Convenio") && (
                         <div className="space-y-4 animate-in fade-in duration-300">
                           <div className="flex items-center justify-between">
                             <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
+                            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
+                              {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
+                            </Button>
+                          </div>
+                          <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                        </div>
+                      )}
+
+                      {(type === "Convenio") && (
+                        <div className="space-y-4 animate-in fade-in duration-300">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen del Convenio</Label>
                             <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
                               {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
                             </Button>
