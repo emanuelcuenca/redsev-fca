@@ -28,7 +28,8 @@ import {
   UserCheck,
   Timer,
   ArrowLeftRight,
-  Search
+  Search,
+  Fingerprint
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -49,7 +50,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, where, getCountFromServer } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -89,6 +90,7 @@ export default function UploadPage() {
   const [presentationDate, setPresentationDate] = useState("");
   const [reportPeriod, setReportPeriod] = useState("");
   const [executionPeriod, setExecutionPeriod] = useState("");
+  const [projectCodeInput, setProjectCodeInput] = useState("");
 
   const resetForm = () => {
     setType("");
@@ -111,6 +113,7 @@ export default function UploadPage() {
     setPresentationDate("");
     setReportPeriod("");
     setExecutionPeriod("");
+    setProjectCodeInput("");
     setAiError(null);
   };
 
@@ -239,6 +242,23 @@ export default function UploadPage() {
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
+
+      // Generación automática de código para nuevos proyectos
+      if (extensionDocType === "Proyecto") {
+        try {
+          const coll = collection(db, 'documents');
+          const q = query(coll, where("type", "==", "Proyecto"), where("extensionDocType", "==", "Proyecto"));
+          const snapshot = await getCountFromServer(q);
+          const nextNum = (snapshot.data().count + 1).toString().padStart(3, '0');
+          documentData.projectCode = `FCA-EXT-${nextNum}`;
+        } catch (error) {
+          console.error("Error generating project code:", error);
+          documentData.projectCode = `FCA-EXT-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`;
+        }
+      } else {
+        // Vincular con código existente para Resoluciones e Informes
+        documentData.projectCode = projectCodeInput;
+      }
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -250,7 +270,7 @@ export default function UploadPage() {
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
 
     toast({
-      title: "Documento almacenado",
+      title: documentData.projectCode ? `Documento guardado (Código: ${documentData.projectCode})` : "Documento almacenado",
       description: "El registro ha sido creado exitosamente.",
     });
 
@@ -442,7 +462,7 @@ export default function UploadPage() {
                 )}
 
                 {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
                     <div className="space-y-3">
                       <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
                       <Select value={extensionDocType} onValueChange={setExtensionDocType}>
@@ -471,6 +491,22 @@ export default function UploadPage() {
                         onChange={(e) => setDate(e.target.value)}
                       />
                     </div>
+
+                    {extensionDocType !== "Proyecto" && extensionDocType !== "" && (
+                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
+                        <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto Vinculado
+                        </Label>
+                        <Input 
+                          id="projectCode" 
+                          placeholder="Ej: FCA-EXT-001" 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={extensionDocType !== "Proyecto"}
+                          value={projectCodeInput}
+                          onChange={(e) => setProjectCodeInput(e.target.value)}
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-3 col-span-2">
                       <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores (separados por coma)</Label>
