@@ -243,17 +243,20 @@ export default function UploadPage() {
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
 
-      // Generación automática de código para nuevos proyectos
+      const currentYear = new Date().getFullYear();
+
+      // Generación automática de código con formato FCA-EXT-000-AÑO
       if (extensionDocType === "Proyecto") {
         try {
           const coll = collection(db, 'documents');
           const q = query(coll, where("type", "==", "Proyecto"), where("extensionDocType", "==", "Proyecto"));
           const snapshot = await getCountFromServer(q);
           const nextNum = (snapshot.data().count + 1).toString().padStart(3, '0');
-          documentData.projectCode = `FCA-EXT-${nextNum}`;
+          documentData.projectCode = `FCA-EXT-${nextNum}-${currentYear}`;
         } catch (error) {
           console.error("Error generating project code:", error);
-          documentData.projectCode = `FCA-EXT-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`;
+          const randNum = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+          documentData.projectCode = `FCA-EXT-${randNum}-${currentYear}`;
         }
       } else {
         // Vincular con código existente para Resoluciones e Informes
@@ -499,7 +502,7 @@ export default function UploadPage() {
                         </Label>
                         <Input 
                           id="projectCode" 
-                          placeholder="Ej: FCA-EXT-001" 
+                          placeholder="Ej: FCA-EXT-001-2024" 
                           className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                           required={extensionDocType !== "Proyecto"}
                           value={projectCodeInput}

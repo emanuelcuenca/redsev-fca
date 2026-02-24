@@ -4,7 +4,7 @@ export interface AgriculturalDocument {
   title: string;
   type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Reglamento' | 'Otro';
   project?: string;
-  projectCode?: string; // Código unificador para proyectos
+  projectCode?: string; // Código unificador para proyectos (Formato: FCA-EXT-001-2024)
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
   authors: string[];
   keywords: string[];
@@ -74,7 +74,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
     extensionDocType: 'Proyecto',
     executionPeriod: '2023-2024',
-    projectCode: 'FCA-EXT-001',
+    projectCode: 'FCA-EXT-001-2023',
     fileUrl: "#",
     fileType: "application/pdf",
     uploadedByUserId: "mock"
