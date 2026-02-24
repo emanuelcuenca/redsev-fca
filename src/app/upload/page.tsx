@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   X, 
@@ -15,8 +15,10 @@ import {
   Handshake,
   ArrowLeftRight,
   Target,
-  ListTodo,
-  CheckCircle2
+  FileUp,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -36,6 +38,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
+import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -49,6 +52,7 @@ export default function UploadPage() {
   const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [type, setType] = useState("");
   const [extensionDocType, setExtensionDocType] = useState<string>("");
@@ -60,6 +64,10 @@ export default function UploadPage() {
   const [objetivosEspecificos, setObjetivosEspecificos] = useState<string[]>(["", "", ""]);
   
   const [isSaving, setIsSaving] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [fileDataUri, setFileDataUri] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+
   const [durationYears, setDurationYears] = useState("1");
   const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
   const [counterparts, setCounterparts] = useState([""]);
@@ -90,18 +98,57 @@ export default function UploadPage() {
     return `FCA-EXT-${random}-${new Date().getFullYear()}`;
   };
 
-  const handleAddObjective = () => {
-    setObjetivosEspecificos([...objetivosEspecificos, ""]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFileDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!fileDataUri) {
+      toast({
+        variant: "destructive",
+        title: "Archivo requerido",
+        description: "Por favor, suba un documento para que la IA pueda analizarlo."
+      });
+      return;
+    }
+
+    setIsSummarizing(true);
+    try {
+      const result = await summarizeDocument({
+        documentMediaUri: fileDataUri,
+        documentContent: title // Pasar el título como contexto
+      });
+      
+      if (result?.summary) {
+        setDescription(result.summary);
+        toast({
+          title: "Resumen generado",
+          description: "La IA ha analizado el documento exitosamente."
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: error.message || "No se pudo generar el resumen."
+      });
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   const handleObjectiveChange = (index: number, value: string) => {
     const newObjectives = [...objetivosEspecificos];
     newObjectives[index] = value;
     setObjetivosEspecificos(newObjectives);
-  };
-
-  const handleRemoveObjective = (index: number) => {
-    setObjetivosEspecificos(objetivosEspecificos.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +160,6 @@ export default function UploadPage() {
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
     let finalProjectCode = projectCode;
-    // Si es un proyecto nuevo de extensión, generamos el código automáticamente
     if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión" && !projectCode) {
       finalProjectCode = generateProjectCode();
     }
@@ -121,12 +167,12 @@ export default function UploadPage() {
     const documentData: any = {
       title: formatTitle(title),
       type,
-      date: finalDate,
+      date: extensionDocType === "Proyecto de Extensión" ? new Date().toISOString() : finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       description,
-      fileUrl: "#",
-      fileType: "application/pdf"
+      fileUrl: fileDataUri || "#",
+      fileType: fileName ? fileName.split('.').pop() : "application/pdf"
     };
 
     if (type === "Convenio") {
@@ -168,6 +214,8 @@ export default function UploadPage() {
       toast({ variant: "destructive", title: "Error al guardar el documento" });
     }
   };
+
+  const isExtensionProyectoSubtype = type === "Proyecto" && extensionDocType === "Proyecto de Extensión";
 
   return (
     <SidebarProvider>
@@ -252,21 +300,23 @@ export default function UploadPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Registro / Aprobación</Label>
-                        <div className="grid grid-cols-3 gap-1">
-                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                      {!isExtensionProyectoSubtype && (
+                        <div className="space-y-2">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Registro / Aprobación</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                            <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                            <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables / Equipo Técnico</Label>
                         <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
                       </div>
                     </div>
 
-                    {extensionDocType === "Proyecto de Extensión" ? (
+                    {extensionDocType === "Proyecto de Extensión" && (
                       <>
                         <div className="space-y-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Objetivo General</Label>
@@ -304,7 +354,7 @@ export default function UploadPage() {
                                     type="button" 
                                     variant="ghost" 
                                     className="h-12 w-12 rounded-xl text-destructive"
-                                    onClick={() => handleRemoveObjective(i)}
+                                    onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
                                   >
                                     <X className="w-5 h-5" />
                                   </Button>
@@ -314,7 +364,7 @@ export default function UploadPage() {
                                 type="button" 
                                 variant="outline" 
                                 className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
-                                onClick={handleAddObjective}
+                                onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
                               >
                                 <Plus className="w-4 h-4 mr-2" /> Añadir otro objetivo específico
                               </Button>
@@ -322,7 +372,9 @@ export default function UploadPage() {
                           )}
                         </div>
                       </>
-                    ) : (
+                    )}
+
+                    {!isExtensionProyectoSubtype && (
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto Asociado</Label>
                         <Input 
@@ -334,96 +386,135 @@ export default function UploadPage() {
                         />
                       </div>
                     )}
-
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Breve Resumen / Descripción</Label>
-                      <Textarea 
-                        placeholder="Contexto adicional sobre el documento..." 
-                        className="min-h-[100px] rounded-xl font-medium" 
-                        value={description} 
-                        onChange={(e) => setDescription(e.target.value)} 
-                      />
-                    </div>
                   </div>
                 )}
               </section>
             )}
 
             {type && type !== "Proyecto" && (
-              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in">
-                <div className="space-y-8">
+              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
+                <div className="space-y-2">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
+                  <Input placeholder="Ej: Acuerdo de Cooperación Técnica..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
-                    <Input placeholder="Ej: Acuerdo de Cooperación Técnica..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Aprobación</Label>
-                      <div className="grid grid-cols-3 gap-1">
-                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
-                      <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Aprobación</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                      <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                      <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
+                    <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
+                  </div>
+                </div>
 
-                  {type === "Convenio" && (
-                    <>
-                      <div className="space-y-4">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
-                        <div className="space-y-3">
-                          {counterparts.map((cp, i) => (
-                            <div key={i} className="flex gap-2">
-                              <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => {
-                                const newCp = [...counterparts];
-                                newCp[i] = e.target.value;
-                                setCounterparts(newCp);
-                              }} required={i === 0} />
-                              <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
-                            </div>
-                          ))}
-                          <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
+                {type === "Convenio" && (
+                  <>
+                    <div className="space-y-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
+                      <div className="space-y-3">
+                        {counterparts.map((cp, i) => (
+                          <div key={i} className="flex gap-2">
+                            <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => {
+                              const newCp = [...counterparts];
+                              newCp[i] = e.target.value;
+                              setCounterparts(newCp);
+                            }} required={i === 0} />
+                            <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
+                          </div>
+                        ))}
+                        <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
+                        <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
+                      </div>
+                      <div className="space-y-4 pt-6">
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
+                          <span className="font-black uppercase text-[10px] tracking-widest">Renovación Automática</span>
+                          <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
+                          <span className="font-black uppercase text-[10px] tracking-widest">Responsable Institucional</span>
+                          <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
-                          <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
-                        </div>
-                        <div className="space-y-4 pt-6">
-                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                            <span className="font-black uppercase text-[10px] tracking-widest">Renovación Automática</span>
-                            <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
-                          </div>
-                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                            <span className="font-black uppercase text-[10px] tracking-widest">Responsable Institucional</span>
-                            <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
-                          </div>
-                        </div>
-                      </div>
-                    </>
+                    </div>
+                  </>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto / Expediente</Label>
+                    <Input placeholder="FCA-EXT-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
+                    <Input placeholder="2024-2025" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {type && (
+              <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div>
+                    <div>
+                      <h3 className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Documentación de Respaldo</h3>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase">Suba el archivo original para el registro y análisis por IA</p>
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-xl border-primary/30 text-primary font-black uppercase text-[10px] h-10 px-6 hover:bg-primary/5"
+                  >
+                    {fileName ? "Cambiar Archivo" : "Seleccionar Archivo"}
+                  </Button>
+                  <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
+                </div>
+
+                {fileName && (
+                  <div className="flex items-center gap-2 bg-white/50 p-3 rounded-xl border border-primary/10 animate-in fade-in">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <span className="text-xs font-bold text-primary truncate">{fileName}</span>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-primary/10">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen Ejecutivo</Label>
+                    <Button 
+                      type="button" 
+                      onClick={handleSummarize}
+                      disabled={isSummarizing || !fileDataUri}
+                      className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all"
+                    >
+                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                      Generar Resumen con IA
+                    </Button>
+                  </div>
+                  <Textarea 
+                    placeholder="Resumen del alcance y objetivos del registro..." 
+                    className="min-h-[120px] rounded-xl font-medium bg-white" 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                  />
+                  {!fileDataUri && (
+                    <p className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase">
+                      <AlertCircle className="w-3 h-3" /> Suba un documento para habilitar el asistente de IA
+                    </p>
                   )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto / Expediente</Label>
-                      <Input placeholder="FCA-EXT-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
-                      <Input placeholder="2024-2025" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
-                    <Textarea placeholder="Objetivos generales y alcance del registro..." className="min-h-[120px] rounded-xl font-medium" value={description} onChange={(e) => setDescription(e.target.value)} />
-                  </div>
                 </div>
               </section>
             )}

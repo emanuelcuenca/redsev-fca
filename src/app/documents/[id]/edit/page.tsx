@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Save, 
@@ -11,7 +11,10 @@ import {
   X,
   Plus,
   Target,
-  FileText
+  FileUp,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -33,6 +36,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { AgriculturalDocument } from "@/lib/mock-data";
+import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -47,9 +51,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [fileDataUri, setFileDataUri] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -115,6 +123,11 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningMonth(MONTHS[d.getMonth()]);
         setSigningYearSelect(d.getFullYear().toString());
       }
+
+      if (docData.fileUrl && docData.fileUrl !== "#") {
+        setFileDataUri(docData.fileUrl);
+        setFileName("Documento actual");
+      }
     }
   }, [docData]);
 
@@ -126,6 +139,42 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       }
     }
   }, [user, adminDoc, isUserLoading, isAdminLoading, mounted, router]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFileDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!fileDataUri) {
+      toast({ variant: "destructive", title: "Archivo requerido", description: "Suba un archivo para analizar." });
+      return;
+    }
+
+    setIsSummarizing(true);
+    try {
+      const result = await summarizeDocument({
+        documentMediaUri: fileDataUri,
+        documentContent: formData.title
+      });
+      
+      if (result?.summary) {
+        setFormData((prev: any) => ({ ...prev, description: result.summary }));
+        toast({ title: "Resumen generado con IA" });
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error de IA", description: error.message });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   const formatTitle = (text: string) => {
     if (!text) return "";
@@ -168,16 +217,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       ? formData.objetivosEspecificos.filter((obj: string) => obj.trim() !== "")
       : [];
 
+    const isExtensionProyectoSubtype = formData.type === "Proyecto" && formData.extensionDocType === "Proyecto de Extensión";
+
     const updateData: any = {
       ...formData,
       title: formatTitle(formData.title),
       authors: authorsArr,
-      date: finalDate,
+      date: isExtensionProyectoSubtype ? (formData.date || new Date().toISOString()) : finalDate,
       updatedAt: new Date().toISOString(),
       counterparts: filteredCounterparts,
       counterpart: filteredCounterparts.join(", "),
       objetivosEspecificos: filteredObjectives,
-      durationYears: parseInt(formData.durationYears) || 1
+      durationYears: parseInt(formData.durationYears) || 1,
+      fileUrl: fileDataUri || formData.fileUrl
     };
 
     updateDocumentNonBlocking(docRef, updateData);
@@ -195,7 +247,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
-  const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
+  const isExtensionProyectoSubtype = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
     <SidebarProvider>
@@ -233,16 +285,18 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Fecha de Referencia / Firma</Label>
-                    <div className="grid grid-cols-3 gap-1">
-                      <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                      <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                      <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                  {!isExtensionProyectoSubtype && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Fecha de Referencia / Firma</Label>
+                      <div className="grid grid-cols-3 gap-1">
+                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {isExtensionProyecto && (
+                  {isExtensionProyectoSubtype && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Objetivo General</Label>
@@ -353,13 +407,52 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       </div>
                     </>
                   )}
-                  
-                  <div className="md:col-span-2 space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                </div>
+
+                <div className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6 mt-8">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div>
+                      <div>
+                        <h3 className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Archivo del Documento</h3>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase">Actualice el respaldo digital o analice con IA</p>
+                      </div>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="rounded-xl border-primary/30 text-primary font-black uppercase text-[10px] h-10 px-6"
+                    >
+                      {fileName ? "Cambiar Archivo" : "Subir Archivo"}
+                    </Button>
+                    <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
+                  </div>
+
+                  {fileName && (
+                    <div className="flex items-center gap-2 bg-white/50 p-3 rounded-xl border border-primary/10">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-xs font-bold text-primary truncate">{fileName}</span>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-primary/10">
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen Ejecutivo</Label>
+                      <Button 
+                        type="button" 
+                        onClick={handleSummarize}
+                        disabled={isSummarizing || !fileDataUri}
+                        className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all"
+                      >
+                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                        Analizar con IA
+                      </Button>
+                    </div>
                     <Textarea 
                       value={formData.description} 
                       onChange={(e) => setFormData({...formData, description: e.target.value})} 
-                      className="min-h-[120px] rounded-xl font-medium" 
+                      className="min-h-[120px] rounded-xl font-medium bg-white" 
                     />
                   </div>
                 </div>
