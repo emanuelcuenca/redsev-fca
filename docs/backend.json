@@ -111,6 +111,11 @@
           "type": "string",
           "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución", "Reglamento"]
         },
+        "resolutionType": {
+          "type": "string",
+          "enum": ["CD", "Decanal", "Rectoral", "SEU", "Ministerial"],
+          "description": "Tipo de resolución institucional."
+        },
         "date": {
           "type": "string",
           "format": "date"

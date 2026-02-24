@@ -3,6 +3,7 @@ export interface AgriculturalDocument {
   id: string;
   title: string;
   type: 'Convenio' | 'Proyecto' | 'Movilidad' | 'Pasantía' | 'Resolución' | 'Reglamento' | 'Otro';
+  resolutionType?: 'CD' | 'Decanal' | 'Rectoral' | 'SEU' | 'Ministerial';
   project?: string;
   projectCode?: string; // Código unificador para proyectos (Formato: FCA-EXT-001-2024)
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación

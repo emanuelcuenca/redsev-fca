@@ -314,7 +314,10 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Registro</p>
-                        <p className="font-semibold text-sm md:text-base">{documentData.type} {isConvenio && `(${documentData.convenioSubType})`}</p>
+                        <p className="font-semibold text-sm md:text-base">
+                          {documentData.type} {isConvenio && `(${documentData.convenioSubType})`}
+                          {documentData.type === 'Resolución' && documentData.resolutionType && ` (${documentData.resolutionType})`}
+                        </p>
                       </div>
                     </div>
                     {documentData.projectCode && (
@@ -422,12 +425,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     <Button 
                       className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base md:text-lg shadow-lg shadow-accent/20 transition-all group"
                       onClick={handleSummarize}
-                      disabled={isSummarizing}
+                      disabled={isSummarizing || isResolution}
                     >
                       {isSummarizing ? (
                         <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
                       ) : (
-                        <span className="flex items-center gap-2">Analizar Documento <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" /></span>
+                        <span className="flex items-center gap-2">
+                          {isResolution ? "Resumen no disponible para Resoluciones" : "Analizar Documento"} 
+                          {!isResolution && <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />}
+                        </span>
                       )}
                     </Button>
                   )}

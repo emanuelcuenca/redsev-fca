@@ -76,6 +76,7 @@ export default function UploadPage() {
   const db = useFirestore();
 
   const [type, setType] = useState("");
+  const [resolutionType, setResolutionType] = useState<string>("");
   const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
@@ -151,6 +152,7 @@ export default function UploadPage() {
 
   const resetForm = () => {
     setType("");
+    setResolutionType("");
     setFile(null);
     setExternalUrl("");
     setTitle("");
@@ -248,7 +250,7 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !type || !title) {
+    if (!user || !type || (!title && type !== "Resolución")) {
       toast({
         variant: "destructive",
         title: "Campos incompletos",
@@ -262,8 +264,10 @@ export default function UploadPage() {
     const trimmedTitle = title.trim();
     const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
 
+    const finalTitle = type === "Resolución" ? `Resolución ${resolutionType} ${title}` : formattedTitle;
+
     const documentData: any = {
-      title: formattedTitle,
+      title: finalTitle,
       type,
       date,
       authors: authors.split(',').map(a => a.trim()).filter(Boolean),
@@ -274,6 +278,10 @@ export default function UploadPage() {
       fileType: uploadMethod === "file" ? (file?.type || "application/pdf") : "url",
       fileUrl: uploadMethod === "file" ? "#" : externalUrl,
     };
+
+    if (type === "Resolución") {
+      documentData.resolutionType = resolutionType;
+    }
 
     const currentYear = new Date().getFullYear();
 
@@ -343,6 +351,7 @@ export default function UploadPage() {
     if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica en Hualfín, Catamarca";
     if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
     if (type === "Pasantía") return "Ej: Practica/Pasantía de Juan Pérez en Empresa Agrícola...";
+    if (type === "Resolución") return "Ej: N° 123/2024";
     if (isSpecialType) return `Ej: Resolución de ${type} Estudiantil 2024...`;
     return "Ingrese el título oficial del registro...";
   };
@@ -1001,11 +1010,26 @@ export default function UploadPage() {
 
                     {(type === "Resolución" || type === "Reglamento") && (
                       <>
-                        <div className="space-y-3 col-span-2">
-                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial</Label>
+                        <div className="space-y-3 col-span-2 md:col-span-1">
+                          <Label htmlFor="resolutionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Resolución</Label>
+                          <Select value={resolutionType} onValueChange={setResolutionType}>
+                            <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
+                              <SelectValue placeholder="Seleccione tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="CD">CD (Consejo Directivo)</SelectItem>
+                              <SelectItem value="Decanal">Decanal</SelectItem>
+                              <SelectItem value="Rectoral">Rectoral</SelectItem>
+                              <SelectItem value="SEU">SEU</SelectItem>
+                              <SelectItem value="Ministerial">Ministerial</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-3 col-span-2 md:col-span-1">
+                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número / Identificación</Label>
                           <Input 
                             id="title" 
-                            placeholder="Ingrese título..."
+                            placeholder={getPlaceholder()}
                             className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
                             required 
                             value={title}
@@ -1186,7 +1210,7 @@ export default function UploadPage() {
                 <Button 
                   type="submit" 
                   className="w-full md:w-auto h-14 px-12 rounded-xl font-black bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 uppercase tracking-widest text-[11px]" 
-                  disabled={isSaving || (!file && !externalUrl) || !title}
+                  disabled={isSaving || (!file && !externalUrl) || (!title && type !== "Resolución")}
                 >
                   {isSaving ? (
                     <span className="flex items-center gap-3">
