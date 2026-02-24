@@ -35,7 +35,8 @@ import {
   CheckSquare,
   LayoutGrid,
   RotateCcw,
-  Pencil
+  Pencil,
+  Target
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -108,8 +109,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
-  const isPasantia = documentData.type === 'Pasantía';
-  const isMovilidad = documentData.type === 'Movilidad';
+  const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
   const vigente = isDocumentVigente(documentData);
 
   const counterparts = documentData.counterparts || (documentData.counterpart ? [documentData.counterpart] : []);
@@ -147,7 +147,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+        <main className="p-4 md:p-8 max-w-5xl mx-auto w-full pb-20">
           <div className="space-y-6 md:space-y-8">
             <section className="bg-white p-6 md:p-10 rounded-[2.5rem] border border-muted shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b pb-6">
@@ -156,7 +156,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div>
                     <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">{documentData.title}</h1>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.type}</Badge>
+                      <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.extensionDocType || documentData.type}</Badge>
                       {isConvenio && (
                         <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                           {vigente ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
@@ -233,10 +233,39 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
 
+                {isExtensionProyecto && documentData.objetivoGeneral && (
+                  <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                      <Target className="w-4 h-4" /> Objetivo General del Proyecto
+                    </h3>
+                    <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">
+                      {documentData.objetivoGeneral}
+                    </p>
+                  </div>
+                )}
+
+                {isExtensionProyecto && documentData.objetivosEspecificos && documentData.objetivosEspecificos.length > 0 && (
+                  <div className="bg-white p-8 rounded-[2rem] border border-muted shadow-sm">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                      <ListTodo className="w-4 h-4" /> Objetivos Específicos
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {documentData.objetivosEspecificos.map((obj, i) => (
+                        <div key={i} className="flex items-start gap-3 p-4 bg-muted/10 rounded-xl border border-muted/20">
+                          <div className="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">
+                            {i + 1}
+                          </div>
+                          <p className="text-xs font-medium leading-relaxed">{obj}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {documentData.description && (
                   <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" /> Descripción y Objetivos
+                      <BookOpen className="w-4 h-4" /> Resumen / Descripción Adicional
                     </h3>
                     <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">
                       {documentData.description}

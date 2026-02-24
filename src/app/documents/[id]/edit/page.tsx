@@ -10,6 +10,7 @@ import {
   Pencil,
   X,
   Plus,
+  Target,
   FileText
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -84,10 +85,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     destinationInstitution: "",
     projectCode: "",
     objetivoGeneral: "",
+    objetivosEspecificos: [],
     extensionDocType: "",
     executionPeriod: ""
   });
 
+  const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
   const [signingDay, setSigningDay] = useState("");
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
@@ -98,8 +101,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         ...docData,
         authors: Array.isArray(docData.authors) ? docData.authors.join(", ") : (docData.authors || ""),
         durationYears: docData.durationYears?.toString() || "1",
-        counterparts: docData.counterparts || (docData.counterpart ? [docData.counterpart] : [""])
+        counterparts: docData.counterparts || (docData.counterpart ? [docData.counterpart] : [""]),
+        objetivosEspecificos: docData.objetivosEspecificos || ["", "", ""]
       });
+
+      if (docData.objetivosEspecificos && docData.objetivosEspecificos.length > 0) {
+        setHasSpecificObjectives(true);
+      }
 
       if (docData.date) {
         const d = new Date(docData.date);
@@ -133,6 +141,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       .join(' ');
   };
 
+  const handleObjectiveChange = (index: number, value: string) => {
+    const newObjs = [...formData.objetivosEspecificos];
+    newObjs[index] = value;
+    setFormData({...formData, objetivosEspecificos: newObjs});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docRef) return;
@@ -150,6 +164,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       : formData.authors;
 
     const filteredCounterparts = Array.isArray(formData.counterparts) ? formData.counterparts.filter((c: string) => c.trim() !== "") : [];
+    const filteredObjectives = hasSpecificObjectives 
+      ? formData.objetivosEspecificos.filter((obj: string) => obj.trim() !== "")
+      : [];
 
     const updateData: any = {
       ...formData,
@@ -159,6 +176,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       updatedAt: new Date().toISOString(),
       counterparts: filteredCounterparts,
       counterpart: filteredCounterparts.join(", "),
+      objetivosEspecificos: filteredObjectives,
       durationYears: parseInt(formData.durationYears) || 1
     };
 
@@ -177,8 +195,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
-  const isPasantia = formData.type === "Pasantía";
-  const isMovilidad = formData.type === "Movilidad";
+  const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
     <SidebarProvider>
@@ -208,13 +225,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       className="h-12 rounded-xl font-bold"
-                      placeholder="Ingrese el nombre oficial..."
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
-                    <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="Dr. Juan Pérez, Lic. Ana Gómez..." />
+                    <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
                   </div>
 
                   <div className="space-y-2">
@@ -225,6 +241,56 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
+
+                  {isExtensionProyecto && (
+                    <div className="md:col-span-2 space-y-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Objetivo General</Label>
+                        <Textarea 
+                          value={formData.objetivoGeneral} 
+                          onChange={(e) => setFormData({...formData, objetivoGeneral: e.target.value})}
+                          className="min-h-[100px] rounded-xl font-medium"
+                        />
+                      </div>
+                      
+                      <div className="space-y-6 bg-primary/[0.02] p-6 rounded-3xl border border-dashed border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Target className="w-5 h-5 text-primary" />
+                            <span className="font-black uppercase text-[10px] tracking-widest text-primary">Objetivos Específicos</span>
+                          </div>
+                          <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
+                        </div>
+
+                        {hasSpecificObjectives && (
+                          <div className="space-y-4">
+                            {formData.objetivosEspecificos.map((obj: string, i: number) => (
+                              <div key={i} className="flex gap-2">
+                                <Input 
+                                  value={obj}
+                                  onChange={(e) => handleObjectiveChange(i, e.target.value)}
+                                  className="h-12 rounded-xl font-medium"
+                                  placeholder={`Objetivo ${i + 1}`}
+                                />
+                                <Button 
+                                  type="button" 
+                                  variant="ghost" 
+                                  className="h-12 w-12 rounded-xl text-destructive"
+                                  onClick={() => setFormData({...formData, objetivosEspecificos: formData.objetivosEspecificos.filter((_: any, idx: number) => idx !== i)})}
+                                ><X className="w-5 h-5" /></Button>
+                              </div>
+                            ))}
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase"
+                              onClick={() => setFormData({...formData, objetivosEspecificos: [...formData.objetivosEspecificos, ""]})}
+                            ><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {isConvenio && (
                     <>
@@ -241,7 +307,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                   setFormData({...formData, counterparts: newCp});
                                 }}
                                 className="h-12 rounded-xl font-bold"
-                                placeholder={`Institución ${i + 1}`}
                               />
                               <Button 
                                 type="button" 
@@ -276,26 +341,25 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </>
                   )}
 
-                  {(isProyecto || isPasantia || isMovilidad) && (
+                  {!isConvenio && (
                     <>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Código de Proyecto / Expediente</Label>
-                        <Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="FCA-EXT-..." />
+                        <Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
-                        <Input value={formData.executionPeriod || ""} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="2024-2025" />
+                        <Input value={formData.executionPeriod || ""} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" />
                       </div>
                     </>
                   )}
                   
                   <div className="md:col-span-2 space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Descripción / Objetivos</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
                     <Textarea 
                       value={formData.description} 
                       onChange={(e) => setFormData({...formData, description: e.target.value})} 
                       className="min-h-[120px] rounded-xl font-medium" 
-                      placeholder="Resumen del documento..."
                     />
                   </div>
                 </div>
