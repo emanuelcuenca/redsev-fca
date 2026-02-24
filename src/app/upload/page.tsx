@@ -79,8 +79,6 @@ export default function UploadPage() {
   const [date, setDate] = useState("");
   const [authors, setAuthors] = useState("");
   const [description, setDescription] = useState("");
-  const [keywords, setKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -90,7 +88,8 @@ export default function UploadPage() {
   const [convenioSubType, setConvenioSubType] = useState("Marco");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   
-  const [beneficiaryName, setBeneficiaryName] = useState("");
+  const [beneficiaryFirstName, setBeneficiaryFirstName] = useState("");
+  const [beneficiaryLastName, setBeneficiaryLastName] = useState("");
   const [programName, setProgramName] = useState("");
   const [convocatoria, setConvocatoria] = useState("");
 
@@ -142,13 +141,12 @@ export default function UploadPage() {
     setDate("");
     setAuthors("");
     setDescription("");
-    setKeywords([]);
-    setKeywordInput("");
     setDurationYears("1");
     setCounterpart("");
     setConvenioSubType("Marco");
     setHasInstitutionalResponsible(false);
-    setBeneficiaryName("");
+    setBeneficiaryFirstName("");
+    setBeneficiaryLastName("");
     setProgramName("");
     setConvocatoria("");
     setExtensionDocType("");
@@ -227,17 +225,6 @@ export default function UploadPage() {
     }
   };
 
-  const addKeyword = () => {
-    if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
-      setKeywords([...keywords, keywordInput.trim()]);
-      setKeywordInput("");
-    }
-  };
-
-  const removeKeyword = (tag: string) => {
-    setKeywords(keywords.filter(k => k !== tag));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -261,7 +248,6 @@ export default function UploadPage() {
       date,
       authors: authors.split(',').map(a => a.trim()).filter(Boolean),
       description: isResolution ? "" : description,
-      keywords,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       imageUrl: "https://picsum.photos/seed/" + Math.random() + "/600/400",
@@ -308,7 +294,7 @@ export default function UploadPage() {
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
-      documentData.beneficiaryName = beneficiaryName;
+      documentData.beneficiaryName = `${beneficiaryFirstName} ${beneficiaryLastName}`.trim();
       documentData.programName = programName;
       documentData.convocatoria = convocatoria;
     }
@@ -856,38 +842,51 @@ export default function UploadPage() {
                     {isSpecialType && (
                       <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
                         <div className="space-y-3">
-                          <Label htmlFor="beneficiary" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <User className="w-3.5 h-3.5" /> Nombre del Beneficiario / Pasante
+                          <Label htmlFor="firstName" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <User className="w-3.5 h-3.5" /> Nombre
                           </Label>
                           <Input 
-                            id="beneficiary" 
-                            placeholder="Ej: Juan Pérez" 
+                            id="firstName" 
+                            placeholder="Ej: Juan" 
                             className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                             required={isSpecialType}
-                            value={beneficiaryName}
-                            onChange={(e) => setBeneficiaryName(e.target.value)}
+                            value={beneficiaryFirstName}
+                            onChange={(e) => setBeneficiaryFirstName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="lastName" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <User className="w-3.5 h-3.5" /> Apellido
+                          </Label>
+                          <Input 
+                            id="lastName" 
+                            placeholder="Ej: Pérez" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={isSpecialType}
+                            value={beneficiaryLastName}
+                            onChange={(e) => setBeneficiaryLastName(e.target.value)}
                           />
                         </div>
                         <div className="space-y-3">
                           <Label htmlFor="program" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <BookOpen className="w-3.5 h-3.5" /> Programa Institucional
+                            <BookOpen className="w-3.5 h-3.5" /> Siglas del Programa
                           </Label>
                           <Input 
                             id="program" 
-                            placeholder="Ej: Programa de Intercambio ARFITEC" 
+                            placeholder="Ej: ARFITEC, JIMA, MAGMA..." 
                             className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                             required={isSpecialType}
                             value={programName}
                             onChange={(e) => setProgramName(e.target.value)}
                           />
                         </div>
-                        <div className="space-y-3 col-span-2">
+                        <div className="space-y-3">
                           <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                            <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Año
+                            <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Semestre
                           </Label>
                           <Input 
                             id="convocatoria" 
-                            placeholder="Ej: Convocatoria 2024 - 1er Cuatrimestre" 
+                            placeholder="Ej: Convocatoria 2024 - 1er Semestre" 
                             className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                             required={isSpecialType}
                             value={convocatoria}
@@ -950,32 +949,6 @@ export default function UploadPage() {
                         </div>
                       </>
                     )}
-
-                    <div className="space-y-3 col-span-2">
-                      <Label htmlFor="keywords" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Etiquetas / Palabras Clave</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          placeholder="Ej: Suelos, Riego..." 
-                          className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold"
-                          value={keywordInput}
-                          onChange={(e) => setKeywordInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                        />
-                        <Button type="button" className="h-12 px-6 rounded-xl bg-primary shadow-lg shadow-primary/10" onClick={addKeyword}>
-                          <Plus className="w-5 h-5" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {keywords.map(tag => (
-                          <Badge key={tag} className="bg-primary/10 text-primary hover:bg-primary/20 py-2 px-4 flex items-center gap-2 border-none transition-all rounded-full font-bold text-[10px] uppercase tracking-wider">
-                            {tag}
-                            <button type="button" onClick={() => removeKeyword(tag)} className="hover:text-destructive">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
                   </>
                 )}
               </div>
