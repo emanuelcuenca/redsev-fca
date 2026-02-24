@@ -29,7 +29,7 @@ import {
   Timer,
   ArrowLeftRight,
   Fingerprint,
-  Search
+  ChevronDown
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -48,18 +48,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, getCountFromServer, getDocs, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
+
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+const YEARS = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
 
 export default function UploadPage() {
   const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
 
-  // Estados del formulario
   const [type, setType] = useState("");
   const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
@@ -74,18 +82,15 @@ export default function UploadPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  // Campos específicos Convenio
   const [durationYears, setDurationYears] = useState<string>("1");
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   
-  // Campos para Movilidad y Pasantía
   const [beneficiaryName, setBeneficiaryName] = useState("");
   const [programName, setProgramName] = useState("");
   const [convocatoria, setConvocatoria] = useState("");
 
-  // Campos para Proyectos de Extensión
   const [extensionDocType, setExtensionDocType] = useState("");
   const [presentationDate, setPresentationDate] = useState("");
   const [reportPeriod, setReportPeriod] = useState("");
@@ -94,12 +99,14 @@ export default function UploadPage() {
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
   const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
-  const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
+  const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
-  // Efecto para buscar datos del proyecto vinculado
+  const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
+  const isResolution = extensionDocType === "Resolución de aprobación";
+
   useEffect(() => {
     async function fetchProjectData() {
-      // Solo buscar si es un documento secundario y tiene 3 dígitos
       if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
         setIsProjectDataLoading(true);
         try {
@@ -141,7 +148,6 @@ export default function UploadPage() {
           setIsProjectDataLoading(false);
         }
       } else if (type === "Proyecto" && isSecondaryExtensionDoc) {
-        // Si el código no está completo, ocultar campos
         setTitle("");
         setAuthors("");
         setExecutionPeriod("");
@@ -276,7 +282,7 @@ export default function UploadPage() {
       type,
       date,
       authors: authors.split(',').map(a => a.trim()).filter(Boolean),
-      description,
+      description: isResolution ? "" : description,
       keywords,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
@@ -380,7 +386,6 @@ export default function UploadPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8 pb-20">
-            {/* PASO 1: CATEGORÍA */}
             <section className="bg-primary/5 p-6 md:p-8 rounded-[2rem] border border-primary/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary text-white p-2 rounded-none">
@@ -415,7 +420,6 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {/* PASO 2: METADATOS Y DETALLES */}
             <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-all duration-300 ${type ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
@@ -465,7 +469,6 @@ export default function UploadPage() {
                       </div>
                     )}
 
-                    {/* Fecha de Aprobación: Solo si es Proyecto o Resolución */}
                     {extensionDocType && !extensionDocType.includes('Informe') && (extensionDocType === "Proyecto" || linkedProjectFound) && (
                       <div className="space-y-3 animate-in fade-in duration-300">
                         <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
@@ -484,7 +487,6 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {/* VISIBILIDAD CONDICIONAL: Solo si es Proyecto primario o si se encontró el vinculado */}
                 {(extensionDocType === "Proyecto" || (isSecondaryExtensionDoc && linkedProjectFound)) && (
                   <>
                     <div className="space-y-3 col-span-2 animate-in fade-in duration-500">
@@ -543,22 +545,70 @@ export default function UploadPage() {
 
                       {extensionDocType === "Informe de avance" && (
                         <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
-                          <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe</Label>
-                          <Input 
-                            id="reportPeriod" 
-                            placeholder="Ej: Enero - Junio 2024" 
-                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                            required={extensionDocType === "Informe de avance"}
-                            value={reportPeriod}
-                            onChange={(e) => setReportPeriod(e.target.value)}
-                          />
+                          <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe (Mes Año)</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full h-12 justify-start text-left font-bold rounded-xl border-primary/20",
+                                  !reportPeriod && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {reportPeriod ? reportPeriod : <span>Seleccione Mes y Año</span>}
+                                <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-4 rounded-2xl shadow-xl" align="start">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest">Mes</Label>
+                                  <div className="grid grid-cols-1 gap-1 max-h-[160px] overflow-y-auto pr-1">
+                                    {MONTHS.map(m => (
+                                      <Button 
+                                        key={m} 
+                                        variant={selectedMonth === m ? "default" : "ghost"}
+                                        size="sm"
+                                        className="h-8 text-xs font-bold"
+                                        onClick={() => {
+                                          setSelectedMonth(m);
+                                          setReportPeriod(`${m} ${selectedYear}`);
+                                        }}
+                                      >
+                                        {m}
+                                      </Button>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest">Año</Label>
+                                  <div className="grid grid-cols-1 gap-1 max-h-[160px] overflow-y-auto pr-1">
+                                    {YEARS.map(y => (
+                                      <Button 
+                                        key={y} 
+                                        variant={selectedYear === y.toString() ? "default" : "ghost"}
+                                        size="sm"
+                                        className="h-8 text-xs font-bold"
+                                        onClick={() => {
+                                          setSelectedYear(y.toString());
+                                          setReportPeriod(`${selectedMonth} ${y}`);
+                                        }}
+                                      >
+                                        {y}
+                                      </Button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       )}
                     </div>
                   </>
                 )}
 
-                {/* Otros tipos de documentos (Convenio, Movilidad, Pasantía, etc.) */}
                 {type !== "Proyecto" && type !== "" && (
                   <>
                     {type === "Convenio" && (
@@ -761,7 +811,6 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {/* PASO 3: DOCUMENTACIÓN Y ANÁLISIS */}
             <section className={`transition-all duration-300 ${(title || linkedProjectFound) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
@@ -840,44 +889,45 @@ export default function UploadPage() {
                   </Tabs>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
-                      onClick={handleAiSummarize}
-                      disabled={isSummarizing || (!file && !externalUrl)}
-                    >
-                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      Analizar con IA
-                    </Button>
+                {!isResolution && (
+                  <div className="space-y-4 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
+                        onClick={handleAiSummarize}
+                        disabled={isSummarizing || (!file && !externalUrl)}
+                      >
+                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        Analizar con IA
+                      </Button>
+                    </div>
+                    {aiError && (
+                      <Alert variant="destructive" className="mb-4 rounded-xl">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Fallo en IA</AlertTitle>
+                        <AlertDescription className="text-[11px] font-bold">
+                          {aiError}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <Textarea 
+                      id="description" 
+                      placeholder="Ingrese un resumen manualmente o presione el botón superior para generarlo con IA a partir del documento subido..." 
+                      className="min-h-[180px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight italic">
+                      * El análisis de IA utiliza Gemini 2.5 Flash para interpretar el contenido visual del archivo.
+                    </p>
                   </div>
-                  {aiError && (
-                    <Alert variant="destructive" className="mb-4 rounded-xl">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Fallo en IA</AlertTitle>
-                      <AlertDescription className="text-[11px] font-bold">
-                        {aiError}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <Textarea 
-                    id="description" 
-                    placeholder="Ingrese un resumen manualmente o presione el botón superior para generarlo con IA a partir del documento subido..." 
-                    className="min-h-[180px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight italic">
-                    * El análisis de IA utiliza Gemini 2.5 Flash para interpretar el contenido visual del archivo.
-                  </p>
-                </div>
+                )}
               </div>
 
-              {/* BOTONES DE ACCIÓN */}
               <div className="flex flex-col md:flex-row items-center justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button 
                   type="button" 
