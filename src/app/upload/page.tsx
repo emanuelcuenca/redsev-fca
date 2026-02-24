@@ -92,12 +92,14 @@ export default function UploadPage() {
   const [executionPeriod, setExecutionPeriod] = useState("");
   const [projectCodeNumber, setProjectCodeNumber] = useState("");
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
+  const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
 
   // Efecto para buscar datos del proyecto vinculado
   useEffect(() => {
     async function fetchProjectData() {
+      // Solo buscar si es un documento secundario y tiene 3 dígitos
       if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
         setIsProjectDataLoading(true);
         try {
@@ -117,19 +119,20 @@ export default function UploadPage() {
             setTitle(projectDoc.title || "");
             setAuthors(projectDoc.authors?.join(", ") || "");
             setExecutionPeriod(projectDoc.executionPeriod || "");
+            setLinkedProjectFound(true);
             toast({
-              title: "Proyecto encontrado",
-              description: `Datos cargados para el código ${targetCode}`,
+              title: "Proyecto vinculado encontrado",
+              description: `Información cargada para ${targetCode}`,
             });
           } else {
-            // No se encontró, limpiar campos pero dejar el código
             setTitle("");
             setAuthors("");
             setExecutionPeriod("");
+            setLinkedProjectFound(false);
             toast({
               variant: "destructive",
               title: "Proyecto no encontrado",
-              description: "Verifique el número ingresado o asegúrese de que el proyecto esté cargado.",
+              description: "Verifique el número ingresado en el sistema.",
             });
           }
         } catch (error) {
@@ -137,6 +140,12 @@ export default function UploadPage() {
         } finally {
           setIsProjectDataLoading(false);
         }
+      } else if (type === "Proyecto" && isSecondaryExtensionDoc) {
+        // Si el código no está completo, ocultar campos
+        setTitle("");
+        setAuthors("");
+        setExecutionPeriod("");
+        setLinkedProjectFound(false);
       }
     }
 
@@ -165,6 +174,7 @@ export default function UploadPage() {
     setReportPeriod("");
     setExecutionPeriod("");
     setProjectCodeNumber("");
+    setLinkedProjectFound(false);
     setAiError(null);
   };
 
@@ -406,7 +416,7 @@ export default function UploadPage() {
             </section>
 
             {/* PASO 2: METADATOS Y DETALLES */}
-            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-all duration-300 ${type ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">2</Badge>
@@ -455,8 +465,8 @@ export default function UploadPage() {
                       </div>
                     )}
 
-                    {/* Fecha de Aprobación: Solo si NO es informe */}
-                    {extensionDocType && !extensionDocType.includes('Informe') && (
+                    {/* Fecha de Aprobación: Solo si es Proyecto o Resolución */}
+                    {extensionDocType && !extensionDocType.includes('Informe') && (extensionDocType === "Proyecto" || linkedProjectFound) && (
                       <div className="space-y-3 animate-in fade-in duration-300">
                         <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                           <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
@@ -465,7 +475,7 @@ export default function UploadPage() {
                           id="date" 
                           type="date" 
                           className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={type === "Proyecto" && !extensionDocType.includes('Informe')}
+                          required={extensionDocType === "Proyecto"}
                           value={date}
                           onChange={(e) => setDate(e.target.value)}
                         />
@@ -474,276 +484,285 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                <div className="space-y-3 col-span-2">
-                  <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
-                  <Input 
-                    id="title" 
-                    placeholder={getPlaceholder()}
-                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80" 
-                    required 
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    disabled={isSecondaryExtensionDoc && !!title}
-                  />
-                </div>
-
-                {type === "Convenio" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
-                    <div className="space-y-3">
-                      <Label htmlFor="counterpart" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <Building2 className="w-3.5 h-3.5" /> Institución Contraparte
-                      </Label>
+                {/* VISIBILIDAD CONDICIONAL: Solo si es Proyecto primario o si se encontró el vinculado */}
+                {(extensionDocType === "Proyecto" || (isSecondaryExtensionDoc && linkedProjectFound)) && (
+                  <>
+                    <div className="space-y-3 col-span-2 animate-in fade-in duration-500">
+                      <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
                       <Input 
-                        id="counterpart" 
-                        placeholder="Ej: INTA, SENASA, Universidad X..." 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Convenio"}
-                        value={counterpart}
-                        onChange={(e) => setCounterpart(e.target.value)}
+                        id="title" 
+                        placeholder={getPlaceholder()}
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80" 
+                        required 
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        disabled={isSecondaryExtensionDoc}
                       />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="subType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Convenio</Label>
-                      <Select value={convenioSubType} onValueChange={setConvenioSubType}>
-                        <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
-                          <SelectValue placeholder="Seleccione subtipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Marco">Marco</SelectItem>
-                          <SelectItem value="Específico">Específico</SelectItem>
-                          <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
-                      </Label>
-                      <Input 
-                        id="date" 
-                        type="date" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Convenio"}
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="duration" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <Timer className="w-3.5 h-3.5" /> Duración del Convenio (Años)
-                      </Label>
-                      <Input 
-                        id="duration" 
-                        type="number"
-                        min="1"
-                        placeholder="Ej: 2"
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Convenio"}
-                        value={durationYears}
-                        onChange={(e) => setDurationYears(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="col-span-2 flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-lg">
-                          <UserCheck className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span>
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase">¿El convenio tiene un responsable asignado?</span>
-                        </div>
-                      </div>
-                      <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
                     </div>
 
-                    {hasInstitutionalResponsible && (
-                      <div className="col-span-2 space-y-3 animate-in fade-in slide-in-from-top-2">
-                        <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Nombres de los Responsables (separados por coma)</Label>
+                    <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start animate-in fade-in duration-500">
+                      <div className="space-y-3 col-span-2">
+                        <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores / Responsables</Label>
                         <Input 
                           id="authors" 
                           placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={hasInstitutionalResponsible}
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80" 
+                          required 
                           value={authors}
                           onChange={(e) => setAuthors(e.target.value)}
+                          disabled={isSecondaryExtensionDoc}
                         />
                       </div>
-                    )}
-                  </div>
-                )}
 
-                {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start">
-                    <div className="space-y-3 col-span-2">
-                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Autores / Responsables</Label>
-                      <Input 
-                        id="authors" 
-                        placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80" 
-                        required={type === "Proyecto"}
-                        value={authors}
-                        onChange={(e) => setAuthors(e.target.value)}
-                        disabled={isSecondaryExtensionDoc && !!authors}
-                      />
-                    </div>
-
-                    {(extensionDocType === "Proyecto" || !extensionDocType) && (
                       <div className="space-y-3 col-span-2">
                         <Label htmlFor="executionPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
                         <Input 
                           id="executionPeriod" 
                           placeholder="Ej: 2024 - 2025" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={type === "Proyecto" && extensionDocType === "Proyecto"}
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold disabled:opacity-80" 
+                          required={extensionDocType === "Proyecto"}
                           value={executionPeriod}
                           onChange={(e) => setExecutionPeriod(e.target.value)}
+                          disabled={isSecondaryExtensionDoc}
                         />
                       </div>
-                    )}
 
-                    {isSecondaryExtensionDoc && (
-                      <div className="space-y-3 col-span-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución Original</Label>
-                        <p className="h-12 px-4 flex items-center rounded-xl bg-white/50 border border-primary/10 font-bold text-primary/70">
-                          {executionPeriod || "No definido"}
-                        </p>
-                      </div>
-                    )}
+                      {extensionDocType?.includes('Informe') && (
+                        <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
+                          <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
+                          <Input 
+                            id="presentationDate" 
+                            type="date"
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={extensionDocType?.includes('Informe')}
+                            value={presentationDate}
+                            onChange={(e) => setPresentationDate(e.target.value)}
+                          />
+                        </div>
+                      )}
 
-                    {extensionDocType?.includes('Informe') && (
-                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
-                        <Label htmlFor="presentationDate" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Presentación del Informe</Label>
-                        <Input 
-                          id="presentationDate" 
-                          type="date"
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={extensionDocType?.includes('Informe')}
-                          value={presentationDate}
-                          onChange={(e) => setPresentationDate(e.target.value)}
-                        />
-                      </div>
-                    )}
-
-                    {extensionDocType === "Informe de avance" && (
-                      <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
-                        <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe</Label>
-                        <Input 
-                          id="reportPeriod" 
-                          placeholder="Ej: Enero - Junio 2024" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={extensionDocType === "Informe de avance"}
-                          value={reportPeriod}
-                          onChange={(e) => setReportPeriod(e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {isSpecialType && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
-                    <div className="space-y-3">
-                      <Label htmlFor="beneficiary" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <User className="w-3.5 h-3.5" /> Nombre del Beneficiario / Pasante
-                      </Label>
-                      <Input 
-                        id="beneficiary" 
-                        placeholder="Ej: Juan Pérez" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={isSpecialType}
-                        value={beneficiaryName}
-                        onChange={(e) => setBeneficiaryName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="program" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <BookOpen className="w-3.5 h-3.5" /> Programa Institucional
-                      </Label>
-                      <Input 
-                        id="program" 
-                        placeholder="Ej: Programa de Intercambio ARFITEC" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={isSpecialType}
-                        value={programName}
-                        onChange={(e) => setProgramName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-3 col-span-2">
-                      <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Año
-                      </Label>
-                      <Input 
-                        id="convocatoria" 
-                        placeholder="Ej: Convocatoria 2024 - 1er Cuatrimestre" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={isSpecialType}
-                        value={convocatoria}
-                        onChange={(e) => setConvocatoria(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {(type === "Resolución" || type === "Reglamento") && (
-                  <>
-                    <div className="space-y-3">
-                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
-                      </Label>
-                      <Input 
-                        id="date" 
-                        type="date" 
-                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                        required 
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Autores (separados por coma)</Label>
-                      <Input 
-                        id="authors" 
-                        placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                        required 
-                        value={authors}
-                        onChange={(e) => setAuthors(e.target.value)}
-                      />
+                      {extensionDocType === "Informe de avance" && (
+                        <div className="space-y-3 col-span-2 animate-in fade-in slide-in-from-top-2">
+                          <Label htmlFor="reportPeriod" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período que abarca el informe</Label>
+                          <Input 
+                            id="reportPeriod" 
+                            placeholder="Ej: Enero - Junio 2024" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={extensionDocType === "Informe de avance"}
+                            value={reportPeriod}
+                            onChange={(e) => setReportPeriod(e.target.value)}
+                          />
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
 
-                <div className="space-y-3 col-span-2">
-                  <Label htmlFor="keywords" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Etiquetas / Palabras Clave</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="Ej: Suelos, Riego..." 
-                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold"
-                      value={keywordInput}
-                      onChange={(e) => setKeywordInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                    />
-                    <Button type="button" className="h-12 px-6 rounded-xl bg-primary shadow-lg shadow-primary/10" onClick={addKeyword}>
-                      <Plus className="w-5 h-5" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {keywords.map(tag => (
-                      <Badge key={tag} className="bg-primary/10 text-primary hover:bg-primary/20 py-2 px-4 flex items-center gap-2 border-none transition-all rounded-full font-bold text-[10px] uppercase tracking-wider">
-                        {tag}
-                        <button type="button" onClick={() => removeKeyword(tag)} className="hover:text-destructive">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                {/* Otros tipos de documentos (Convenio, Movilidad, Pasantía, etc.) */}
+                {type !== "Proyecto" && type !== "" && (
+                  <>
+                    {type === "Convenio" && (
+                      <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                        <div className="space-y-3">
+                          <Label htmlFor="counterpart" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5" /> Institución Contraparte
+                          </Label>
+                          <Input 
+                            id="counterpart" 
+                            placeholder="Ej: INTA, SENASA, Universidad X..." 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={type === "Convenio"}
+                            value={counterpart}
+                            onChange={(e) => setCounterpart(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="subType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Convenio</Label>
+                          <Select value={convenioSubType} onValueChange={setConvenioSubType}>
+                            <SelectTrigger className="h-12 rounded-xl border-primary/20 bg-white font-bold">
+                              <SelectValue placeholder="Seleccione subtipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Marco">Marco</SelectItem>
+                              <SelectItem value="Específico">Específico</SelectItem>
+                              <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
+                          </Label>
+                          <Input 
+                            id="date" 
+                            type="date" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={type === "Convenio"}
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="duration" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <Timer className="w-3.5 h-3.5" /> Duración del Convenio (Años)
+                          </Label>
+                          <Input 
+                            id="duration" 
+                            type="number"
+                            min="1"
+                            placeholder="Ej: 2"
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={type === "Convenio"}
+                            value={durationYears}
+                            onChange={(e) => setDurationYears(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="col-span-2 flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/10 p-2 rounded-lg">
+                              <UserCheck className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase">¿El convenio tiene un responsable asignado?</span>
+                            </div>
+                          </div>
+                          <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                        </div>
+
+                        {hasInstitutionalResponsible && (
+                          <div className="col-span-2 space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Nombres de los Responsables (separados por coma)</Label>
+                            <Input 
+                              id="authors" 
+                              placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                              className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                              required={hasInstitutionalResponsible}
+                              value={authors}
+                              onChange={(e) => setAuthors(e.target.value)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {isSpecialType && (
+                      <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
+                        <div className="space-y-3">
+                          <Label htmlFor="beneficiary" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <User className="w-3.5 h-3.5" /> Nombre del Beneficiario / Pasante
+                          </Label>
+                          <Input 
+                            id="beneficiary" 
+                            placeholder="Ej: Juan Pérez" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={isSpecialType}
+                            value={beneficiaryName}
+                            onChange={(e) => setBeneficiaryName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="program" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <BookOpen className="w-3.5 h-3.5" /> Programa Institucional
+                          </Label>
+                          <Input 
+                            id="program" 
+                            placeholder="Ej: Programa de Intercambio ARFITEC" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={isSpecialType}
+                            value={programName}
+                            onChange={(e) => setProgramName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3 col-span-2">
+                          <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                            <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Año
+                          </Label>
+                          <Input 
+                            id="convocatoria" 
+                            placeholder="Ej: Convocatoria 2024 - 1er Cuatrimestre" 
+                            className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                            required={isSpecialType}
+                            value={convocatoria}
+                            onChange={(e) => setConvocatoria(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {(type === "Resolución" || type === "Reglamento") && (
+                      <>
+                        <div className="space-y-3 col-span-2">
+                          <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial</Label>
+                          <Input 
+                            id="title" 
+                            placeholder="Ingrese título..."
+                            className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                            required 
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                            <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
+                          </Label>
+                          <Input 
+                            id="date" 
+                            type="date" 
+                            className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                            required 
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Autores (separados por coma)</Label>
+                          <Input 
+                            id="authors" 
+                            placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                            className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                            required 
+                            value={authors}
+                            onChange={(e) => setAuthors(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="space-y-3 col-span-2">
+                      <Label htmlFor="keywords" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Etiquetas / Palabras Clave</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Ej: Suelos, Riego..." 
+                          className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold"
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                        />
+                        <Button type="button" className="h-12 px-6 rounded-xl bg-primary shadow-lg shadow-primary/10" onClick={addKeyword}>
+                          <Plus className="w-5 h-5" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {keywords.map(tag => (
+                          <Badge key={tag} className="bg-primary/10 text-primary hover:bg-primary/20 py-2 px-4 flex items-center gap-2 border-none transition-all rounded-full font-bold text-[10px] uppercase tracking-wider">
+                            {tag}
+                            <button type="button" onClick={() => removeKeyword(tag)} className="hover:text-destructive">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </section>
 
             {/* PASO 3: DOCUMENTACIÓN Y ANÁLISIS */}
-            <section className={`transition-opacity duration-300 ${title ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <section className={`transition-all duration-300 ${(title || linkedProjectFound) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
