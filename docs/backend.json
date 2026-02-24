@@ -112,7 +112,12 @@
           "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución", "Reglamento"]
         },
         "isVigente": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Este campo ahora se calcula dinámicamente en el frontend basado en la duración."
+        },
+        "durationYears": {
+          "type": "integer",
+          "description": "Duración del convenio en años."
         },
         "signingYear": {
           "type": "integer"
@@ -122,7 +127,7 @@
         },
         "convenioSubType": {
           "type": "string",
-          "enum": ["Marco", "Específico", "Pasantía"]
+          "enum": ["Marco", "Específico", "Práctica/Pasantía"]
         },
         "beneficiaryName": {
           "type": "string",

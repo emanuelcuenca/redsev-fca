@@ -22,7 +22,10 @@ import {
   ClipboardList,
   GraduationCap,
   Plane,
-  UserCheck
+  UserCheck,
+  Timer,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -31,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { AgriculturalDocument } from "@/lib/mock-data";
+import { AgriculturalDocument, isDocumentVigente } from "@/lib/mock-data";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -107,6 +110,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
+  const vigente = isDocumentVigente(documentData);
 
   return (
     <SidebarProvider>
@@ -139,9 +143,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             <div className="lg:col-span-2 space-y-6 md:space-y-8">
               <section>
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
-                    <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
+                      <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
+                    </h2>
+                    {isConvenio && (
+                      <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                        {vigente ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                        {vigente ? 'Vigente' : 'Vencido'}
+                      </Badge>
+                    )}
+                  </div>
                   <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
                     {documentData.type}
                   </Badge>
@@ -199,7 +211,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Registro</p>
-                        <p className="font-semibold text-sm md:text-base">{documentData.type}</p>
+                        <p className="font-semibold text-sm md:text-base">{documentData.type} {isConvenio && `(${documentData.convenioSubType})`}</p>
                       </div>
                     </div>
                     {isConvenio && (
@@ -210,6 +222,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div>
                           <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Contraparte</p>
                           <p className="font-semibold text-sm md:text-base">{documentData.counterpart || 'N/A'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {isConvenio && (
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className="bg-secondary p-2 rounded-lg shrink-0">
+                          <Timer className="w-4 h-4 md:w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Duración</p>
+                          <p className="font-semibold text-sm md:text-base">{documentData.durationYears} Años</p>
                         </div>
                       </div>
                     )}

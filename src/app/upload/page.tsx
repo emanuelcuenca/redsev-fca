@@ -25,7 +25,8 @@ import {
   User,
   BookOpen,
   ClipboardList,
-  UserCheck
+  UserCheck,
+  Timer
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -70,7 +71,7 @@ export default function UploadPage() {
   const [aiError, setAiError] = useState<string | null>(null);
 
   // Campos específicos Convenio
-  const [isVigente, setIsVigente] = useState(true);
+  const [durationYears, setDurationYears] = useState<string>("1");
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
@@ -188,7 +189,7 @@ export default function UploadPage() {
     };
 
     if (type === "Convenio") {
-      documentData.isVigente = isVigente;
+      documentData.durationYears = parseInt(durationYears) || 1;
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
@@ -345,12 +346,20 @@ export default function UploadPage() {
                         onChange={(e) => setDate(e.target.value)}
                       />
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-primary/10">
-                      <div className="flex flex-col">
-                        <span className="font-black uppercase text-[10px] tracking-widest text-primary">Estado de Vigencia</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{isVigente ? 'Vigente' : 'No Vigente'}</span>
-                      </div>
-                      <Switch checked={isVigente} onCheckedChange={setIsVigente} />
+                    <div className="space-y-3">
+                      <Label htmlFor="duration" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <Timer className="w-3.5 h-3.5" /> Duración del Convenio (Años)
+                      </Label>
+                      <Input 
+                        id="duration" 
+                        type="number"
+                        min="1"
+                        placeholder="Ej: 2"
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Convenio"}
+                        value={durationYears}
+                        onChange={(e) => setDurationYears(e.target.value)}
+                      />
                     </div>
                     
                     <div className="col-span-2 flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">

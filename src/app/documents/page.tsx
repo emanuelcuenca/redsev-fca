@@ -54,7 +54,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
-import { AgriculturalDocument } from "@/lib/mock-data";
+import { AgriculturalDocument, isDocumentVigente } from "@/lib/mock-data";
 import { toast } from "@/hooks/use-toast";
 
 export default function DocumentsListPage() {
@@ -117,8 +117,9 @@ export default function DocumentsListPage() {
 
       if (isConvenios) {
         if (filterVigente !== "all") {
-          const isVig = filterVigente === "vigente";
-          if (doc.isVigente !== isVig) return false;
+          const isVig = isDocumentVigente(doc);
+          const filterIsVigente = filterVigente === "vigente";
+          if (isVig !== filterIsVigente) return false;
         }
         if (filterYear !== "all" && doc.signingYear?.toString() !== filterYear) {
           return false;
@@ -266,6 +267,7 @@ export default function DocumentsListPage() {
                     <SelectItem value="all">Marco o Específico</SelectItem>
                     <SelectItem value="Marco">Marco</SelectItem>
                     <SelectItem value="Específico">Específico</SelectItem>
+                    <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -294,74 +296,77 @@ export default function DocumentsListPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 gap-6 md:hidden w-full">
-                {filteredDocs.map((doc) => (
-                  <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex gap-2">
-                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
-                            {doc.type}
-                          </Badge>
-                          {isConvenios && (
-                            <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${doc.isVigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                              {doc.isVigente ? 'Vigente' : 'Vencido'}
+                {filteredDocs.map((doc) => {
+                  const vigente = isDocumentVigente(doc);
+                  return (
+                    <Card key={doc.id} className="rounded-[2rem] border-muted shadow-lg overflow-hidden border-2 bg-card w-full">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex gap-2">
+                            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 bg-secondary text-primary">
+                              {doc.type}
                             </Badge>
-                          )}
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-xl">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
-                                <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
-                              </Link>
-                            </DropdownMenuItem>
-                            {isAdmin && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
-                                  onClick={() => handleDelete(doc.id, doc.title)}
-                                >
-                                  <Trash2 className="w-4 h-4" /> <span>Eliminar</span>
-                                </DropdownMenuItem>
-                              </>
+                            {isConvenios && (
+                              <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 ${vigente ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                {vigente ? 'Vigente' : 'Vencido'}
+                              </Badge>
                             )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <h3 className="font-headline font-bold text-lg leading-tight mb-4 uppercase">{doc.title}</h3>
-                      <div className="space-y-3">
-                        {isConvenios && doc.counterpart && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Building2 className="w-4 h-4 text-primary" />
-                            <span className="font-bold text-primary">{doc.counterpart}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <User className="w-4 h-4 text-primary" />
-                          <span className="font-bold truncate">{doc.authors?.join(', ') || 'SEyV FCA'}</span>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1 rounded-full">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/documents/${doc.id}`} className="flex items-center gap-2">
+                                  <Eye className="w-4 h-4" /> <span>Ver Detalles</span>
+                                </Link>
+                              </DropdownMenuItem>
+                              {isAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
+                                    onClick={() => handleDelete(doc.id, doc.title)}
+                                  >
+                                    <Trash2 className="w-4 h-4" /> <span>Eliminar</span>
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4 text-primary" />
-                          <span className="font-bold">
-                            {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
-                          </span>
+                        <h3 className="font-headline font-bold text-lg leading-tight mb-4 uppercase">{doc.title}</h3>
+                        <div className="space-y-3">
+                          {isConvenios && doc.counterpart && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Building2 className="w-4 h-4 text-primary" />
+                              <span className="font-bold text-primary">{doc.counterpart}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <User className="w-4 h-4 text-primary" />
+                            <span className="font-bold truncate">{doc.authors?.join(', ') || 'SEyV FCA'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span className="font-bold">
+                              {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.type)}</span>
-                        <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
-                          <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="mt-5 pt-4 border-t border-dashed border-muted-foreground/20 flex items-center justify-between">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/70 truncate max-w-[120px]">{isConvenios ? `${doc.convenioSubType} | ${doc.signingYear}` : (doc.project || doc.type)}</span>
+                          <Button asChild variant="link" className="p-0 h-auto font-black text-primary text-sm hover:no-underline">
+                            <Link href={`/documents/${doc.id}`}>ACCEDER →</Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               <div className="hidden md:block bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
@@ -380,86 +385,89 @@ export default function DocumentsListPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDocs.map((doc) => (
-                      <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group">
-                        <TableCell className="py-8 pl-12">
-                          <div className="flex items-center gap-6">
-                            <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                              {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                    {filteredDocs.map((doc) => {
+                      const vigente = isDocumentVigente(doc);
+                      return (
+                        <TableRow key={doc.id} className="hover:bg-primary/[0.03] transition-all duration-300 group">
+                          <TableCell className="py-8 pl-12">
+                            <div className="flex items-center gap-6">
+                              <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                              </div>
+                              <div>
+                                <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
+                                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
+                                  <User className="w-4 h-4 text-primary/60" /> {doc.authors?.join(', ') || 'SEyV FCA'}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
-                              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 font-bold">
-                                <User className="w-4 h-4 text-primary/60" /> {doc.authors?.join(', ') || 'SEyV FCA'}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {isConvenios ? (
-                            <div className="flex flex-col">
-                              <span className="font-black text-primary">{doc.counterpart}</span>
-                              <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
-                            </div>
-                          ) : (
-                            <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
-                              {doc.type}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {isConvenios ? (
-                            <div className="flex items-center gap-2">
-                              {doc.isVigente ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                              ) : (
-                                <XCircle className="w-5 h-5 text-red-400" />
-                              )}
-                              <span className={`font-bold text-sm ${doc.isVigente ? 'text-green-700' : 'text-red-700'}`}>
-                                {doc.isVigente ? 'Vigente' : 'Vencido'}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="font-bold text-muted-foreground/90">{doc.project || doc.type}</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground font-bold">
-                          {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
-                        </TableCell>
-                        <TableCell className="text-right pr-12">
-                          <div className="flex justify-end gap-2">
-                            <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10">
-                              <Link href={`/documents/${doc.id}`}>
-                                <Eye className="w-5 h-5" />
-                              </Link>
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
-                                  <MoreVertical className="w-5 h-5" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-xl">
-                                <DropdownMenuItem className="gap-2 font-bold">
-                                  <Download className="w-4 h-4" /> Descargar
-                                </DropdownMenuItem>
-                                {isAdmin && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                      className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
-                                      onClick={() => handleDelete(doc.id, doc.title)}
-                                    >
-                                      <Trash2 className="w-4 h-4" /> Eliminar
-                                    </DropdownMenuItem>
-                                  </>
+                          </TableCell>
+                          <TableCell>
+                            {isConvenios ? (
+                              <div className="flex flex-col">
+                                <span className="font-black text-primary">{doc.counterpart}</span>
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase">{doc.convenioSubType}</span>
+                              </div>
+                            ) : (
+                              <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-[0.15em] py-1 px-3 bg-secondary text-primary">
+                                {doc.type}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {isConvenios ? (
+                              <div className="flex items-center gap-2">
+                                {vigente ? (
+                                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                ) : (
+                                  <XCircle className="w-5 h-5 text-red-400" />
                                 )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                <span className={`font-bold text-sm ${vigente ? 'text-green-700' : 'text-red-700'}`}>
+                                  {vigente ? 'Vigente' : 'Vencido'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="font-bold text-muted-foreground/90">{doc.project || doc.type}</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground font-bold">
+                            {mounted ? new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+                          </TableCell>
+                          <TableCell className="text-right pr-12">
+                            <div className="flex justify-end gap-2">
+                              <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10">
+                                <Link href={`/documents/${doc.id}`}>
+                                  <Eye className="w-5 h-5" />
+                                </Link>
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
+                                    <MoreVertical className="w-5 h-5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-xl">
+                                  <DropdownMenuItem className="gap-2 font-bold">
+                                    <Download className="w-4 h-4" /> Descargar
+                                  </DropdownMenuItem>
+                                  {isAdmin && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
+                                        onClick={() => handleDelete(doc.id, doc.title)}
+                                      >
+                                        <Trash2 className="w-4 h-4" /> Eliminar
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
