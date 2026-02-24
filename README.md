@@ -17,6 +17,12 @@ Una vez finalizado, Firebase te dará una URL pública (ej: `vinculo-agro.web.ap
 
 ---
 
+## 🏛 Migración a Servidores de la Universidad
+
+Si deseas que el sitio se aloje en un servidor propio de la UNCA, entrega el archivo ubicado en `docs/ENTREGA_TECNICA.md` al equipo de sistemas de la facultad. Allí encontrarán todos los requisitos de Node.js y configuración de variables de entorno necesarios.
+
+---
+
 ## 📱 Cómo instalar la App en el móvil (PWA)
 
 Una vez que el sitio esté publicado (`.web.app` o `.firebaseapp.com`):
