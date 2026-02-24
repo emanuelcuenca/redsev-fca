@@ -1,3 +1,4 @@
+
 export interface AgriculturalDocument {
   id: string;
   title: string;
@@ -5,8 +6,9 @@ export interface AgriculturalDocument {
   resolutionType?: 'CD' | 'CS' | 'Decanal' | 'Rectoral' | 'SEU' | 'Ministerial';
   project?: string;
   projectCode?: string; // Código unificador para proyectos (Formato: FCA-EXT-001-2024)
+  director?: string; // Director del proyecto de extensión
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
-  authors: string[];
+  authors: string[]; // Equipo técnico o responsables
   description: string;
   objetivoGeneral?: string;
   objetivosEspecificos?: string[];
@@ -33,7 +35,7 @@ export interface AgriculturalDocument {
   destinationProvince?: string;
   destinationCountry?: string;
   // Campos específicos para Proyectos de Extensión
-  extensionDocType?: 'Proyecto' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
+  extensionDocType?: 'Proyecto de Extensión' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
   presentationDate?: string;
   reportPeriod?: string;
   executionPeriod?: string;
@@ -85,8 +87,9 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     date: '2023-11-05',
     uploadDate: '2023-11-05T14:30:00Z',
     authors: ['Lic. Rosa Martínez', 'Prof. Juan Pérez'],
+    director: 'Dr. Roberto Sánchez',
     description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
-    extensionDocType: 'Proyecto',
+    extensionDocType: 'Proyecto de Extensión',
     executionPeriod: '2023-2024',
     projectCode: 'FCA-EXT-001-2023',
     fileUrl: "#",

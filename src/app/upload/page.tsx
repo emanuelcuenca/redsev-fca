@@ -22,9 +22,9 @@ import {
   UserCheck,
   Search,
   FileCheck,
-  ClipboardList,
   Building2,
-  Fingerprint
+  Fingerprint,
+  User
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -64,6 +64,7 @@ export default function UploadPage() {
   const [type, setType] = useState("");
   const [extensionDocType, setExtensionDocType] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [director, setDirector] = useState("");
   const [authors, setAuthors] = useState("");
   const [description, setDescription] = useState("");
   const [objetivoGeneral, setObjetivoGeneral] = useState("");
@@ -86,7 +87,6 @@ export default function UploadPage() {
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
 
-  // Búsqueda de proyecto para Resolución de Aprobación e Informes
   const [searchProjectNumber, setSearchProjectNumber] = useState("");
   const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
   const [isSearchingProject, setIsSearchingProject] = useState(false);
@@ -134,13 +134,14 @@ export default function UploadPage() {
         setDescription(project.description || "");
         setObjetivoGeneral(project.objetivoGeneral || "");
         setObjetivosEspecificos(project.objetivosEspecificos || []);
+        setDirector(project.director || "");
         setAuthors(project.authors?.join(", ") || "");
         setProjectCode(project.projectCode || "");
         setExecutionPeriod(project.executionPeriod || "");
-        toast({ title: "Proyecto encontrado", description: "La información del proyecto ha sido vinculada." });
+        toast({ title: "Proyecto encontrado" });
       } else {
         setFoundProject(null);
-        toast({ variant: "destructive", title: "Proyecto no encontrado", description: "Verifique el número y el año ingresados." });
+        toast({ variant: "destructive", title: "Proyecto no encontrado" });
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Error en la búsqueda" });
@@ -163,11 +164,7 @@ export default function UploadPage() {
 
   const handleSummarize = async () => {
     if (!fileDataUri) {
-      toast({
-        variant: "destructive",
-        title: "Archivo requerido",
-        description: "Por favor, suba un documento para que la IA pueda analizarlo."
-      });
+      toast({ variant: "destructive", title: "Archivo requerido" });
       return;
     }
 
@@ -180,17 +177,10 @@ export default function UploadPage() {
       
       if (result?.summary) {
         setDescription(result.summary);
-        toast({
-          title: "Resumen generado",
-          description: "La IA ha analizado el documento exitosamente."
-        });
+        toast({ title: "Resumen generado" });
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error de IA",
-        description: error.message || "No se pudo generar el resumen."
-      });
+      toast({ variant: "destructive", title: "Error de IA", description: error.message });
     } finally {
       setIsSummarizing(false);
     }
@@ -215,6 +205,8 @@ export default function UploadPage() {
       finalProjectCode = generateProjectCode();
     }
 
+    const authorsArr = authors.split(',').map(a => a.trim()).filter(Boolean);
+
     const documentData: any = {
       title: formatTitle(title),
       type,
@@ -233,19 +225,20 @@ export default function UploadPage() {
       documentData.counterparts = filteredCp;
       documentData.counterpart = filteredCp.join(", ");
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
-      documentData.authors = hasInstitutionalResponsible ? authors.split(',').map(a => a.trim()).filter(Boolean) : [];
+      documentData.authors = hasInstitutionalResponsible ? authorsArr : [];
     } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
       documentData.executionPeriod = executionPeriod;
-      documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
+      documentData.director = director;
+      documentData.authors = authorsArr;
       
       if (extensionDocType === "Proyecto de Extensión" || foundProject) {
         documentData.objetivoGeneral = objetivoGeneral;
         documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
       }
     } else {
-      documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
+      documentData.authors = authorsArr;
       documentData.projectCode = projectCode;
       documentData.executionPeriod = executionPeriod;
     }
@@ -253,19 +246,19 @@ export default function UploadPage() {
     try {
       await addDocumentNonBlocking(collection(db, 'documents'), documentData);
       toast({ 
-        title: "Registro institucional almacenado",
-        description: finalProjectCode ? `Código del Proyecto: ${finalProjectCode}` : "Información guardada correctamente."
+        title: "Registro almacenado",
+        description: finalProjectCode ? `Código del Proyecto: ${finalProjectCode}` : ""
       });
       setIsSaving(false);
       router.push("/documents");
     } catch (error) {
       setIsSaving(false);
-      toast({ variant: "destructive", title: "Error al guardar el documento" });
+      toast({ variant: "destructive", title: "Error al guardar" });
     }
   };
 
   const isExtensionProyectoSubtype = type === "Proyecto" && extensionDocType === "Proyecto de Extensión";
-  const isExtensionLinkedSubtype = type === "Proyecto" && ["Resolución de Aprobación", "Informe de Avance", "Informe Final"].includes(extensionDocType);
+  const isExtensionLinkedSubtype = type === "Proyecto" && ["Resolución de aprobación", "Informe de avance", "Informe final"].includes(extensionDocType);
 
   return (
     <SidebarProvider>
@@ -298,6 +291,7 @@ export default function UploadPage() {
                       setFoundProject(null);
                       setTitle("");
                       setAuthors("");
+                      setDirector("");
                       setDescription("");
                     }}
                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
@@ -318,18 +312,19 @@ export default function UploadPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                     {[
                       "Proyecto de Extensión",
-                      "Resolución de Aprobación",
-                      "Informe de Avance",
-                      "Informe Final"
+                      "Resolución de aprobación",
+                      "Informe de avance",
+                      "Informe final"
                     ].map((subType) => (
                       <button
                         key={subType}
                         type="button"
                         onClick={() => {
-                          setExtensionDocType(subType);
+                          setExtensionDocType(subType as any);
                           setFoundProject(null);
                           setTitle("");
                           setAuthors("");
+                          setDirector("");
                           setDescription("");
                         }}
                         className={`p-3 rounded-xl border-2 text-[9px] font-black uppercase tracking-tight transition-all text-center ${
@@ -348,17 +343,12 @@ export default function UploadPage() {
                   <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-6 animate-in slide-in-from-top-4">
                     <div className="flex items-center gap-3">
                       <Search className="w-5 h-5 text-primary" />
-                      <h3 className="font-headline font-bold text-sm uppercase tracking-tight text-primary">Vincular con Proyecto Existente</h3>
+                      <h3 className="font-headline font-bold text-sm uppercase tracking-tight text-primary">Vincular Proyecto</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Número de Proyecto</Label>
-                        <Input 
-                          placeholder="Ej: 4829" 
-                          value={searchProjectNumber}
-                          onChange={(e) => setSearchProjectNumber(e.target.value)}
-                          className="h-10 rounded-lg font-bold"
-                        />
+                        <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Número</Label>
+                        <Input placeholder="Ej: 4829" value={searchProjectNumber} onChange={(e) => setSearchProjectNumber(e.target.value)} className="h-10 rounded-lg font-bold" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Año</Label>
@@ -367,16 +357,7 @@ export default function UploadPage() {
                           <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
                         </Select>
                       </div>
-                      <div className="flex items-end">
-                        <Button 
-                          type="button" 
-                          onClick={handleSearchProject}
-                          disabled={isSearchingProject || !searchProjectNumber}
-                          className="w-full h-10 rounded-lg font-black uppercase text-[10px] tracking-widest bg-primary"
-                        >
-                          {isSearchingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : "Buscar"}
-                        </Button>
-                      </div>
+                      <div className="flex items-end"><Button type="button" onClick={handleSearchProject} disabled={isSearchingProject || !searchProjectNumber} className="w-full h-10 rounded-lg font-black uppercase text-[10px] tracking-widest bg-primary">{isSearchingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : "Buscar"}</Button></div>
                     </div>
                   </div>
                 )}
@@ -385,33 +366,26 @@ export default function UploadPage() {
                   <div className="space-y-8 animate-in slide-in-from-top-4 duration-500">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Proyecto</Label>
-                      <Input 
-                        placeholder="Ej: Desarrollo de Huertas Comunitarias..." 
-                        className="h-12 rounded-xl font-bold" 
-                        value={title} 
-                        onChange={(e) => setTitle(e.target.value)} 
-                        required 
-                      />
+                      <Input placeholder="Título del Proyecto" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables / Equipo Técnico</Label>
-                      <Input 
-                        placeholder="Dr. Mario Rojas, Lic. Ana Gómez" 
-                        className="h-12 rounded-xl font-bold" 
-                        value={authors} 
-                        onChange={(e) => setAuthors(e.target.value)} 
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director del Proyecto</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                          <Input placeholder="Nombre del Director" className="h-12 rounded-xl font-bold pl-10" value={director} onChange={(e) => setDirector(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Equipo Técnico (sep. por coma)</Label>
+                        <Input placeholder="Integrantes del equipo" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Objetivo General</Label>
-                      <Textarea 
-                        placeholder="Escriba el propósito central..." 
-                        className="min-h-[100px] rounded-xl font-medium" 
-                        value={objetivoGeneral} 
-                        onChange={(e) => setObjetivoGeneral(e.target.value)} 
-                      />
+                      <Textarea placeholder="Objetivo General" className="min-h-[100px] rounded-xl font-medium" value={objetivoGeneral} onChange={(e) => setObjetivoGeneral(e.target.value)} />
                     </div>
 
                     <div className="space-y-6 bg-primary/[0.02] p-6 rounded-3xl border border-dashed border-primary/20">
@@ -422,38 +396,16 @@ export default function UploadPage() {
                         </div>
                         <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
                       </div>
-
                       {hasSpecificObjectives && (
                         <div className="space-y-4 animate-in fade-in duration-300">
                           {objetivosEspecificos.map((obj, i) => (
                             <div key={i} className="flex gap-2">
-                              <div className="flex h-12 w-12 items-center justify-center bg-primary/10 rounded-xl shrink-0 font-bold text-primary text-xs">
-                                {i + 1}
-                              </div>
-                              <Input 
-                                placeholder={`Objetivo específico ${i + 1}`} 
-                                className="h-12 rounded-xl font-medium" 
-                                value={obj} 
-                                onChange={(e) => handleObjectiveChange(i, e.target.value)} 
-                              />
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                className="h-12 w-12 rounded-xl text-destructive"
-                                onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
-                              >
-                                <X className="w-5 h-5" />
-                              </Button>
+                              <div className="flex h-12 w-12 items-center justify-center bg-primary/10 rounded-xl shrink-0 font-bold text-primary text-xs">{i + 1}</div>
+                              <Input placeholder={`Objetivo ${i + 1}`} className="h-12 rounded-xl font-medium" value={obj} onChange={(e) => handleObjectiveChange(i, e.target.value)} />
+                              <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl text-destructive" onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}><X className="w-5 h-5" /></Button>
                             </div>
                           ))}
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
-                            onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
-                          >
-                            <Plus className="w-4 h-4 mr-2" /> Añadir objetivo específico
-                          </Button>
+                          <Button type="button" variant="outline" className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest" onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
                         </div>
                       )}
                     </div>
@@ -464,21 +416,15 @@ export default function UploadPage() {
                   <div className="p-6 bg-muted/20 rounded-3xl border border-muted space-y-4 animate-in fade-in">
                     <div className="flex items-center gap-2 text-primary">
                       <Fingerprint className="w-5 h-5" />
-                      <span className="font-black uppercase text-xs tracking-widest">Información del Proyecto Vinculado</span>
+                      <span className="font-black uppercase text-xs tracking-widest">Proyecto Vinculado</span>
                     </div>
                     <div className="space-y-2">
                       <p className="text-sm font-black uppercase text-muted-foreground tracking-tight">Título:</p>
                       <p className="text-base font-bold leading-tight">{foundProject.title}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Código:</p>
-                        <p className="text-sm font-bold text-primary">{foundProject.projectCode}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Responsables:</p>
-                        <p className="text-sm font-bold">{foundProject.authors?.join(", ")}</p>
-                      </div>
+                      <div><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Código:</p><p className="text-sm font-bold text-primary">{foundProject.projectCode}</p></div>
+                      <div><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Director:</p><p className="text-sm font-bold">{foundProject.director || 'No asignado'}</p></div>
                     </div>
                   </div>
                 )}
@@ -489,9 +435,8 @@ export default function UploadPage() {
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2">
                   <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Convenio</Label>
-                  <Input placeholder="Ej: Acuerdo de Cooperación Técnica..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                  <Input placeholder="Título del Convenio" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma</Label>
@@ -501,51 +446,28 @@ export default function UploadPage() {
                       <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
-                    <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
-                  </div>
+                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label><Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} /></div>
                 </div>
-
                 <div className="space-y-4">
                   <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
                   <div className="space-y-3">
                     {counterparts.map((cp, i) => (
                       <div key={i} className="flex gap-2">
-                        <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => {
-                          const newCp = [...counterparts];
-                          newCp[i] = e.target.value;
-                          setCounterparts(newCp);
-                        }} required={i === 0} />
+                        <Input placeholder={`Contraparte ${i + 1}`} className="h-12 rounded-xl font-bold" value={cp} onChange={(e) => { const n = [...counterparts]; n[i] = e.target.value; setCounterparts(n); }} required={i === 0} />
                         <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
                       </div>
                     ))}
                     <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
-                    <span className="font-black uppercase text-[10px] tracking-widest text-primary">Renovación Automática</span>
-                    <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
-                  </div>
+                  <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10"><span className="font-black uppercase text-[10px] tracking-widest text-primary">Renovación Automática</span><Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} /></div>
                   <div className="flex flex-col gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span>
-                      <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
-                    </div>
+                    <div className="flex items-center justify-between"><span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span><Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} /></div>
                     {hasInstitutionalResponsible && (
                       <div className="animate-in slide-in-from-top-2 duration-300">
                         <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground mb-1 block">Nombres de Responsables</Label>
-                        <div className="relative">
-                          <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40" />
-                          <Input 
-                            placeholder="Dr. Mario Rojas, Lic. Ana Gómez..." 
-                            className="h-9 rounded-lg text-xs font-bold pl-9" 
-                            value={authors} 
-                            onChange={(e) => setAuthors(e.target.value)} 
-                          />
-                        </div>
+                        <div className="relative"><UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40" /><Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez..." className="h-9 rounded-lg text-xs font-bold pl-9" value={authors} onChange={(e) => setAuthors(e.target.value)} /></div>
                       </div>
                     )}
                   </div>
@@ -555,11 +477,7 @@ export default function UploadPage() {
 
             {type && type !== "Proyecto" && type !== "Convenio" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
-                  <Input placeholder="Ej: Registro de..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                </div>
-
+                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label><Input placeholder="Título" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Registro</Label>
@@ -569,21 +487,11 @@ export default function UploadPage() {
                       <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
-                    <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
-                  </div>
+                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label><Input placeholder="Responsables" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} /></div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código / Expediente</Label>
-                    <Input placeholder="FCA-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label>
-                    <Input placeholder="2024" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
-                  </div>
+                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código / Expediente</Label><Input placeholder="FCA-001" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} /></div>
+                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label><Input placeholder="2024" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} /></div>
                 </div>
               </section>
             )}
@@ -591,75 +499,26 @@ export default function UploadPage() {
             {type && (!isExtensionLinkedSubtype || foundProject) && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div>
-                    <div>
-                      <h3 className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Documentación de Respaldo</h3>
-                      <p className="text-[10px] text-muted-foreground font-medium uppercase">Suba el archivo original para el registro y análisis por IA</p>
-                    </div>
-                  </div>
-                  <button 
-                    type="button" 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-12 px-6 rounded-xl border-2 border-primary/30 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all"
-                  >
-                    {fileName ? "Cambiar Archivo" : "Seleccionar Archivo"}
-                  </button>
+                  <div className="flex items-center gap-3"><div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div><div><h3 className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Archivo de Respaldo</h3><p className="text-[10px] text-muted-foreground font-medium uppercase">Cargue el PDF original</p></div></div>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="h-12 px-6 rounded-xl border-2 border-primary/30 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all">{fileName ? "Cambiar Archivo" : "Seleccionar Archivo"}</button>
                   <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
                 </div>
-
-                {fileName && (
-                  <div className="flex items-center gap-2 bg-white/50 p-3 rounded-xl border border-primary/10 animate-in fade-in">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span className="text-xs font-bold text-primary truncate">{fileName}</span>
-                  </div>
-                )}
-
+                {fileName && <div className="flex items-center gap-2 bg-white/50 p-3 rounded-xl border border-primary/10 animate-in fade-in"><CheckCircle2 className="w-4 h-4 text-green-600" /><span className="text-xs font-bold text-primary truncate">{fileName}</span></div>}
                 <div className="pt-4 border-t border-primary/10">
-                  <div className="flex items-center justify-between gap-4 mb-4">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen Ejecutivo</Label>
-                    <Button 
-                      type="button" 
-                      onClick={handleSummarize}
-                      disabled={isSummarizing || !fileDataUri}
-                      className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all"
-                    >
-                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
-                      Generar Resumen con IA
-                    </Button>
-                  </div>
-                  <Textarea 
-                    placeholder="Resumen del alcance y objetivos..." 
-                    className="min-h-[120px] rounded-xl font-medium bg-white" 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                  />
-                  {!fileDataUri && (
-                    <p className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase">
-                      <AlertCircle className="w-3 h-3" /> Suba un documento para habilitar el asistente de IA
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between gap-4 mb-4"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen Ejecutivo</Label><Button type="button" onClick={handleSummarize} disabled={isSummarizing || !fileDataUri} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">{isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar Resumen con IA</Button></div>
+                  <Textarea placeholder="Resumen..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
               </section>
             )}
 
             {isExtensionLinkedSubtype && !foundProject && (
-              <div className="py-20 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted animate-pulse">
-                <FileCheck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-muted-foreground font-black uppercase text-xs tracking-widest">Debe buscar y vincular un proyecto de extensión para habilitar la carga del documento</p>
-              </div>
+              <div className="py-20 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted animate-pulse"><FileCheck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" /><p className="text-muted-foreground font-black uppercase text-xs tracking-widest px-8">Debe vincular un proyecto de extensión para habilitar la carga</p></div>
             )}
 
             {type && (
               <div className="flex justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                <Button 
-                  type="submit" 
-                  className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" 
-                  disabled={isSaving || (isExtensionLinkedSubtype && !foundProject)}
-                >
-                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}
-                </Button>
+                <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving || (isExtensionLinkedSubtype && !foundProject)}>{isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}</Button>
               </div>
             )}
           </form>

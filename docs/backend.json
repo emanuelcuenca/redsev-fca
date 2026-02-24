@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -117,83 +118,39 @@
           "type": "string",
           "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución"]
         },
-        "resolutionType": {
+        "extensionDocType": {
           "type": "string",
-          "enum": ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"],
-          "description": "Tipo de resolución institucional."
+          "enum": ["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"]
+        },
+        "director": {
+          "type": "string",
+          "description": "Director del proyecto de extensión."
+        },
+        "authors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Equipo técnico o responsables."
+        },
+        "projectCode": {
+          "type": "string",
+          "description": "Código unificador para proyectos de extensión."
         },
         "date": {
           "type": "string",
           "format": "date"
         },
-        "authors": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
         "durationYears": {
           "type": "integer"
         },
         "hasAutomaticRenewal": {
-          "type": "boolean",
-          "description": "Indica si el convenio posee renovación automática."
-        },
-        "signingYear": {
-          "type": "integer"
+          "type": "boolean"
         },
         "counterpart": {
           "type": "string"
         },
-        "convenioSubType": {
-          "type": "string",
-          "enum": ["Marco", "Específico"]
-        },
-        "convenioCategory": {
-          "type": "string"
-        },
-        "beneficiaryName": {
-          "type": "string"
-        },
-        "programName": {
-          "type": "string"
-        },
-        "convocatoria": {
-          "type": "string"
-        },
-        "destinationInstitution": {
-          "type": "string"
-        },
-        "destinationProvince": {
-          "type": "string"
-        },
-        "destinationCountry": {
-          "type": "string"
-        },
-        "projectCode": {
-          "type": "string",
-          "description": "Código unificador para proyectos de extensión, resoluciones e informes relacionados."
-        },
-        "extensionDocType": {
-          "type": "string",
-          "enum": ["Proyecto", "Resolución de aprobación", "Informe de avance", "Informe final"]
-        },
-        "presentationDate": {
-          "type": "string",
-          "format": "date"
-        },
-        "reportPeriod": {
-          "type": "string"
-        },
-        "executionPeriod": {
-          "type": "string"
-        },
-        "hasAssociatedConvenio": {
-          "type": "boolean"
-        },
-        "associatedConvenioNumber": {
-          "type": "string"
-        },
-        "associatedConvenioYear": {
-          "type": "integer"
+        "counterparts": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       },
       "required": [

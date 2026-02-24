@@ -97,10 +97,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
         <Card className="max-w-md w-full p-8 text-center rounded-[2rem]">
           <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
           <h2 className="text-xl font-headline font-bold uppercase mb-2">Archivo no encontrado</h2>
-          <p className="text-muted-foreground text-sm mb-6">El documento solicitado no existe o ha sido removido del repositorio.</p>
-          <Button asChild className="w-full rounded-xl">
-            <Link href="/documents">Volver al listado</Link>
-          </Button>
+          <Button asChild className="w-full rounded-xl mt-6"><Link href="/documents">Volver</Link></Button>
         </Card>
       </div>
     );
@@ -116,12 +113,12 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
   const getDocIcon = () => {
     switch (documentData.type) {
-      case 'Convenio': return <Handshake className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      case 'Proyecto': return <ArrowLeftRight className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      case 'Movilidad': return <Plane className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      case 'Pasantía': return <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      case 'Resolución': return <ScrollText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      default: return <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Convenio': return <Handshake className="w-5 h-5 text-primary" />;
+      case 'Proyecto': return <ArrowLeftRight className="w-5 h-5 text-primary" />;
+      case 'Movilidad': return <Plane className="w-5 h-5 text-primary" />;
+      case 'Pasantía': return <GraduationCap className="w-5 h-5 text-primary" />;
+      case 'Resolución': return <ScrollText className="w-5 h-5 text-primary" />;
+      default: return <FileText className="w-5 h-5 text-primary" />;
     }
   };
 
@@ -131,11 +128,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] md:text-2xl font-headline text-primary uppercase tracking-tighter">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
-              <span className="text-[12px] md:text-2xl font-headline text-black uppercase tracking-tighter">FCA - UNCA</span>
-            </div>
+          <div className="flex-1 flex justify-center text-center">
+            <span className="text-[12px] md:text-xl font-headline text-primary uppercase font-bold tracking-tight">Detalle del Registro</span>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {isAdmin && (
@@ -157,12 +151,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">{documentData.title}</h1>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.extensionDocType || documentData.type}</Badge>
-                      {isConvenio && (
-                        <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                          {vigente ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
-                          {vigente ? 'Vigente' : 'Vencido'}
-                        </Badge>
-                      )}
+                      {isConvenio && <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{vigente ? 'Vigente' : 'Vencido'}</Badge>}
                     </div>
                   </div>
                 </div>
@@ -172,40 +161,46 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </div>
 
               <div className="space-y-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-8">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Datos Principales</h3>
                     <div className="space-y-6">
                       <div className="flex items-center gap-3">
                         <Calendar className="w-5 h-5 text-primary/60" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                            {isConvenio ? "Fecha de Firma" : "Fecha de Referencia"}
-                          </p>
-                          <p className="font-bold text-sm">
-                            {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
-                          </p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isConvenio ? "Fecha de Firma" : "Fecha de Registro"}</p>
+                          <p className="font-bold text-sm">{mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</p>
                         </div>
                       </div>
-                      {documentData.authors && documentData.authors.length > 0 && (
+                      
+                      {isExtensionProyecto && documentData.director && (
                         <div className="flex items-center gap-3">
                           <User className="w-5 h-5 text-primary/60" />
                           <div>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Director del Proyecto</p>
+                            <p className="font-bold text-sm">{documentData.director}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {documentData.authors && documentData.authors.length > 0 && (
+                        <div className="flex items-center gap-3">
+                          <UserCheck className="w-5 h-5 text-primary/60" />
+                          <div>
                             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                              {isConvenio ? "Responsable Institucional SEyV" : "Responsables / Autores"}
+                              {isExtensionProyecto ? "Equipo Técnico" : (isConvenio ? "Responsable Institucional" : "Responsables")}
                             </p>
                             <p className="font-bold text-sm">{documentData.authors.join(', ')}</p>
                           </div>
                         </div>
                       )}
-                      {!isConvenio && (documentData.projectCode || documentData.executionPeriod) && (
+
+                      {documentData.projectCode && (
                         <div className="flex items-center gap-3">
                           <Fingerprint className="w-5 h-5 text-primary/60" />
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Identificación Institucional</p>
-                            <p className="font-bold text-sm text-primary">
-                              {documentData.projectCode || 'N/A'} {documentData.executionPeriod ? `| Período: ${documentData.executionPeriod}` : ''}
-                            </p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Código Único Institucional</p>
+                            <p className="font-bold text-sm text-primary">{documentData.projectCode}</p>
                           </div>
                         </div>
                       )}
@@ -213,52 +208,32 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
 
                   <div className="space-y-8">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Partes Intervinientes</h3>
-                    <div className="space-y-6">
-                      {counterparts.length > 0 ? (
-                        <div className="space-y-4">
-                          {counterparts.map((cp, idx) => (
-                            <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted">
-                              <Building2 className="w-5 h-5 text-primary/60" />
-                              <div className="overflow-hidden">
-                                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate">Institución Contraparte</p>
-                                <p className="font-bold text-sm truncate">{cp}</p>
-                              </div>
-                            </div>
-                          ))}
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Instituciones</h3>
+                    <div className="space-y-4">
+                      {counterparts.length > 0 ? counterparts.map((cp, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted">
+                          <Building2 className="w-5 h-5 text-primary/60" />
+                          <p className="font-bold text-sm">{cp}</p>
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-3 opacity-50">
-                          <Building2 className="w-5 h-5 text-muted-foreground" />
-                          <p className="text-sm font-bold text-muted-foreground italic">No hay contrapartes registradas</p>
-                        </div>
-                      )}
+                      )) : <p className="text-xs font-bold text-muted-foreground italic">No hay instituciones registradas</p>}
                     </div>
                   </div>
                 </div>
 
                 {isExtensionProyecto && documentData.objetivoGeneral && (
                   <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
-                      <Target className="w-4 h-4" /> Objetivo General del Proyecto
-                    </h3>
-                    <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">
-                      {documentData.objetivoGeneral}
-                    </p>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2"><Target className="w-4 h-4" /> Objetivo General</h3>
+                    <p className="text-sm leading-relaxed font-medium text-muted-foreground">{documentData.objetivoGeneral}</p>
                   </div>
                 )}
 
                 {isExtensionProyecto && documentData.objetivosEspecificos && documentData.objetivosEspecificos.length > 0 && (
                   <div className="bg-white p-8 rounded-[2rem] border border-muted shadow-sm">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                      <ListTodo className="w-4 h-4" /> Objetivos Específicos
-                    </h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2"><ListTodo className="w-4 h-4" /> Objetivos Específicos</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {documentData.objetivosEspecificos.map((obj, i) => (
                         <div key={i} className="flex items-start gap-3 p-4 bg-muted/10 rounded-xl border border-muted/20">
-                          <div className="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">
-                            {i + 1}
-                          </div>
+                          <div className="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{i + 1}</div>
                           <p className="text-xs font-medium leading-relaxed">{obj}</p>
                         </div>
                       ))}
@@ -268,12 +243,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
                 {documentData.description && (
                   <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" /> Resumen / Descripción Adicional
-                    </h3>
-                    <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">
-                      {documentData.description}
-                    </p>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2"><BookOpen className="w-4 h-4" /> Resumen / Descripción</h3>
+                    <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">{documentData.description}</p>
                   </div>
                 )}
               </div>
