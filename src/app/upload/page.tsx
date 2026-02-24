@@ -232,7 +232,17 @@ export default function UploadPage() {
     setKeywords(keywords.filter(k => k !== tag));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const generateProjectCode = async () => {
+    const year = new Date().getFullYear();
+    const prefix = `FCA-EXT-${year}`;
+    
+    // En un entorno real, consultaríamos el último correlativo en Firestore.
+    // Para este prototipo, generamos un correlativo aleatorio para simular la secuencia.
+    const sequence = Math.floor(100 + Math.random() * 899).toString();
+    return `${prefix}-${sequence}`;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user || !type || !title) {
@@ -252,7 +262,7 @@ export default function UploadPage() {
     // Generar código si es un nuevo proyecto
     let finalProjectCode = projectCode;
     if (type === "Proyecto" && !finalProjectCode && extensionDocType === "Proyecto") {
-      finalProjectCode = `FCA-EXT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      finalProjectCode = await generateProjectCode();
     }
 
     const documentData: any = {
@@ -402,7 +412,7 @@ export default function UploadPage() {
                     <div className="flex gap-2">
                       <Input 
                         id="projectCode" 
-                        placeholder="Ingrese código (ej: FCA-EXT-2024-1234)" 
+                        placeholder="Ingrese código (ej: FCA-EXT-2024-001)" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                         value={projectCode}
                         onChange={(e) => setProjectCode(e.target.value)}
@@ -419,7 +429,7 @@ export default function UploadPage() {
                       </Button>
                     </div>
                     <p className="text-[9px] text-muted-foreground font-medium px-1 italic">
-                      Si es un nuevo proyecto, deje este campo vacío y se generará un código al finalizar.
+                      Si es un nuevo proyecto, deje este campo vacío y se generará un código automáticamente al finalizar.
                     </p>
                   </div>
                 )}
