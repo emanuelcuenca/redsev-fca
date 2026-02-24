@@ -249,6 +249,12 @@ export default function UploadPage() {
     const trimmedTitle = title.trim();
     const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
 
+    // Generar código si es un nuevo proyecto
+    let finalProjectCode = projectCode;
+    if (type === "Proyecto" && !finalProjectCode && extensionDocType === "Proyecto") {
+      finalProjectCode = `FCA-EXT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
     const documentData: any = {
       title: formattedTitle,
       type,
@@ -281,7 +287,7 @@ export default function UploadPage() {
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
-      documentData.projectCode = projectCode;
+      documentData.projectCode = finalProjectCode;
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -294,7 +300,9 @@ export default function UploadPage() {
 
     toast({
       title: "Documento almacenado",
-      description: "El registro ha sido creado exitosamente.",
+      description: finalProjectCode 
+        ? `El registro se guardó con el código: ${finalProjectCode}`
+        : "El registro ha sido creado exitosamente.",
     });
 
     setIsSaving(false);
@@ -387,14 +395,14 @@ export default function UploadPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                 {type === "Proyecto" && (
-                  <div className="col-span-2 space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                  <div className="col-span-2 space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10 mb-2">
                     <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5" /> Código de Proyecto (Unificador)
+                      <FileText className="w-3.5 h-3.5" /> Vincular a Proyecto Existente (Opcional)
                     </Label>
                     <div className="flex gap-2">
                       <Input 
                         id="projectCode" 
-                        placeholder="Ej: FCA-EXT-2024-001" 
+                        placeholder="Ingrese código (ej: FCA-EXT-2024-1234)" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                         value={projectCode}
                         onChange={(e) => setProjectCode(e.target.value)}
@@ -411,7 +419,7 @@ export default function UploadPage() {
                       </Button>
                     </div>
                     <p className="text-[9px] text-muted-foreground font-medium px-1 italic">
-                      Ingrese el código para cargar automáticamente los datos de un proyecto ya registrado.
+                      Si es un nuevo proyecto, deje este campo vacío y se generará un código al finalizar.
                     </p>
                   </div>
                 )}
