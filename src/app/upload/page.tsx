@@ -56,11 +56,12 @@ export default function UploadPage() {
   const { user } = useUser();
   const db = useFirestore();
 
+  // Estados del formulario
+  const [type, setType] = useState("");
   const [uploadMethod, setUploadMethod] = useState<string>("file");
   const [file, setFile] = useState<File | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
   const [title, setTitle] = useState("");
-  const [type, setType] = useState("");
   const [date, setDate] = useState("");
   const [authors, setAuthors] = useState("");
   const [description, setDescription] = useState("");
@@ -80,6 +81,26 @@ export default function UploadPage() {
   const [beneficiaryName, setBeneficiaryName] = useState("");
   const [programName, setProgramName] = useState("");
   const [convocatoria, setConvocatoria] = useState("");
+
+  const resetForm = () => {
+    setType("");
+    setFile(null);
+    setExternalUrl("");
+    setTitle("");
+    setDate("");
+    setAuthors("");
+    setDescription("");
+    setKeywords([]);
+    setKeywordInput("");
+    setDurationYears("1");
+    setCounterpart("");
+    setConvenioSubType("Marco");
+    setHasInstitutionalResponsible(false);
+    setBeneficiaryName("");
+    setProgramName("");
+    setConvocatoria("");
+    setAiError(null);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -184,7 +205,7 @@ export default function UploadPage() {
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       imageUrl: "https://picsum.photos/seed/" + Math.random() + "/600/400",
-      fileType: uploadMethod === "file" ? file?.type : "url",
+      fileType: uploadMethod === "file" ? (file?.type || "application/pdf") : "url",
       fileUrl: uploadMethod === "file" ? "#" : externalUrl,
     };
 
@@ -211,9 +232,9 @@ export default function UploadPage() {
       description: "El registro ha sido creado exitosamente.",
     });
 
-    setTimeout(() => {
-      router.push("/documents");
-    }, 1000);
+    setIsSaving(false);
+    resetForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isSpecialType = type === "Movilidad" || type === "Pasantía";
@@ -435,34 +456,33 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {type !== "Convenio" && (
-                  <div className="space-y-3">
-                    <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                      <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
-                    </Label>
-                    <Input 
-                      id="date" 
-                      type="date" 
-                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                      required 
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                    />
-                  </div>
-                )}
-
-                {type !== "Convenio" && (
-                  <div className="space-y-3">
-                    <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (separados por coma)</Label>
-                    <Input 
-                      id="authors" 
-                      placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                      required 
-                      value={authors}
-                      onChange={(e) => setAuthors(e.target.value)}
-                    />
-                  </div>
+                {type !== "Convenio" && type && (
+                  <>
+                    <div className="space-y-3">
+                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
+                      </Label>
+                      <Input 
+                        id="date" 
+                        type="date" 
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                        required 
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (separados por coma)</Label>
+                      <Input 
+                        id="authors" 
+                        placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                        required 
+                        value={authors}
+                        onChange={(e) => setAuthors(e.target.value)}
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="space-y-3 col-span-2">
@@ -607,7 +627,7 @@ export default function UploadPage() {
                   )}
                   <Textarea 
                     id="description" 
-                    placeholder="El resumen se generará automáticamente tras subir el documento y presionar el botón de IA..." 
+                    placeholder="Ingrese un resumen manualmente o presione el botón superior para generarlo con IA a partir del documento subido..." 
                     className="min-h-[180px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -618,7 +638,7 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              {/* BOTONES DE ACCIÓN AL FINAL DEL PASO 3 */}
+              {/* BOTONES DE ACCIÓN */}
               <div className="flex flex-col md:flex-row items-center justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button 
                   type="button" 
@@ -626,7 +646,7 @@ export default function UploadPage() {
                   className="w-full md:w-auto h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] text-muted-foreground hover:bg-muted" 
                   onClick={() => router.push("/")}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Cancelar
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Salir
                 </Button>
                 <Button 
                   type="submit" 
@@ -635,7 +655,7 @@ export default function UploadPage() {
                 >
                   {isSaving ? (
                     <span className="flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 animate-spin" /> Procesando...
+                      <Loader2 className="w-5 h-5 animate-spin" /> Guardando...
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
