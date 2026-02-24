@@ -22,7 +22,8 @@ import {
   Plane,
   CheckCircle2,
   XCircle,
-  Fingerprint
+  Fingerprint,
+  Pencil
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -280,7 +281,6 @@ export default function DocumentsListPage() {
                         <SelectItem value="all">Marco o Específico</SelectItem>
                         <SelectItem value="Marco">Marco</SelectItem>
                         <SelectItem value="Específico">Específico</SelectItem>
-                        <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
                       </SelectContent>
                     </Select>
                   </>
@@ -341,6 +341,11 @@ export default function DocumentsListPage() {
                               </DropdownMenuItem>
                               {isAdmin && (
                                 <>
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/documents/${doc.id}/edit`} className="flex items-center gap-2">
+                                      <Pencil className="w-4 h-4" /> <span>Editar Metadatos</span>
+                                    </Link>
+                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 
                                     className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
@@ -491,14 +496,21 @@ export default function DocumentsListPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="rounded-xl">
-                                  <DropdownMenuItem className="gap-2 font-bold">
-                                    <Download className="w-4 h-4" /> Descargar
+                                  <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer">
+                                    <Link href={`/documents/${doc.id}`}>
+                                      <Eye className="w-4 h-4" /> Ver Detalles
+                                    </Link>
                                   </DropdownMenuItem>
                                   {isAdmin && (
                                     <>
+                                      <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer">
+                                        <Link href={`/documents/${doc.id}/edit`}>
+                                          <Pencil className="w-4 h-4" /> Editar Metadatos
+                                        </Link>
+                                      </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem 
-                                        className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive"
+                                        className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer"
                                         onClick={() => handleDelete(doc.id, doc.title)}
                                       >
                                         <Trash2 className="w-4 h-4" /> Eliminar

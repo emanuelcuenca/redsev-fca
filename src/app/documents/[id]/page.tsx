@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -35,7 +36,8 @@ import {
   ListTodo,
   CheckSquare,
   LayoutGrid,
-  RotateCcw
+  RotateCcw,
+  Pencil
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -75,6 +77,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   );
   
   const { data: documentData, isLoading } = useDoc<AgriculturalDocument>(docRef);
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
 
   const handleSummarize = async () => {
     if (!documentData) return;
@@ -123,7 +132,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const isProyecto = documentData.type === 'Proyecto';
   const isPasantia = documentData.type === 'Pasantía';
   const isMovilidad = documentData.type === 'Movilidad';
-  const isResolutionDoc = documentData.type === 'Resolución' || documentData.type === 'Reglamento' || documentData.extensionDocType?.includes('Resolución');
+  const isResolutionDoc = documentData.type === 'Resolución' || documentData.extensionDocType?.includes('Resolución');
   const isInforme = documentData.extensionDocType?.includes('Informe');
   const vigente = isDocumentVigente(documentData);
 
@@ -133,8 +142,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       case 'Proyecto': return <ArrowLeftRight className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
       case 'Movilidad': return <Plane className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
       case 'Pasantía': return <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
-      case 'Resolución':
-      case 'Reglamento': return <ScrollText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+      case 'Resolución': return <ScrollText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
       default: return <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
     }
   };
@@ -158,6 +166,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
+            {isAdmin && (
+              <Button asChild variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8 text-xs font-bold border-primary text-primary hover:bg-primary/5">
+                <Link href={`/documents/${resolvedParams.id}/edit`}><Pencil className="w-4 h-4" /> Editar</Link>
+              </Button>
+            )}
             {!isPasantia && (
               <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
                 <Download className="w-4 h-4" /> Descargar
@@ -535,6 +548,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <p className="text-[10px] font-black uppercase text-primary tracking-widest">Ficha de Datos Única</p>
                       <p className="text-[9px] text-muted-foreground font-bold mt-1">Este registro no posee documento PDF adjunto.</p>
                     </div>
+                  )}
+                  {isAdmin && (
+                    <Button asChild className="w-full rounded-xl h-12 font-bold border-primary text-primary hover:bg-primary/5" variant="outline">
+                      <Link href={`/documents/${resolvedParams.id}/edit`}><Pencil className="w-4 h-4 mr-2" /> Editar Metadatos</Link>
+                    </Button>
                   )}
                 </div>
                 <Separator className="bg-secondary" />
