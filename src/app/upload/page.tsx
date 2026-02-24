@@ -102,16 +102,18 @@ export default function UploadPage() {
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
   const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
-  const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  // States for Month-Year Selectors
+  const [reportMonth, setReportMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear().toString());
+
+  const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [execStartYear, setExecStartYear] = useState(new Date().getFullYear().toString());
+  const [execEndMonth, setExecEndMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [execEndYear, setExecEndYear] = useState(new Date().getFullYear().toString());
 
   // States for calendar popovers
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
   const [presDate, setPresDate] = useState<Date | undefined>(undefined);
-  const [executionRange, setExecutionRange] = useState<{from: Date | undefined, to: Date | undefined}>({
-    from: undefined,
-    to: undefined
-  });
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
   const isResolution = extensionDocType === "Resolución de aprobación";
@@ -128,68 +130,9 @@ export default function UploadPage() {
     }
   }, [presDate]);
 
-  useEffect(() => {
-    if (executionRange.from && executionRange.to) {
-      setExecutionPeriod(`${format(executionRange.from, "dd/MM/yyyy")} - ${format(executionRange.to, "dd/MM/yyyy")}`);
-    } else if (executionRange.from) {
-      setExecutionPeriod(format(executionRange.from, "dd/MM/yyyy"));
-    } else {
-      setExecutionPeriod("");
-    }
-  }, [executionRange]);
-
-  useEffect(() => {
-    async function fetchProjectData() {
-      if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
-        setIsProjectDataLoading(true);
-        try {
-          const currentYear = new Date().getFullYear();
-          const targetCode = `FCA-EXT-${projectCodeNumber}-${currentYear}`;
-          
-          const q = query(
-            collection(db, 'documents'), 
-            where("projectCode", "==", targetCode),
-            where("extensionDocType", "==", "Proyecto"),
-            limit(1)
-          );
-          
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            const projectDoc = querySnapshot.docs[0].data();
-            setTitle(projectDoc.title || "");
-            setAuthors(projectDoc.authors?.join(", ") || "");
-            setExecutionPeriod(projectDoc.executionPeriod || "");
-            setLinkedProjectFound(true);
-            toast({
-              title: "Proyecto vinculado encontrado",
-              description: `Información cargada para ${targetCode}`,
-            });
-          } else {
-            setTitle("");
-            setAuthors("");
-            setExecutionPeriod("");
-            setLinkedProjectFound(false);
-            toast({
-              variant: "destructive",
-              title: "Proyecto no encontrado",
-              description: "Verifique el número ingresado en el sistema.",
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching project data:", error);
-        } finally {
-          setIsProjectDataLoading(false);
-        }
-      } else if (type === "Proyecto" && isSecondaryExtensionDoc) {
-        setTitle("");
-        setAuthors("");
-        setExecutionPeriod("");
-        setLinkedProjectFound(false);
-      }
-    }
-
-    fetchProjectData();
-  }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
+  const updateExecutionPeriod = (sm: string, sy: string, em: string, ey: string) => {
+    setExecutionPeriod(`${sm} ${sy} - ${em} ${ey}`);
+  };
 
   const resetForm = () => {
     setType("");
@@ -217,7 +160,6 @@ export default function UploadPage() {
     setAiError(null);
     setApprovalDate(undefined);
     setPresDate(undefined);
-    setExecutionRange({ from: undefined, to: undefined });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -391,6 +333,54 @@ export default function UploadPage() {
     if (isSpecialType) return `Ej: Registro de ${type} Estudiantil 2024...`;
     return "Ingrese el título oficial del registro...";
   };
+
+  useEffect(() => {
+    async function fetchProjectData() {
+      if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
+        setIsProjectDataLoading(true);
+        try {
+          const currentYear = new Date().getFullYear();
+          const targetCode = `FCA-EXT-${projectCodeNumber}-${currentYear}`;
+          
+          const q = query(
+            collection(db, 'documents'), 
+            where("projectCode", "==", targetCode),
+            where("extensionDocType", "==", "Proyecto"),
+            limit(1)
+          );
+          
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const projectDoc = querySnapshot.docs[0].data();
+            setTitle(projectDoc.title || "");
+            setAuthors(projectDoc.authors?.join(", ") || "");
+            setExecutionPeriod(projectDoc.executionPeriod || "");
+            setLinkedProjectFound(true);
+            toast({
+              title: "Proyecto vinculado encontrado",
+              description: `Información cargada para ${targetCode}`,
+            });
+          } else {
+            setTitle("");
+            setAuthors("");
+            setExecutionPeriod("");
+            setLinkedProjectFound(false);
+          }
+        } catch (error) {
+          console.error("Error fetching project data:", error);
+        } finally {
+          setIsProjectDataLoading(false);
+        }
+      } else if (type === "Proyecto" && isSecondaryExtensionDoc) {
+        setTitle("");
+        setAuthors("");
+        setExecutionPeriod("");
+        setLinkedProjectFound(false);
+      }
+    }
+
+    fetchProjectData();
+  }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
 
   return (
     <SidebarProvider>
@@ -567,7 +557,7 @@ export default function UploadPage() {
                       </div>
 
                       <div className="space-y-3 col-span-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución</Label>
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Período de Ejecución (Mes Año - Mes Año)</Label>
                         {isSecondaryExtensionDoc ? (
                           <Input 
                             value={executionPeriod}
@@ -584,19 +574,84 @@ export default function UploadPage() {
                                   !executionPeriod && "text-muted-foreground"
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {executionPeriod ? executionPeriod : <span>Seleccione el período</span>}
+                                <Clock className="mr-2 h-4 w-4" />
+                                {executionPeriod ? executionPeriod : <span>Seleccione el período (Mes y Año)</span>}
+                                <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={executionRange.from}
-                                selected={{ from: executionRange.from, to: executionRange.to }}
-                                onSelect={(range) => setExecutionRange({ from: range?.from, to: range?.to })}
-                                numberOfMonths={2}
-                              />
+                            <PopoverContent className="w-[450px] p-4 rounded-2xl shadow-xl" align="start">
+                              <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                  <p className="font-black uppercase text-[9px] tracking-widest text-primary">Desde</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="max-h-[140px] overflow-y-auto">
+                                      {MONTHS.map(m => (
+                                        <Button 
+                                          key={`start-m-${m}`} 
+                                          variant={execStartMonth === m ? "default" : "ghost"} 
+                                          className="w-full justify-start h-8 text-[10px] font-bold"
+                                          onClick={() => {
+                                            setExecStartMonth(m);
+                                            updateExecutionPeriod(m, execStartYear, execEndMonth, execEndYear);
+                                          }}
+                                        >
+                                          {m}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                    <div className="max-h-[140px] overflow-y-auto">
+                                      {YEARS.map(y => (
+                                        <Button 
+                                          key={`start-y-${y}`} 
+                                          variant={execStartYear === y.toString() ? "default" : "ghost"} 
+                                          className="w-full justify-start h-8 text-[10px] font-bold"
+                                          onClick={() => {
+                                            setExecStartYear(y.toString());
+                                            updateExecutionPeriod(execStartMonth, y.toString(), execEndMonth, execEndYear);
+                                          }}
+                                        >
+                                          {y}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <p className="font-black uppercase text-[9px] tracking-widest text-primary">Hasta</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="max-h-[140px] overflow-y-auto">
+                                      {MONTHS.map(m => (
+                                        <Button 
+                                          key={`end-m-${m}`} 
+                                          variant={execEndMonth === m ? "default" : "ghost"} 
+                                          className="w-full justify-start h-8 text-[10px] font-bold"
+                                          onClick={() => {
+                                            setExecEndMonth(m);
+                                            updateExecutionPeriod(execStartMonth, execStartYear, m, execEndYear);
+                                          }}
+                                        >
+                                          {m}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                    <div className="max-h-[140px] overflow-y-auto">
+                                      {YEARS.map(y => (
+                                        <Button 
+                                          key={`end-y-${y}`} 
+                                          variant={execEndYear === y.toString() ? "default" : "ghost"} 
+                                          className="w-full justify-start h-8 text-[10px] font-bold"
+                                          onClick={() => {
+                                            setExecEndYear(y.toString());
+                                            updateExecutionPeriod(execStartMonth, execStartYear, execEndMonth, y.toString());
+                                          }}
+                                        >
+                                          {y}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </PopoverContent>
                           </Popover>
                         )}
@@ -642,7 +697,7 @@ export default function UploadPage() {
                                   !reportPeriod && "text-muted-foreground"
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <Clock className="mr-2 h-4 w-4" />
                                 {reportPeriod ? reportPeriod : <span>Seleccione Mes y Año</span>}
                                 <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -654,13 +709,13 @@ export default function UploadPage() {
                                   <div className="grid grid-cols-1 gap-1 max-h-[160px] overflow-y-auto pr-1">
                                     {MONTHS.map(m => (
                                       <Button 
-                                        key={m} 
-                                        variant={selectedMonth === m ? "default" : "ghost"}
+                                        key={`rep-m-${m}`} 
+                                        variant={reportMonth === m ? "default" : "ghost"}
                                         size="sm"
                                         className="h-8 text-xs font-bold"
                                         onClick={() => {
-                                          setSelectedMonth(m);
-                                          setReportPeriod(`${m} ${selectedYear}`);
+                                          setReportMonth(m);
+                                          setReportPeriod(`${m} ${reportYear}`);
                                         }}
                                       >
                                         {m}
@@ -673,13 +728,13 @@ export default function UploadPage() {
                                   <div className="grid grid-cols-1 gap-1 max-h-[160px] overflow-y-auto pr-1">
                                     {YEARS.map(y => (
                                       <Button 
-                                        key={y} 
-                                        variant={selectedYear === y.toString() ? "default" : "ghost"}
+                                        key={`rep-y-${y}`} 
+                                        variant={reportYear === y.toString() ? "default" : "ghost"}
                                         size="sm"
                                         className="h-8 text-xs font-bold"
                                         onClick={() => {
-                                          setSelectedYear(y.toString());
-                                          setReportPeriod(`${selectedMonth} ${y}`);
+                                          setReportYear(y.toString());
+                                          setReportPeriod(`${reportMonth} ${y}`);
                                         }}
                                       >
                                         {y}
