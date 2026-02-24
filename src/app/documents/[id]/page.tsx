@@ -32,7 +32,9 @@ import {
   Fingerprint,
   MapPin,
   Globe,
-  Landmark
+  Landmark,
+  ListTodo,
+  CheckSquare
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -205,6 +207,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     <ArrowLeftRight className="w-6 h-6 text-primary" />
                     <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles de Extensión</h2>
                   </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-xl shadow-sm border col-span-2 md:col-span-1">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Código del Proyecto</p>
@@ -217,8 +220,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Tipo de Registro</p>
                       <p className="font-bold text-lg">{documentData.extensionDocType || 'Proyecto'}</p>
                     </div>
-                    {documentData.executionPeriod && documentData.extensionDocType === "Proyecto" && (
-                      <div className="bg-white p-4 rounded-xl shadow-sm border">
+                    {documentData.executionPeriod && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm border col-span-2 md:col-span-1">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período de Ejecución</p>
                         <p className="font-bold text-lg">{documentData.executionPeriod}</p>
                       </div>
@@ -232,25 +235,38 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         </p>
                       </div>
                     )}
-                    {documentData.reportPeriod && documentData.extensionDocType === "Informe de avance" && (
-                      <div className="bg-white p-4 rounded-xl shadow-sm border">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Período que abarca el informe</p>
-                        <p className="font-bold text-lg flex items-center gap-2">
-                          <Clock className="w-5 h-5 text-primary" />
-                          {documentData.reportPeriod}
-                        </p>
-                      </div>
-                    )}
-                    {documentData.date && !isInforme && (
-                      <div className="bg-white p-4 rounded-xl shadow-sm border">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Fecha de Aprobación</p>
-                        <p className="font-bold text-lg flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-primary" />
-                          {new Date(documentData.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
-                        </p>
-                      </div>
-                    )}
                   </div>
+
+                  {documentData.extensionDocType === "Proyecto" && (
+                    <div className="space-y-6">
+                      {documentData.objetivoGeneral && (
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-3">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-primary" />
+                            <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Objetivo General</h3>
+                          </div>
+                          <p className="text-sm md:text-base leading-relaxed text-muted-foreground">{documentData.objetivoGeneral}</p>
+                        </div>
+                      )}
+
+                      {documentData.objetivosEspecificos && documentData.objetivosEspecificos.length > 0 && (
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
+                          <div className="flex items-center gap-2">
+                            <ListTodo className="w-5 h-5 text-primary" />
+                            <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Objetivos Específicos</h3>
+                          </div>
+                          <ul className="space-y-3">
+                            {documentData.objetivosEspecificos.map((obj, i) => (
+                              <li key={i} className="flex gap-3 text-sm md:text-base text-muted-foreground items-start">
+                                <div className="mt-1 text-primary shrink-0"><CheckSquare className="w-4 h-4" /></div>
+                                {obj}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </section>
               )}
 

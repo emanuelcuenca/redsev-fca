@@ -93,6 +93,13 @@
         "description": {
           "type": "string"
         },
+        "objetivoGeneral": {
+          "type": "string"
+        },
+        "objetivosEspecificos": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "fileUrl": {
           "type": "string",
           "format": "uri"

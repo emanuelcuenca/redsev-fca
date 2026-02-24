@@ -32,7 +32,8 @@ import {
   ChevronDown,
   MapPin,
   Globe,
-  Landmark
+  Landmark,
+  ListTodo
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -109,6 +110,11 @@ export default function UploadPage() {
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
   const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
+  // Objetivos de Proyecto
+  const [objetivoGeneral, setObjetivoGeneral] = useState("");
+  const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
+  const [specificObjectives, setSpecificObjectives] = useState<string[]>(["", "", ""]);
+
   const [reportMonth, setReportMonth] = useState(MONTHS[new Date().getMonth()]);
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString());
   const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
@@ -170,6 +176,9 @@ export default function UploadPage() {
     setApprovalDate(undefined);
     setPresDate(undefined);
     setPasantiaRange({});
+    setObjetivoGeneral("");
+    setHasSpecificObjectives(false);
+    setSpecificObjectives(["", "", ""]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -299,8 +308,11 @@ export default function UploadPage() {
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
-
+      
       if (extensionDocType === "Proyecto") {
+        documentData.objetivoGeneral = objetivoGeneral;
+        documentData.objetivosEspecificos = hasSpecificObjectives ? specificObjectives.filter(o => o.trim() !== "") : [];
+        
         try {
           const coll = collection(db, 'documents');
           const q = query(coll, where("type", "==", "Proyecto"), where("extensionDocType", "==", "Proyecto"));
@@ -392,6 +404,16 @@ export default function UploadPage() {
 
     fetchProjectData();
   }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
+
+  const addSpecificObjective = () => {
+    setSpecificObjectives([...specificObjectives, ""]);
+  };
+
+  const updateSpecificObjective = (index: number, value: string) => {
+    const updated = [...specificObjectives];
+    updated[index] = value;
+    setSpecificObjectives(updated);
+  };
 
   return (
     <SidebarProvider>
@@ -507,30 +529,52 @@ export default function UploadPage() {
                         extensionDocType === "Proyecto" && (
                           <div className="space-y-2 animate-in fade-in duration-300">
                             <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                              <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Aprobación
+                              <CalendarIcon className="w-3.5 h-3.5" /> Período de Ejecución
                             </Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full h-11 md:h-12 justify-start text-left font-bold rounded-xl border-primary/20 bg-white text-xs md:text-sm",
-                                    !date && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {date ? format(new Date(date), "PPP", { locale: es }) : <span>Seleccione fecha</span>}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={approvalDate}
-                                  onSelect={setApprovalDate}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <div className="grid grid-cols-2 gap-2">
+                               <div className="flex flex-col gap-1">
+                                 <span className="text-[8px] font-bold text-muted-foreground uppercase ml-1">Desde</span>
+                                 <div className="flex gap-1">
+                                   <Select value={execStartMonth} onValueChange={(m) => { setExecStartMonth(m); updateExecutionPeriod(m, execStartYear, execEndMonth, execEndYear); }}>
+                                      <SelectTrigger className="h-9 rounded-lg border-primary/20 bg-white font-bold text-[10px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                      </SelectContent>
+                                   </Select>
+                                   <Select value={execStartYear} onValueChange={(y) => { setExecStartYear(y); updateExecutionPeriod(execStartMonth, y, execEndMonth, execEndYear); }}>
+                                      <SelectTrigger className="h-9 rounded-lg border-primary/20 bg-white font-bold text-[10px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {YEARS.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                                      </SelectContent>
+                                   </Select>
+                                 </div>
+                               </div>
+                               <div className="flex flex-col gap-1">
+                                 <span className="text-[8px] font-bold text-muted-foreground uppercase ml-1">Hasta</span>
+                                 <div className="flex gap-1">
+                                   <Select value={execEndMonth} onValueChange={(m) => { setExecEndMonth(m); updateExecutionPeriod(execStartMonth, execStartYear, m, execEndYear); }}>
+                                      <SelectTrigger className="h-9 rounded-lg border-primary/20 bg-white font-bold text-[10px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                      </SelectContent>
+                                   </Select>
+                                   <Select value={execEndYear} onValueChange={(y) => { setExecEndYear(y); updateExecutionPeriod(execStartMonth, execStartYear, execEndMonth, y); }}>
+                                      <SelectTrigger className="h-9 rounded-lg border-primary/20 bg-white font-bold text-[10px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {YEARS.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                                      </SelectContent>
+                                   </Select>
+                                 </div>
+                               </div>
+                            </div>
                           </div>
                         )
                       )}
@@ -538,16 +582,73 @@ export default function UploadPage() {
                   )}
 
                   {(type === "Proyecto" && (extensionDocType === "Proyecto" || linkedProjectFound)) && (
-                    <div className="space-y-2 animate-in fade-in duration-500">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
-                      <Input 
-                        placeholder={getPlaceholder()}
-                        className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80 text-xs md:text-sm" 
-                        required 
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        disabled={isSecondaryExtensionDoc}
-                      />
+                    <div className="space-y-6 animate-in fade-in duration-500">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
+                        <Input 
+                          placeholder={getPlaceholder()}
+                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80 text-xs md:text-sm" 
+                          required 
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          disabled={isSecondaryExtensionDoc}
+                        />
+                      </div>
+
+                      {!isSecondaryExtensionDoc && (
+                        <div className="space-y-6 animate-in slide-in-from-top-2">
+                          <div className="space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                              <BookOpen className="w-3.5 h-3.5" /> Objetivo General
+                            </Label>
+                            <Textarea 
+                              placeholder="Describa el propósito principal del proyecto..."
+                              className="min-h-[100px] rounded-xl bg-primary/5 border-primary/20 font-medium"
+                              value={objetivoGeneral}
+                              onChange={(e) => setObjetivoGeneral(e.target.value)}
+                              required={extensionDocType === "Proyecto"}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                            <div className="flex items-center gap-3">
+                              <ListTodo className="w-5 h-5 text-primary" />
+                              <div className="flex flex-col">
+                                <span className="font-black uppercase text-[10px] tracking-widest text-primary leading-tight">Objetivos Específicos</span>
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase">¿Desea detallar objetivos específicos?</span>
+                              </div>
+                            </div>
+                            <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
+                          </div>
+
+                          {hasSpecificObjectives && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 pl-4 border-l-2 border-primary/20">
+                              {specificObjectives.map((obj, idx) => (
+                                <div key={idx} className="flex gap-2 items-center">
+                                  <div className="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
+                                    {idx + 1}
+                                  </div>
+                                  <Input 
+                                    placeholder={`Objetivo específico ${idx + 1}...`}
+                                    className="h-10 rounded-xl border-muted-foreground/10 bg-white font-medium text-xs"
+                                    value={obj}
+                                    onChange={(e) => updateSpecificObjective(idx, e.target.value)}
+                                  />
+                                </div>
+                              ))}
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary/10 rounded-xl"
+                                onClick={addSpecificObjective}
+                              >
+                                <Plus className="w-3 h-3 mr-2" /> Agregar objetivo
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 

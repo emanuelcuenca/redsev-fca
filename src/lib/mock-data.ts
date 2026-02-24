@@ -9,6 +9,8 @@ export interface AgriculturalDocument {
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
   authors: string[];
   description: string;
+  objetivoGeneral?: string;
+  objetivosEspecificos?: string[];
   content?: string;
   imageUrl?: string;
   fileUrl: string;
