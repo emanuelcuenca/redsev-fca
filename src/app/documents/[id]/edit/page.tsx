@@ -11,7 +11,12 @@ import {
   RotateCcw,
   UserCheck,
   Plus,
-  X
+  X,
+  Handshake,
+  ArrowLeftRight,
+  Plane,
+  GraduationCap,
+  ScrollText
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -128,7 +133,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         durationYears: docData.durationYears?.toString() || "1",
         resolutionYear: docData.resolutionYear?.toString() || new Date().getFullYear().toString(),
         associatedConvenioYear: docData.associatedConvenioYear?.toString() || new Date().getFullYear().toString(),
-        counterparts: docData.counterparts || [docData.counterpart || ""]
+        counterparts: docData.counterparts || (docData.counterpart ? [docData.counterpart] : [""])
       });
 
       if (docData.date) {
@@ -180,7 +185,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
 
     const formattedTitle = formatTitle(formData.title);
-    const filteredCounterparts = formData.counterparts.filter((c: string) => c.trim() !== "");
+    const filteredCounterparts = Array.isArray(formData.counterparts) ? formData.counterparts.filter((c: string) => c.trim() !== "") : [];
 
     const updateData: any = {
       ...formData,
@@ -190,9 +195,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       updatedAt: new Date().toISOString(),
       counterparts: filteredCounterparts,
       counterpart: filteredCounterparts.join(", "),
-      durationYears: parseInt(formData.durationYears),
-      resolutionYear: parseInt(formData.resolutionYear),
-      associatedConvenioYear: parseInt(formData.associatedConvenioYear)
+      durationYears: parseInt(formData.durationYears) || 1,
+      resolutionYear: parseInt(formData.resolutionYear) || new Date().getFullYear(),
+      associatedConvenioYear: parseInt(formData.associatedConvenioYear) || new Date().getFullYear()
     };
 
     updateDocumentNonBlocking(docRef, updateData);
@@ -210,6 +215,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   }
 
   const isConvenio = formData.type === "Convenio";
+  const isProyecto = formData.type === "Proyecto";
+  const isMovilidad = formData.type === "Movilidad";
+  const isPasantia = formData.type === "Pasantía";
+  const isResolucion = formData.type === "Resolución";
 
   return (
     <SidebarProvider>
@@ -236,7 +245,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <Card className="rounded-[2rem] border-none shadow-xl bg-white overflow-hidden">
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
               <CardContent className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
@@ -249,46 +258,127 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   </div>
 
                   {isConvenio && (
-                    <div className="md:col-span-2 space-y-4">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Instituciones Contrapartes</Label>
-                      <div className="space-y-3">
-                        {formData.counterparts.map((cp: string, i: number) => (
-                          <div key={i} className="flex gap-2">
-                            <Input 
-                              value={cp}
-                              onChange={(e) => {
-                                const newCp = [...formData.counterparts];
-                                newCp[i] = e.target.value;
-                                setFormData({...formData, counterparts: newCp});
-                              }}
-                              className="h-12 rounded-xl border-muted-foreground/20 font-bold"
-                            />
-                            {formData.counterparts.length > 1 && (
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-12 w-12 text-destructive"
-                                onClick={() => setFormData({...formData, counterparts: formData.counterparts.filter((_: any, idx: number) => idx !== i)})}
-                              >
-                                <X className="w-5 h-5" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="rounded-xl font-black uppercase text-[10px] tracking-widest"
-                          onClick={() => setFormData({...formData, counterparts: [...formData.counterparts, ""]})}
-                        >
-                          <Plus className="w-4 h-4 mr-2" /> Agregar Contraparte
-                        </Button>
+                    <>
+                      <div className="md:col-span-2 space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Instituciones Contrapartes</Label>
+                        <div className="space-y-3">
+                          {formData.counterparts?.map((cp: string, i: number) => (
+                            <div key={i} className="flex gap-2">
+                              <Input 
+                                value={cp}
+                                onChange={(e) => {
+                                  const newCp = [...formData.counterparts];
+                                  newCp[i] = e.target.value;
+                                  setFormData({...formData, counterparts: newCp});
+                                }}
+                                className="h-12 rounded-xl border-muted-foreground/20 font-bold"
+                              />
+                              {formData.counterparts.length > 1 && (
+                                <Button 
+                                  type="button" 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-12 w-12 text-destructive"
+                                  onClick={() => setFormData({...formData, counterparts: formData.counterparts.filter((_: any, idx: number) => idx !== i)})}
+                                >
+                                  <X className="w-5 h-5" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="rounded-xl font-black uppercase text-[10px] tracking-widest"
+                            onClick={() => setFormData({...formData, counterparts: [...(formData.counterparts || []), ""]})}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Agregar Contraparte
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Fecha de Firma</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Duración (Años)</Label>
+                        <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={formData.durationYears} onChange={(e) => setFormData({...formData, durationYears: e.target.value})} />
+                      </div>
+                      <div className="md:col-span-2 space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <span className="font-black uppercase text-[10px] text-primary tracking-widest">Renovación Automática</span>
+                          <Switch checked={formData.hasAutomaticRenewal} onCheckedChange={(v) => setFormData({...formData, hasAutomaticRenewal: v})} />
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <span className="font-black uppercase text-[10px] text-primary tracking-widest">Responsable Institucional</span>
+                          <Switch checked={formData.hasInstitutionalResponsible} onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} />
+                        </div>
+                      </div>
+                      {formData.hasInstitutionalResponsible && (
+                        <div className="md:col-span-2 space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Responsables (sep. por coma)</Label>
+                          <Input className="h-12 rounded-xl font-bold" value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} />
+                        </div>
+                      )}
+                    </>
                   )}
 
-                  {/* Resto de campos (simplificados)... */}
+                  {isProyecto && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Autores / Responsables</Label>
+                        <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
+                        <Input value={formData.executionPeriod} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Objetivo General</Label>
+                        <Textarea value={formData.objetivoGeneral} onChange={(e) => setFormData({...formData, objetivoGeneral: e.target.value})} className="rounded-xl font-bold" />
+                      </div>
+                    </>
+                  )}
+
+                  {(isMovilidad || isPasantia) && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Programa / Convocatoria</Label>
+                        <Input value={formData.programName} onChange={(e) => setFormData({...formData, programName: e.target.value})} className="h-12 rounded-xl font-bold" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Institución de Destino</Label>
+                        <Input value={formData.destinationInstitution} onChange={(e) => setFormData({...formData, destinationInstitution: e.target.value})} className="h-12 rounded-xl font-bold" />
+                      </div>
+                      {isPasantia && (
+                        <div className="md:col-span-2 space-y-4 pt-4 border-t border-dashed">
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                            <span className="font-black uppercase text-[10px] text-primary tracking-widest">¿Tiene convenio asociado?</span>
+                            <Switch checked={formData.hasAssociatedConvenio} onCheckedChange={(v) => setFormData({...formData, hasAssociatedConvenio: v})} />
+                          </div>
+                          {formData.hasAssociatedConvenio && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">N° Convenio</Label>
+                                <Input className="h-12 rounded-xl font-bold" value={formData.associatedConvenioNumber} onChange={(e) => setFormData({...formData, associatedConvenioNumber: e.target.value})} />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Año</Label>
+                                <Select value={formData.associatedConvenioYear} onValueChange={(v) => setFormData({...formData, associatedConvenioYear: v})}>
+                                  <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="pt-8 border-t border-dashed flex flex-col md:flex-row items-center justify-between gap-4">

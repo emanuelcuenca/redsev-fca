@@ -51,7 +51,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, getCountFromServer, getDocs, limit } from "firebase/firestore";
-import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { cn } from "@/lib/utils";
 
 const MONTHS = [
@@ -89,7 +88,6 @@ export default function UploadPage() {
   const [authors, setAuthors] = useState("");
   const [description, setDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const [durationYears, setDurationYears] = useState<string>("1");
   const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
@@ -117,7 +115,6 @@ export default function UploadPage() {
   const [executionPeriod, setExecutionPeriod] = useState("");
   const [projectCodeNumber, setProjectCodeNumber] = useState("");
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
-  const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
   const [objetivoGeneral, setObjetivoGeneral] = useState("");
   const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
@@ -130,15 +127,18 @@ export default function UploadPage() {
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
   const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución";
   const isPasantia = type === "Pasantía";
+  const isMovilidad = type === "Movilidad";
+  const isProyecto = type === "Proyecto";
+  const isConvenio = type === "Convenio";
 
   useEffect(() => {
-    if (type === "Convenio") {
+    if (isConvenio) {
       const monthIdx = MONTHS.indexOf(signingMonth) + 1;
       const formattedMonth = monthIdx.toString().padStart(2, '0');
       const formattedDay = signingDay.padStart(2, '0');
       setDate(`${signingYearSelect}-${formattedMonth}-${formattedDay}`);
     }
-  }, [signingDay, signingMonth, signingYearSelect, type]);
+  }, [signingDay, signingMonth, signingYearSelect, isConvenio]);
 
   const formatTitle = (text: string) => {
     if (!text) return "";
@@ -183,7 +183,6 @@ export default function UploadPage() {
     setReportPeriod("");
     setExecutionPeriod("");
     setProjectCodeNumber("");
-    setLinkedProjectFound(false);
     setObjetivoGeneral("");
     setHasSpecificObjectives(false);
     setSpecificObjectives(["", "", ""]);
@@ -226,7 +225,7 @@ export default function UploadPage() {
 
     const currentYear = new Date().getFullYear();
 
-    if (type === "Convenio") {
+    if (isConvenio) {
       documentData.durationYears = parseInt(durationYears) || 1;
       documentData.hasAutomaticRenewal = hasAutomaticRenewal;
       const filteredCounterparts = counterparts.filter(c => c.trim() !== "");
@@ -251,7 +250,7 @@ export default function UploadPage() {
       }
     }
 
-    if (type === "Proyecto") {
+    if (isProyecto) {
       documentData.extensionDocType = extensionDocType;
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
@@ -276,14 +275,14 @@ export default function UploadPage() {
       }
     }
 
-    if (type === "Movilidad" || type === "Pasantía") {
+    if (isMovilidad || isPasantia) {
       documentData.beneficiaryName = `${beneficiaryFirstName} ${beneficiaryLastName}`.trim();
       documentData.programName = programName;
       documentData.convocatoria = convocatoria;
       documentData.destinationInstitution = destinationInstitution;
       documentData.destinationProvince = destinationProvince;
       documentData.destinationCountry = destinationCountry;
-      if (type === "Pasantía") {
+      if (isPasantia) {
         documentData.hasAssociatedConvenio = hasAssociatedConvenio;
         if (hasAssociatedConvenio) {
           documentData.associatedConvenioNumber = associatedConvenioNumber;
@@ -367,7 +366,7 @@ export default function UploadPage() {
                 </div>
 
                 <div className="space-y-8">
-                  {type === "Convenio" && (
+                  {isConvenio && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
                       <div className="md:col-span-2 space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Convenio</Label>
@@ -467,7 +466,127 @@ export default function UploadPage() {
                     </div>
                   )}
 
-                  {/* Resto de tipos de documentos (simplificados para brevedad)... */}
+                  {isProyecto && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Tipo de Documento de Extensión</Label>
+                        <Select value={extensionDocType} onValueChange={setExtensionDocType}>
+                          <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="Seleccione tipo" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Proyecto">Proyecto Original</SelectItem>
+                            <SelectItem value="Resolución de aprobación">Resolución de Aprobación</SelectItem>
+                            <SelectItem value="Informe de avance">Informe de Avance</SelectItem>
+                            <SelectItem value="Informe final">Informe Final</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {extensionDocType === "Proyecto" ? (
+                        <>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Proyecto</Label>
+                            <Input className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
+                            <Input className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
+                            <Input placeholder="Ej: 2024-2025" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Objetivo General</Label>
+                            <Textarea className="rounded-xl font-bold" value={objetivoGeneral} onChange={(e) => setObjetivoGeneral(e.target.value)} />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="md:col-span-2 space-y-4">
+                           <div className="space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">N° de Proyecto Asociado</Label>
+                            <Input type="number" placeholder="Ej: 001" className="h-12 rounded-xl font-bold" value={projectCodeNumber} onChange={(e) => setProjectCodeNumber(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
+                            <Input className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(isMovilidad || isPasantia) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Nombre del Beneficiario</Label>
+                        <Input className="h-12 rounded-xl font-bold" value={beneficiaryFirstName} onChange={(e) => setBeneficiaryFirstName(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Apellido del Beneficiario</Label>
+                        <Input className="h-12 rounded-xl font-bold" value={beneficiaryLastName} onChange={(e) => setBeneficiaryLastName(e.target.value)} required />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Programa / Convocatoria</Label>
+                        <Input className="h-12 rounded-xl font-bold" value={programName} onChange={(e) => setProgramName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Institución de Destino</Label>
+                        <Input className="h-12 rounded-xl font-bold" value={destinationInstitution} onChange={(e) => setDestinationInstitution(e.target.value)} />
+                      </div>
+                      {isPasantia && (
+                        <div className="md:col-span-2 space-y-4 pt-4 border-t border-dashed">
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                            <span className="font-black uppercase text-[10px] text-primary tracking-widest">¿Tiene convenio asociado?</span>
+                            <Switch checked={hasAssociatedConvenio} onCheckedChange={setHasAssociatedConvenio} />
+                          </div>
+                          {hasAssociatedConvenio && (
+                            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                              <div className="space-y-2">
+                                <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">N° Convenio</Label>
+                                <Input className="h-12 rounded-xl font-bold" value={associatedConvenioNumber} onChange={(e) => setAssociatedConvenioNumber(e.target.value)} />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año</Label>
+                                <Select value={associatedConvenioYear} onValueChange={setAssociatedConvenioYear}>
+                                  <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {type === "Resolución" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Tipo de Resolución</Label>
+                        <Select value={resolutionType} onValueChange={setResolutionType}>
+                          <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue placeholder="Seleccione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CD">CD (Consejo Directivo)</SelectItem>
+                            <SelectItem value="CS">CS (Consejo Superior)</SelectItem>
+                            <SelectItem value="Decanal">Decanal</SelectItem>
+                            <SelectItem value="Rectoral">Rectoral</SelectItem>
+                            <SelectItem value="Ministerial">Ministerial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Número</Label>
+                        <Input placeholder="Ej: 045" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Año</Label>
+                        <Select value={resolutionYear} onValueChange={setResolutionYear}>
+                          <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-4 mt-12 pt-8 border-t border-dashed">
