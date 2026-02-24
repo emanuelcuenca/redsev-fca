@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   XCircle,
   Fingerprint,
-  Pencil
+  Pencil,
+  Users
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -56,7 +57,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
-import { AgriculturalDocument, isDocumentVigente } from "@/lib/mock-data";
+import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { toast } from "@/hooks/use-toast";
 
 export default function DocumentsListPage() {
@@ -65,8 +66,6 @@ export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterVigente, setFilterVigente] = useState<string>("all");
   const [filterYear, setFilterYear] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
-  const [filterCounterpart, setFilterCounterpart] = useState<string>("all");
   
   useEffect(() => {
     setMounted(true);
@@ -74,21 +73,14 @@ export default function DocumentsListPage() {
 
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
-  
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
   useEffect(() => {
-    if (mounted && !isUserLoading && !user) {
-      router.push('/login');
-    }
+    if (mounted && !isUserLoading && !user) router.push('/login');
   }, [user, isUserLoading, mounted, router]);
 
-  const adminRef = useMemoFirebase(() => 
-    user ? doc(db, 'roles_admin', user.uid) : null, 
-    [db, user]
-  );
-  
+  const adminRef = useMemoFirebase(() => user ? doc(db, 'roles_admin', user.uid) : null, [db, user]);
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
@@ -96,7 +88,6 @@ export default function DocumentsListPage() {
     if (!user) return null;
     return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
   }, [db, user]);
-  
   const { data: allDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
   const filteredDocs = useMemo(() => {
@@ -108,45 +99,25 @@ export default function DocumentsListPage() {
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'movilidad' && doc.type !== 'Movilidad') return false;
 
-      const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            (doc.projectCode && doc.projectCode.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                            (doc.counterpart && doc.counterpart.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                            doc.authors?.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      if (!matchesSearch) return false;
+      const searchableString = (doc.title + (doc.projectCode || '') + (doc.counterpart || '') + (doc.authors?.map(a => a.lastName).join(' ') || '')).toLowerCase();
+      if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
       if (category === 'convenios' || category === 'resoluciones-reglamentos') {
         const docYear = (doc.signingYear || doc.resolutionYear || (doc.date ? new Date(doc.date).getFullYear() : null))?.toString();
-        if (filterYear !== "all" && docYear !== filterYear) {
-          return false;
-        }
+        if (filterYear !== "all" && docYear !== filterYear) return false;
       }
-
-      if (category === 'convenios') {
-        if (filterVigente !== "all") {
-          const isVig = isDocumentVigente(doc);
-          const filterIsVigente = filterVigente === "vigente";
-          if (isVig !== filterIsVigente) return false;
-        }
-        if (filterType !== "all" && doc.convenioSubType !== filterType) {
-          return false;
-        }
-        if (filterCounterpart !== "all" && doc.counterpart !== filterCounterpart) {
-          return false;
-        }
+      if (category === 'convenios' && filterVigente !== "all") {
+        const isVig = isDocumentVigente(doc);
+        if (isVig !== (filterVigente === "vigente")) return false;
       }
-
       return true;
     });
-  }, [allDocs, searchQuery, category, filterVigente, filterYear, filterType, filterCounterpart]);
+  }, [allDocs, searchQuery, category, filterVigente, filterYear]);
 
-  const handleDelete = (docId: string, title: string) => {
+  const handleDelete = (docId: string) => {
     if (!isAdmin) return;
     deleteDocumentNonBlocking(doc(db, 'documents', docId));
-    toast({
-      title: "Documento eliminado",
-      description: `El registro ha sido removido del sistema.`,
-    });
+    toast({ title: "Documento eliminado", description: `El registro ha sido removido del sistema.` });
   };
 
   const years = useMemo(() => {
@@ -155,19 +126,8 @@ export default function DocumentsListPage() {
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
   }, [allDocs]);
 
-  const pageTitle = category === 'convenios' ? 'Convenios' : 
-                    category === 'extension' ? 'Extensión' : 
-                    category === 'resoluciones-reglamentos' ? 'Resoluciones y Reglamentos' :
-                    category === 'pasantias' ? 'Prácticas y Pasantías' :
-                    category === 'movilidad' ? 'Movilidad' :
-                    'Repositorio de Documentos';
-
-  const PageIcon = category === 'convenios' ? Handshake : 
-                   category === 'extension' ? ArrowLeftRight : 
-                   category === 'resoluciones-reglamentos' ? ScrollText :
-                   category === 'pasantias' ? GraduationCap :
-                   category === 'movilidad' ? Plane :
-                   FileText;
+  const pageTitle = category === 'convenios' ? 'Convenios' : category === 'extension' ? 'Extensión' : category === 'resoluciones-reglamentos' ? 'Resoluciones y Reglamentos' : category === 'pasantias' ? 'Prácticas y Pasantías' : category === 'movilidad' ? 'Movilidad' : 'Repositorio de Documentos';
+  const PageIcon = category === 'convenios' ? Handshake : category === 'extension' ? ArrowLeftRight : category === 'resoluciones-reglamentos' ? ScrollText : category === 'pasantias' ? GraduationCap : category === 'movilidad' ? Plane : FileText;
 
   if (isUserLoading || !mounted) {
     return (
@@ -193,34 +153,13 @@ export default function DocumentsListPage() {
         </header>
 
         <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-6 md:mb-8">
-            <div className="bg-primary/10 p-2.5 rounded-xl"><PageIcon className="w-6 h-6 text-primary" /></div>
-            <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2>
-          </div>
-
+          <div className="flex items-center gap-3 mb-6 md:mb-8"><div className="bg-primary/10 p-2.5 rounded-xl"><PageIcon className="w-6 h-6 text-primary" /></div><h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2></div>
           <div className="space-y-4 mb-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <Input 
-                placeholder="Buscar por título, código o responsable..." 
-                className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
+            <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" /><Input placeholder="Buscar por título, código o responsable..." className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
             {(category === 'convenios' || category === 'resoluciones-reglamentos') && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {category === 'convenios' && (
-                  <Select value={filterVigente} onValueChange={setFilterVigente}>
-                    <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Estado" /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="vigente">Vigente</SelectItem><SelectItem value="vencido">Vencido</SelectItem></SelectContent>
-                  </Select>
-                )}
-                <Select value={filterYear} onValueChange={setFilterYear}>
-                  <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Año" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Cualquier Año</SelectItem>{years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}</SelectContent>
-                </Select>
+                {category === 'convenios' && (<Select value={filterVigente} onValueChange={setFilterVigente}><SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="vigente">Vigente</SelectItem><SelectItem value="vencido">Vencido</SelectItem></SelectContent></Select>)}
+                <Select value={filterYear} onValueChange={setFilterYear}><SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent><SelectItem value="all">Cualquier Año</SelectItem>{years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                 <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground">Limpiar</Button>
               </div>
             )}
@@ -247,26 +186,18 @@ export default function DocumentsListPage() {
                         <div>
                           <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>
                           <p className="text-sm text-muted-foreground mt-1 font-bold flex items-center gap-2">
-                            <User className="w-4 h-4 text-primary/60" /> {doc.authors?.join(', ') || 'Responsable SEyV'}
+                            <User className="w-4 h-4 text-primary/60" /> {doc.authors && doc.authors.length > 0 ? formatPersonName(doc.authors[0]) + (doc.authors.length > 1 ? ` +${doc.authors.length - 1}` : '') : 'Responsable SEyV'}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">
-                          {doc.extensionDocType || doc.type}
-                        </Badge>
-                        {doc.projectCode && (
-                          <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
-                            <Fingerprint className="w-3 h-3" /> {doc.projectCode}
-                          </span>
-                        )}
+                        <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{doc.extensionDocType || doc.type}</Badge>
+                        {doc.projectCode && (<span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1"><Fingerprint className="w-3 h-3" /> {doc.projectCode}</span>)}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-bold">
-                      {new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground font-bold">{new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-right pr-12">
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10"><Link href={`/documents/${doc.id}`}><Eye className="w-5 h-5" /></Link></Button>
@@ -276,7 +207,7 @@ export default function DocumentsListPage() {
                             <DropdownMenuContent align="end" className="rounded-xl">
                               <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer"><Link href={`/documents/${doc.id}/edit`}><Pencil className="w-4 h-4" /> Editar</Link></DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={() => handleDelete(doc.id, doc.title)}><Trash2 className="w-4 h-4" /> Eliminar</DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={() => handleDelete(doc.id)}><Trash2 className="w-4 h-4" /> Eliminar</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}

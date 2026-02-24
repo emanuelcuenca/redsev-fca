@@ -15,7 +15,8 @@ import {
   Sparkles,
   CheckCircle2,
   UserCheck,
-  User
+  User,
+  Users
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -36,7 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { AgriculturalDocument } from "@/lib/mock-data";
+import { AgriculturalDocument, PersonName } from "@/lib/mock-data";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 
 const MONTHS = [
@@ -81,8 +82,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     type: "",
     extensionDocType: "",
     date: "",
-    director: "",
-    authors: "",
+    director: { firstName: "", lastName: "" },
+    authors: [],
     description: "",
     durationYears: "1",
     hasAutomaticRenewal: false,
@@ -103,11 +104,11 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     if (docData) {
       setFormData({
         ...docData,
-        authors: Array.isArray(docData.authors) ? docData.authors.join(", ") : (docData.authors || ""),
+        authors: docData.authors || [],
+        director: docData.director || { firstName: "", lastName: "" },
         durationYears: docData.durationYears?.toString() || "1",
-        counterparts: docData.counterparts || (docData.counterpart ? [docData.counterpart] : [""]),
+        counterparts: docData.counterparts || [""],
         objetivosEspecificos: docData.objetivosEspecificos || ["", "", ""],
-        director: docData.director || ""
       });
 
       if (docData.objetivosEspecificos && docData.objetivosEspecificos.length > 0) {
@@ -120,11 +121,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningMonth(MONTHS[d.getMonth()]);
         setSigningYearSelect(d.getFullYear().toString());
       }
-
-      if (docData.fileUrl && docData.fileUrl !== "#") {
-        setFileDataUri(docData.fileUrl);
-        setFileName("Documento actual");
-      }
+      if (docData.fileUrl && docData.fileUrl !== "#") setFileName("Documento actual");
     }
   }, [docData]);
 
@@ -142,22 +139,17 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     if (file) {
       setFileName(file.name);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFileDataUri(reader.result as string);
-      };
+      reader.onloadend = () => setFileDataUri(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   const handleSummarize = async () => {
-    if (!fileDataUri) {
-      toast({ variant: "destructive", title: "Archivo requerido" });
-      return;
-    }
+    if (!fileDataUri && !docData?.fileUrl) return toast({ variant: "destructive", title: "Archivo requerido" });
     setIsSummarizing(true);
     try {
       const result = await summarizeDocument({
-        documentMediaUri: fileDataUri,
+        documentMediaUri: fileDataUri || docData?.fileUrl,
         documentContent: formData.title
       });
       if (result?.summary) {
@@ -171,7 +163,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const formatTitle = (text: string) => {
+  const formatText = (text: string) => {
     if (!text) return "";
     return text
       .split(' ')
@@ -183,16 +175,15 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       .join(' ');
   };
 
-  const handleObjectiveChange = (index: number, value: string) => {
-    const newObjs = [...formData.objetivosEspecificos];
-    newObjs[index] = value;
-    setFormData({...formData, objetivosEspecificos: newObjs});
+  const handleTechnicalTeamChange = (index: number, field: keyof PersonName, value: string) => {
+    const newTeam = [...formData.authors];
+    newTeam[index] = { ...newTeam[index], [field]: formatText(value) };
+    setFormData({ ...formData, authors: newTeam });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docRef) return;
-
     setIsSaving(true);
     let finalDate = formData.date;
     if (signingDay && signingMonth && signingYearSelect) {
@@ -200,14 +191,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
     }
 
-    const authorsArr = typeof formData.authors === 'string' 
-      ? formData.authors.split(',').map((a: string) => a.trim()).filter(Boolean)
-      : formData.authors;
+    const filteredAuthors = formData.authors.filter((a: PersonName) => a.firstName.trim() !== "" || a.lastName.trim() !== "");
 
     const updateData: any = {
       ...formData,
-      title: formatTitle(formData.title),
-      authors: authorsArr,
+      title: formatText(formData.title),
+      authors: filteredAuthors,
+      director: { firstName: formatText(formData.director.firstName), lastName: formatText(formData.director.lastName) },
       date: (formData.type === "Proyecto" && formData.extensionDocType === "Proyecto de Extensión") ? (formData.date || new Date().toISOString()) : finalDate,
       updatedAt: new Date().toISOString(),
       counterparts: Array.isArray(formData.counterparts) ? formData.counterparts.filter((c: string) => c.trim() !== "") : [],
@@ -257,25 +247,45 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   </div>
 
                   {isExtensionProyecto && (
-                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director del Proyecto</Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                          <Input value={formData.director} onChange={(e) => setFormData({...formData, director: e.target.value})} className="h-12 rounded-xl font-bold pl-10" />
+                    <div className="md:col-span-2 space-y-6">
+                      <div className="space-y-4">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.director.firstName} onChange={(e) => setFormData({...formData, director: {...formData.director, firstName: e.target.value}})} />
+                          <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Equipo Técnico (sep. por coma)</Label>
-                        <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
+                      <div className="space-y-4 border-t pt-4">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> Equipo Técnico</Label>
+                        <div className="space-y-3">
+                          {formData.authors.map((member: PersonName, i: number) => (
+                            <div key={i} className="grid grid-cols-2 gap-2 relative">
+                              <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                              <div className="flex gap-2">
+                                <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                                <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
+                              </div>
+                            </div>
+                          ))}
+                          <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {!isConvenio && !isExtensionProyecto && (
-                    <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
-                      <Input value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} className="h-12 rounded-xl font-bold" />
+                    <div className="md:col-span-2 space-y-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables</Label>
+                      {formData.authors.map((member: PersonName, i: number) => (
+                        <div key={i} className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Nombre" className="h-10 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                          <div className="flex gap-2">
+                            <Input placeholder="Apellido" className="h-10 rounded-lg text-xs flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                            <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-3.5 h-3.5" /></Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button type="button" variant="outline" className="w-full h-9 rounded-lg border-dashed text-[9px] uppercase font-black" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}>Añadir responsable</Button>
                     </div>
                   )}
 
@@ -302,7 +312,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           <div className="space-y-4">
                             {formData.objetivosEspecificos.map((obj: string, i: number) => (
                               <div key={i} className="flex gap-2">
-                                <Input value={obj} onChange={(e) => handleObjectiveChange(i, e.target.value)} className="h-12 rounded-xl font-medium" />
+                                <Input value={obj} onChange={(e) => { const n = [...formData.objetivosEspecificos]; n[i] = e.target.value; setFormData({...formData, objetivosEspecificos: n}); }} className="h-12 rounded-xl font-medium" />
                                 <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl text-destructive" onClick={() => setFormData({...formData, objetivosEspecificos: formData.objetivosEspecificos.filter((_: any, idx: number) => idx !== i)})}><X className="w-5 h-5" /></Button>
                               </div>
                             ))}
@@ -332,7 +342,15 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="flex flex-col gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
                           <div className="flex items-center justify-between"><span className="font-black uppercase text-[10px] text-primary tracking-widest">Responsable Institucional</span><Switch checked={formData.hasInstitutionalResponsible} onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} /></div>
                           {formData.hasInstitutionalResponsible && (
-                            <div className="animate-in slide-in-from-top-2"><Label className="font-black uppercase text-[9px] text-muted-foreground mb-1 block">Responsables</Label><div className="relative"><UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40" /><Input className="h-9 rounded-lg text-xs font-bold pl-9 bg-white" value={formData.authors} onChange={(e) => setFormData({...formData, authors: e.target.value})} /></div></div>
+                            <div className="animate-in slide-in-from-top-2 space-y-3">
+                              <Label className="font-black uppercase text-[9px] text-muted-foreground mb-1 block">Nombres de Responsables</Label>
+                              {formData.authors.map((member: PersonName, i: number) => (
+                                <div key={i} className="grid grid-cols-2 gap-2">
+                                  <Input placeholder="Nombre" className="h-9 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                                  <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -350,7 +368,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                 <div className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6 mt-8">
                   <div className="flex items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-5 h-5 text-primary" /></div><span className="font-headline font-bold uppercase text-sm tracking-tight text-primary">Archivo PDF</span></div><Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="rounded-xl border-primary/30 text-primary font-black uppercase text-[10px] h-10 px-6">{fileName ? "Cambiar" : "Subir"}</Button></div>
                   {fileName && <div className="bg-white/50 p-3 rounded-xl border border-primary/10 text-xs font-bold text-primary">{fileName}</div>}
-                  <div className="pt-4 border-t border-primary/10"><div className="flex items-center justify-between gap-4 mb-4"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen</Label><Button type="button" onClick={handleSummarize} disabled={isSummarizing || !fileDataUri} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all">{isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA</Button></div><Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" /></div>
+                  <div className="pt-4 border-t border-primary/10"><div className="flex items-center justify-between gap-4 mb-4"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Descripción / Resumen</Label><Button type="button" onClick={handleSummarize} disabled={isSummarizing || (!fileDataUri && !docData?.fileUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all">{isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA</Button></div><Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" /></div>
                 </div>
 
                 <div className="pt-8 border-t border-dashed flex items-center justify-between gap-4">

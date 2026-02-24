@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -123,13 +122,23 @@
           "enum": ["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"]
         },
         "director": {
-          "type": "string",
-          "description": "Director del proyecto de extensión."
+          "type": "object",
+          "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" }
+          },
+          "description": "Director del proyecto de extensión con nombre y apellido separados."
         },
         "authors": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Equipo técnico o responsables."
+          "items": {
+            "type": "object",
+            "properties": {
+              "firstName": { "type": "string" },
+              "lastName": { "type": "string" }
+            }
+          },
+          "description": "Equipo técnico o responsables con nombres y apellidos separados."
         },
         "projectCode": {
           "type": "string",
@@ -144,9 +153,6 @@
         },
         "hasAutomaticRenewal": {
           "type": "boolean"
-        },
-        "counterpart": {
-          "type": "string"
         },
         "counterparts": {
           "type": "array",

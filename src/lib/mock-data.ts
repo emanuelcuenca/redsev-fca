@@ -1,3 +1,7 @@
+export interface PersonName {
+  firstName: string;
+  lastName: string;
+}
 
 export interface AgriculturalDocument {
   id: string;
@@ -6,9 +10,9 @@ export interface AgriculturalDocument {
   resolutionType?: 'CD' | 'CS' | 'Decanal' | 'Rectoral' | 'SEU' | 'Ministerial';
   project?: string;
   projectCode?: string; // Código unificador para proyectos (Formato: FCA-EXT-001-2024)
-  director?: string; // Director del proyecto de extensión
+  director?: PersonName; // Director del proyecto de extensión
   date: string; // En Convenios es fecha de firma, en Proyectos es fecha de aprobación
-  authors: string[]; // Equipo técnico o responsables
+  authors: PersonName[]; // Equipo técnico o responsables
   description: string;
   objetivoGeneral?: string;
   objetivosEspecificos?: string[];
@@ -59,6 +63,11 @@ export function isDocumentVigente(doc: AgriculturalDocument): boolean {
   return expiryDate > new Date();
 }
 
+export function formatPersonName(person?: PersonName): string {
+  if (!person || (!person.firstName && !person.lastName)) return 'Sin asignar';
+  return `${person.lastName}, ${person.firstName}`;
+}
+
 export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
   {
     id: '1',
@@ -66,7 +75,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     type: 'Convenio',
     date: '2024-01-15',
     uploadDate: '2024-01-15T10:00:00Z',
-    authors: ['Dr. Mario Rojas'],
+    authors: [{ firstName: 'Mario', lastName: 'Rojas' }],
     description: 'Este documento establece las bases para la cooperación técnica en la mejora de la fertilidad de los suelos en la región andina.',
     durationYears: 2,
     hasAutomaticRenewal: false,
@@ -86,8 +95,11 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     type: 'Proyecto',
     date: '2023-11-05',
     uploadDate: '2023-11-05T14:30:00Z',
-    authors: ['Lic. Rosa Martínez', 'Prof. Juan Pérez'],
-    director: 'Dr. Roberto Sánchez',
+    authors: [
+      { firstName: 'Rosa', lastName: 'Martínez' },
+      { firstName: 'Juan', lastName: 'Pérez' }
+    ],
+    director: { firstName: 'Roberto', lastName: 'Sánchez' },
     description: 'Plan integral para el desarrollo de 50 huertas comunitarias en el sector rural norte.',
     extensionDocType: 'Proyecto de Extensión',
     executionPeriod: '2023-2024',
