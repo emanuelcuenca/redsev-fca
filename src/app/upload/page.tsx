@@ -106,15 +106,27 @@ export default function UploadPage() {
       .join(' ');
   };
 
-  const generateProjectCode = () => {
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `FCA-EXT-${random}-${new Date().getFullYear()}`;
+  const generateProjectCode = async () => {
+    const year = new Date().getFullYear();
+    const q = query(
+      collection(db, 'documents'), 
+      where('type', '==', 'Proyecto'),
+      where('extensionDocType', '==', 'Proyecto de Extensión')
+    );
+    const snapshot = await getDocs(q);
+    const yearSuffix = `-${year}`;
+    const yearDocs = snapshot.docs.filter(d => d.data().projectCode?.endsWith(yearSuffix));
+    const nextNumber = yearDocs.length + 1;
+    const paddedNumber = nextNumber.toString().padStart(3, '0');
+    return `FCA-EXT-${paddedNumber}-${year}`;
   };
 
   const handleSearchProject = async () => {
     if (!searchProjectNumber) return;
     setIsSearchingProject(true);
-    const targetCode = `FCA-EXT-${searchProjectNumber}-${searchProjectYear}`;
+    // El buscador debe permitir encontrar proyectos con el formato 001, 002, etc.
+    const paddedNumber = searchProjectNumber.padStart(3, '0');
+    const targetCode = `FCA-EXT-${paddedNumber}-${searchProjectYear}`;
     try {
       const q = query(
         collection(db, 'documents'), 
@@ -194,7 +206,7 @@ export default function UploadPage() {
 
     let finalProjectCode = projectCode;
     if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión" && !projectCode) {
-      finalProjectCode = generateProjectCode();
+      finalProjectCode = await generateProjectCode();
     }
 
     const filteredTeam = technicalTeam.filter(member => member.firstName.trim() !== "" || member.lastName.trim() !== "");
@@ -318,7 +330,7 @@ export default function UploadPage() {
                   <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-6 animate-in slide-in-from-top-4">
                     <div className="flex items-center gap-3"><Search className="w-5 h-5 text-primary" /><h3 className="font-headline font-bold text-sm uppercase tracking-tight text-primary">Vincular Proyecto</h3></div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2"><Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Número</Label><Input placeholder="Ej: 4829" value={searchProjectNumber} onChange={(e) => setSearchProjectNumber(e.target.value)} className="h-10 rounded-lg font-bold" /></div>
+                      <div className="space-y-2"><Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Número</Label><Input placeholder="Ej: 001" value={searchProjectNumber} onChange={(e) => setSearchProjectNumber(e.target.value)} className="h-10 rounded-lg font-bold" /></div>
                       <div className="space-y-2"><Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Año</Label><Select value={searchProjectYear} onValueChange={setSearchProjectYear}><SelectTrigger className="h-10 rounded-lg font-bold"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select></div>
                       <div className="flex items-end"><Button type="button" onClick={handleSearchProject} disabled={isSearchingProject || !searchProjectNumber} className="w-full h-10 rounded-lg font-black uppercase text-[10px] tracking-widest bg-primary">{isSearchingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : "Buscar"}</Button></div>
                     </div>
