@@ -1,10 +1,11 @@
+
 # VínculoAgro - FCA UNCA
 
 Sistema de gestión de documentos para la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.
 
 ## 🚀 Cómo publicar la App (Despliegue en Firebase)
 
-Para que tus compañeros puedan ver la aplicación en sus móviles, debes seguir estos pasos:
+Para que tus compañeros puedan ver la aplicación en sus móviles y **descargarla como una App**, debes seguir estos pasos:
 
 1. **Subir a GitHub**: Crea un repositorio en GitHub y sube todo el código de esta carpeta.
 2. **Consola de Firebase**: Ve a [console.firebase.google.com](https://console.firebase.google.com/).
@@ -12,22 +13,31 @@ Para que tus compañeros puedan ver la aplicación en sus móviles, debes seguir
 4. **Conectar**: Haz clic en "Comenzar" y conecta tu repositorio de GitHub.
 5. **Configurar**: Deja las opciones por defecto y haz clic en "Desplegar".
 
-Una vez finalizado, Firebase te dará una URL pública (ej: `vinculo-agro.web.app`) que podrás compartir con toda la oficina.
+Una vez finalizado, Firebase te dará una URL pública (ej: `vinculo-agro.web.app`) que podrás compartir.
 
 ---
 
-## Mantenimiento y Actualizaciones
+## 📱 Cómo instalar la App en el móvil (PWA)
 
-Este sistema está diseñado para que el usuario final no necesite conocimientos técnicos avanzados.
+Una vez que el sitio esté publicado (`.web.app` o `.firebaseapp.com`):
 
-### ¿Cómo aplicar cambios realizados por el Prototipador?
-Cuando solicites una mejora visual o funcional:
-1. **Sincronizar cambios**: Si usas Git, realiza un `git commit` y `git push`.
-2. **Auto-Despliegue**: Firebase App Hosting detectará el cambio automáticamente y actualizará el sitio público en pocos minutos.
+### En Android (Chrome):
+1. Abre el link enviado.
+2. Toca los **tres puntos** arriba a la derecha.
+3. Selecciona **"Instalar aplicación"** o **"Agregar a la pantalla de inicio"**.
 
-### Soporte de Datos
-- **Base de Datos**: Los documentos se gestionan vía Firebase Console > Firestore.
-- **IA**: La inteligencia (estilo Google Lens) requiere que la clave `GEMINI_API_KEY` esté configurada en el archivo `.env` o en los Secretos de App Hosting en la consola de Firebase.
+### En iPhone (Safari):
+1. Abre el link enviado.
+2. Toca el botón **Compartir** (cuadrado con flecha hacia arriba).
+3. Desliza hacia abajo y toca **"Agregar a inicio"**.
+
+¡Listo! La App aparecerá en el menú del celular junto con el resto de tus aplicaciones.
 
 ---
+
+## Mantenimiento Institucional
+- **Logo SEV**: Mantiene su forma cuadrada institucional (ángulos de 90°) y color verde.
+- **IA (Google Lens)**: El sistema analiza visualmente escaneos y fotos para generar resúmenes automáticos.
+- **Títulos**: Se guardan respetando tu estilo de escritura, garantizando siempre la mayúscula inicial.
+
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
