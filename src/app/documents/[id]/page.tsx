@@ -42,8 +42,7 @@ import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { AgriculturalDocument, isDocumentVigente } from "@/lib/mock-data";
 import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -111,9 +110,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const isProyecto = documentData.type === 'Proyecto';
   const isPasantia = documentData.type === 'Pasantía';
   const isMovilidad = documentData.type === 'Movilidad';
-  const isResolutionDoc = documentData.type === 'Resolución' || documentData.extensionDocType?.includes('Resolución');
-  const isInforme = documentData.extensionDocType?.includes('Informe');
   const vigente = isDocumentVigente(documentData);
+
+  const counterparts = documentData.counterparts || (documentData.counterpart ? [documentData.counterpart] : []);
 
   const getDocIcon = () => {
     switch (documentData.type) {
@@ -131,17 +130,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <SidebarTrigger />
-          </div>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
-                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
-              </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
-                FCA - UNCA
-              </span>
+              <span className="text-[12px] md:text-2xl font-headline text-primary uppercase tracking-tighter">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] md:text-2xl font-headline text-black uppercase tracking-tighter">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -149,10 +142,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               <Button asChild variant="outline" size="sm" className="hidden sm:flex rounded-xl gap-2 h-8 text-xs font-bold border-primary text-primary hover:bg-primary/5">
                 <Link href={`/documents/${resolvedParams.id}/edit`}><Pencil className="w-4 h-4" /> Editar</Link>
               </Button>
-            )}
-            {!isPasantia && (
-              <Button variant="default" size="sm" className="hidden sm:flex rounded-xl gap-2 bg-primary hover:bg-primary/90 h-8 text-xs font-bold">
-                <Download className="w-4 h-4" /> Descargar</Button>
             )}
             <UserMenu />
           </div>
@@ -163,17 +152,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             <section className="bg-white p-6 md:p-10 rounded-[2.5rem] border border-muted shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b pb-6">
                 <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-3 rounded-2xl">
-                    {getDocIcon()}
-                  </div>
+                  <div className="bg-primary/10 p-3 rounded-2xl">{getDocIcon()}</div>
                   <div>
-                    <h1 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">
-                      {documentData.title}
-                    </h1>
+                    <h1 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">{documentData.title}</h1>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
-                        {documentData.extensionDocType || documentData.type}
-                      </Badge>
+                      <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.type}</Badge>
                       {isConvenio && (
                         <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                           {vigente ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
@@ -184,24 +167,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
                 {!isPasantia && (
-                  <div className="flex gap-2">
-                     <Button className="rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-10 shadow-sm font-bold" variant="outline" asChild>
-                      <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer">
-                        <Eye className="w-4 h-4 mr-2" /> Ver PDF
-                      </a>
-                    </Button>
-                  </div>
+                  <Button className="rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-10 shadow-sm font-bold" variant="outline" asChild>
+                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer"><Eye className="w-4 h-4 mr-2" /> Ver PDF</a>
+                  </Button>
                 )}
               </div>
 
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-3">Descripción / Resumen</h3>
-                  <p className="text-sm md:text-base leading-relaxed text-foreground font-medium bg-muted/30 p-6 rounded-2xl border">
-                    {documentData.description || 'Sin descripción disponible.'}
-                  </p>
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
                   <div className="space-y-6">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Datos Principales</h3>
@@ -211,7 +183,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div>
                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Fecha</p>
                           <p className="font-bold text-sm">
-                            {mounted ? (isInforme && documentData.presentationDate ? new Date(documentData.presentationDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : (displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A')) : '...'}
+                            {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
                           </p>
                         </div>
                       </div>
@@ -219,7 +191,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div className="flex items-center gap-3">
                           <User className="w-5 h-5 text-primary/60" />
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isProyecto ? 'Autores' : 'Responsables'}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Responsables</p>
                             <p className="font-bold text-sm">{documentData.authors.join(', ')}</p>
                           </div>
                         </div>
@@ -237,101 +209,22 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
 
                   <div className="space-y-6">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Información Técnica</h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Contrapartes</h3>
                     <div className="space-y-4">
-                      {isConvenio && (
-                        <>
-                          <div className="flex items-center gap-3">
-                            <Building2 className="w-5 h-5 text-primary/60" />
-                            <div>
-                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Contraparte</p>
-                              <p className="font-bold text-sm">{documentData.counterpart || 'N/A'}</p>
-                            </div>
+                      {counterparts.length > 0 ? counterparts.map((cp, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <Building2 className="w-5 h-5 text-primary/60" />
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Institución {idx + 1}</p>
+                            <p className="font-bold text-sm">{cp}</p>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Timer className="w-5 h-5 text-primary/60" />
-                            <div>
-                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Duración</p>
-                              <p className="font-bold text-sm">{documentData.durationYears} Años</p>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {(isMovilidad || isPasantia) && (
-                        <>
-                          <div className="flex items-center gap-3">
-                            <MapPin className="w-5 h-5 text-primary/60" />
-                            <div>
-                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Ubicación</p>
-                              <p className="font-bold text-sm">{documentData.destinationProvince}, {documentData.destinationCountry}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Landmark className="w-5 h-5 text-primary/60" />
-                            <div>
-                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Institución</p>
-                              <p className="font-bold text-sm">{documentData.destinationInstitution}</p>
-                            </div>
-                          </div>
-                        </>
-                      )}
+                        </div>
+                      )) : <p className="text-sm font-bold text-muted-foreground">No registradas</p>}
                     </div>
                   </div>
                 </div>
               </div>
             </section>
-
-            {/* Objetivos para Proyectos */}
-            {isProyecto && documentData.extensionDocType === "Proyecto" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {documentData.objetivoGeneral && (
-                  <Card className="rounded-3xl border-none shadow-sm bg-white p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <BookOpen className="w-5 h-5 text-primary" />
-                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Objetivo General</h3>
-                    </div>
-                    <p className="text-sm leading-relaxed text-muted-foreground font-medium">{documentData.objetivoGeneral}</p>
-                  </Card>
-                )}
-                {documentData.objetivosEspecificos && documentData.objetivosEspecificos.length > 0 && (
-                  <Card className="rounded-3xl border-none shadow-sm bg-white p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <ListTodo className="w-5 h-5 text-primary" />
-                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Objetivos Específicos</h3>
-                    </div>
-                    <ul className="space-y-3">
-                      {documentData.objetivosEspecificos.map((obj, i) => (
-                        <li key={i} className="flex gap-3 text-sm text-muted-foreground items-start font-medium">
-                          <div className="mt-1 text-primary shrink-0"><CheckSquare className="w-4 h-4" /></div>
-                          {obj}
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-              </div>
-            )}
-
-            {isPasantia && documentData.hasAssociatedConvenio && (
-              <Card className="rounded-3xl border-2 border-primary/20 bg-primary/5 p-8 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-primary/20 p-3 rounded-2xl">
-                    <Handshake className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">Convenio Vinculado</h3>
-                    <p className="text-sm font-bold text-primary/80 mt-1">Convenio N° {documentData.associatedConvenioNumber} / {documentData.associatedConvenioYear}</p>
-                  </div>
-                </div>
-                <Badge className="bg-primary text-white font-black text-[9px] px-3 py-1 uppercase tracking-widest">Ver Convenio</Badge>
-              </Card>
-            )}
-
-            <div className="flex items-center justify-center pt-8 opacity-50">
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest text-center">
-                VínculoAgro - FCA UNCA | Resguardo Digital de la Secretaría de Extensión y Vinculación
-              </p>
-            </div>
           </div>
         </main>
       </SidebarInset>

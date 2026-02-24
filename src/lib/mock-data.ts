@@ -21,6 +21,7 @@ export interface AgriculturalDocument {
   signingYear?: number;
   resolutionYear?: number; // Año específico para resoluciones
   counterpart?: string;
+  counterparts?: string[]; // Lista de contrapartes para convenios
   convenioSubType?: 'Marco' | 'Específico';
   convenioCategory?: string; // Área de aplicación
   hasInstitutionalResponsible?: boolean;
@@ -69,6 +70,7 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     hasAutomaticRenewal: false,
     signingYear: 2024,
     counterpart: 'INTA',
+    counterparts: ['INTA'],
     convenioSubType: 'Marco',
     convenioCategory: 'Colaboración',
     hasInstitutionalResponsible: true,
