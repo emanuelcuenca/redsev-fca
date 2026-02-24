@@ -22,7 +22,9 @@ import {
   UserCheck,
   Search,
   FileCheck,
-  ClipboardList
+  ClipboardList,
+  Building2,
+  Fingerprint
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -278,7 +280,7 @@ export default function UploadPage() {
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
           <form onSubmit={handleSubmit} className="space-y-8">
             <section className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
-              <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Seleccione Categoría Principal</h2>
+              <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Categoría Institucional</h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {[
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
@@ -294,6 +296,9 @@ export default function UploadPage() {
                       setType(item.id);
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
+                      setTitle("");
+                      setAuthors("");
+                      setDescription("");
                     }}
                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
                       type === item.id ? 'border-primary bg-primary/10 text-primary shadow-md' : 'border-muted-foreground/10 bg-white'
@@ -323,6 +328,9 @@ export default function UploadPage() {
                         onClick={() => {
                           setExtensionDocType(subType);
                           setFoundProject(null);
+                          setTitle("");
+                          setAuthors("");
+                          setDescription("");
                         }}
                         className={`p-3 rounded-xl border-2 text-[9px] font-black uppercase tracking-tight transition-all text-center ${
                           extensionDocType === subType 
@@ -373,49 +381,36 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {extensionDocType && (
+                {isExtensionProyectoSubtype && (
                   <div className="space-y-8 animate-in slide-in-from-top-4 duration-500">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Proyecto</Label>
                       <Input 
                         placeholder="Ej: Desarrollo de Huertas Comunitarias..." 
-                        className="h-12 rounded-xl font-bold bg-muted/30" 
+                        className="h-12 rounded-xl font-bold" 
                         value={title} 
                         onChange={(e) => setTitle(e.target.value)} 
                         required 
-                        disabled={isExtensionLinkedSubtype && !!foundProject}
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables / Equipo Técnico</Label>
-                        <Input 
-                          placeholder="Dr. Mario Rojas, Lic. Ana Gómez" 
-                          className="h-12 rounded-xl font-bold bg-muted/30" 
-                          value={authors} 
-                          onChange={(e) => setAuthors(e.target.value)} 
-                          disabled={isExtensionLinkedSubtype && !!foundProject}
-                        />
-                      </div>
-                      {isExtensionLinkedSubtype && foundProject && (
-                        <div className="space-y-2">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto Asociado</Label>
-                          <div className="h-12 rounded-xl bg-muted/20 border border-muted-foreground/10 flex items-center px-4 font-bold text-primary">
-                            {foundProject.projectCode}
-                          </div>
-                        </div>
-                      )}
+                    <div className="space-y-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables / Equipo Técnico</Label>
+                      <Input 
+                        placeholder="Dr. Mario Rojas, Lic. Ana Gómez" 
+                        className="h-12 rounded-xl font-bold" 
+                        value={authors} 
+                        onChange={(e) => setAuthors(e.target.value)} 
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Objetivo General</Label>
                       <Textarea 
                         placeholder="Escriba el propósito central..." 
-                        className="min-h-[100px] rounded-xl font-medium bg-muted/30" 
+                        className="min-h-[100px] rounded-xl font-medium" 
                         value={objetivoGeneral} 
                         onChange={(e) => setObjetivoGeneral(e.target.value)} 
-                        disabled={isExtensionLinkedSubtype && !!foundProject}
                       />
                     </div>
 
@@ -425,12 +420,10 @@ export default function UploadPage() {
                           <Target className="w-5 h-5 text-primary" />
                           <span className="font-black uppercase text-[10px] tracking-widest text-primary">Objetivos Específicos</span>
                         </div>
-                        {isExtensionProyectoSubtype && (
-                          <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
-                        )}
+                        <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
                       </div>
 
-                      {(hasSpecificObjectives || (isExtensionLinkedSubtype && objetivosEspecificos.length > 0)) && (
+                      {hasSpecificObjectives && (
                         <div className="space-y-4 animate-in fade-in duration-300">
                           {objetivosEspecificos.map((obj, i) => (
                             <div key={i} className="flex gap-2">
@@ -439,35 +432,53 @@ export default function UploadPage() {
                               </div>
                               <Input 
                                 placeholder={`Objetivo específico ${i + 1}`} 
-                                className="h-12 rounded-xl font-medium bg-muted/30" 
+                                className="h-12 rounded-xl font-medium" 
                                 value={obj} 
                                 onChange={(e) => handleObjectiveChange(i, e.target.value)} 
-                                disabled={isExtensionLinkedSubtype && !!foundProject}
                               />
-                              {isExtensionProyectoSubtype && (
-                                <Button 
-                                  type="button" 
-                                  variant="ghost" 
-                                  className="h-12 w-12 rounded-xl text-destructive"
-                                  onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
-                                >
-                                  <X className="w-5 h-5" />
-                                </Button>
-                              )}
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                className="h-12 w-12 rounded-xl text-destructive"
+                                onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
+                              >
+                                <X className="w-5 h-5" />
+                              </Button>
                             </div>
                           ))}
-                          {isExtensionProyectoSubtype && (
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
-                              onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
-                            >
-                              <Plus className="w-4 h-4 mr-2" /> Añadir objetivo específico
-                            </Button>
-                          )}
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
+                            onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Añadir objetivo específico
+                          </Button>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {isExtensionLinkedSubtype && foundProject && (
+                  <div className="p-6 bg-muted/20 rounded-3xl border border-muted space-y-4 animate-in fade-in">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Fingerprint className="w-5 h-5" />
+                      <span className="font-black uppercase text-xs tracking-widest">Información del Proyecto Vinculado</span>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase text-muted-foreground tracking-tight">Título:</p>
+                      <p className="text-base font-bold leading-tight">{foundProject.title}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Código:</p>
+                        <p className="text-sm font-bold text-primary">{foundProject.projectCode}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Responsables:</p>
+                        <p className="text-sm font-bold">{foundProject.authors?.join(", ")}</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -587,14 +598,13 @@ export default function UploadPage() {
                       <p className="text-[10px] text-muted-foreground font-medium uppercase">Suba el archivo original para el registro y análisis por IA</p>
                     </div>
                   </div>
-                  <Button 
+                  <button 
                     type="button" 
-                    variant="outline" 
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-xl border-primary/30 text-primary font-black uppercase text-[10px] h-10 px-6 hover:bg-primary/5"
+                    className="h-12 px-6 rounded-xl border-2 border-primary/30 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary/5 transition-all"
                   >
                     {fileName ? "Cambiar Archivo" : "Seleccionar Archivo"}
-                  </Button>
+                  </button>
                   <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
                 </div>
 
@@ -623,7 +633,6 @@ export default function UploadPage() {
                     className="min-h-[120px] rounded-xl font-medium bg-white" 
                     value={description} 
                     onChange={(e) => setDescription(e.target.value)} 
-                    disabled={isExtensionLinkedSubtype && !!foundProject}
                   />
                   {!fileDataUri && (
                     <p className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase">
