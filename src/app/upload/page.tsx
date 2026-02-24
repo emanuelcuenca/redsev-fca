@@ -10,19 +10,18 @@ import {
   Plus, 
   Save, 
   ArrowLeft,
-  Info,
   Loader2,
   Building2,
   Calendar as CalendarIcon,
   ScrollText,
   GraduationCap,
-  Gavel,
   FileUp,
   Clock,
   Sparkles,
   AlertCircle,
   Link as LinkIcon,
-  Plane
+  Plane,
+  Handshake
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -236,15 +235,14 @@ export default function UploadPage() {
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Selección de Categoría</h2>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
-                  { id: "Convenio", label: "Convenio", icon: Clock },
+                  { id: "Convenio", label: "Convenio", icon: Handshake },
                   { id: "Proyecto", label: "Proyecto de Extensión", icon: FileText },
                   { id: "Movilidad", label: "Movilidad", icon: Plane },
                   { id: "Pasantía", label: "Práctica / Pasantía", icon: GraduationCap },
                   { id: "Resolución", label: "Resolución", icon: ScrollText },
-                  { id: "Reglamento", label: "Reglamento", icon: Gavel },
-                  { id: "Informe", label: "Informe Técnico", icon: Info }
+                  { id: "Reglamento", label: "Reglamento", icon: ScrollText }
                 ].map((item) => (
                   <button
                     key={item.id}

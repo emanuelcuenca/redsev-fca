@@ -18,7 +18,6 @@ import {
   ArrowLeftRight,
   ScrollText,
   GraduationCap,
-  Gavel,
   Trash2,
   Plane,
   CheckCircle2,
@@ -104,10 +103,10 @@ export default function DocumentsListPage() {
     if (!allDocs) return [];
     return allDocs.filter(doc => {
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
-      if (category === 'extension' && !['Proyecto', 'Informe'].includes(doc.type)) return false;
+      if (category === 'extension' && doc.type !== 'Proyecto') return false;
       if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'movilidad' && !['Movilidad', 'Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
+      if (category === 'movilidad' && doc.type !== 'Movilidad') return false;
 
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (doc.project && doc.project.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -386,7 +385,7 @@ export default function DocumentsListPage() {
                         <TableCell className="py-8 pl-12">
                           <div className="flex items-center gap-6">
                             <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                              <FileText className="w-6 h-6" />
+                              {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                             </div>
                             <div>
                               <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors uppercase">{doc.title}</p>
