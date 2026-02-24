@@ -211,6 +211,8 @@ export default function UploadPage() {
     }, 1000);
   };
 
+  const isSpecialType = type === "Movilidad" || type === "Pasantía";
+
   return (
     <SidebarProvider>
       <MainSidebar />
@@ -236,11 +238,12 @@ export default function UploadPage() {
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full">
           <div className="mb-8">
-            <h1 className="text-3xl font-headline font-bold uppercase tracking-tight text-primary">Cargar Documento</h1>
+            <h1 className="text-3xl font-headline font-bold uppercase tracking-tight text-primary">Cargar Registro</h1>
             <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs mt-1">Repositorio Digital Institucional</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8 pb-20">
+            {/* PASO 1: CATEGORÍA */}
             <section className="bg-primary/5 p-6 md:p-8 rounded-[2rem] border border-primary/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-primary text-white p-2 rounded-none">
@@ -275,94 +278,21 @@ export default function UploadPage() {
               </div>
             </section>
 
-            <section className={`transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-primary/20 text-primary p-2 rounded-none">
-                  <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">2</Badge>
-                </div>
-                <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Origen del Contenido</h2>
-              </div>
-
-              <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
-                  <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
-                  </TabsTrigger>
-                  <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="file" className="mt-0">
-                  <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
-                    {file ? (
-                      <div className="flex flex-col items-center gap-3 text-center">
-                        <div className="bg-primary/20 p-4 rounded-full">
-                          <FileText className="w-12 h-12 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
-                          <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
-                          <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="bg-primary/10 p-4 rounded-full mb-4">
-                          <Upload className="w-10 h-10 text-primary" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Archivo</p>
-                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Documento Institucional (Solo PDF, Máx 20MB)</p>
-                          <Label htmlFor="file-upload" className="cursor-pointer">
-                            <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                              Seleccionar PDF
-                            </div>
-                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
-                          </Label>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="url" className="mt-0">
-                  <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
-                    <div className="flex items-center gap-3 text-primary mb-2">
-                      <FileUp className="w-6 h-6" />
-                      <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="external-url" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Dirección URL del documento</Label>
-                      <Input 
-                        id="external-url"
-                        placeholder="https://docs.google.com/... o https://sitio.com/archivo.pdf"
-                        className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold"
-                        value={externalUrl}
-                        onChange={(e) => setExternalUrl(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </section>
-
-            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${(file || externalUrl) ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            {/* PASO 2: METADATOS Y DETALLES */}
+            <section className={`bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted transition-opacity duration-300 ${type ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
-                  <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
+                  <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">2</Badge>
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3 col-span-2">
-                  <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Documento</Label>
+                  <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
                   <Input 
                     id="title" 
-                    placeholder="Ej: Convenio Marco de Cooperación Académica..." 
+                    placeholder={isSpecialType ? "Ej: Registro de Movilidad Estudiantil 2024..." : "Ej: Convenio Marco de Cooperación Académica..."}
                     className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
                     required 
                     value={title}
@@ -421,7 +351,7 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {(type === "Movilidad" || type === "Pasantía") && (
+                {isSpecialType && (
                   <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
                     <div className="space-y-3">
                       <Label htmlFor="beneficiary" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
@@ -431,7 +361,7 @@ export default function UploadPage() {
                         id="beneficiary" 
                         placeholder="Ej: Juan Pérez" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Movilidad" || type === "Pasantía"}
+                        required={isSpecialType}
                         value={beneficiaryName}
                         onChange={(e) => setBeneficiaryName(e.target.value)}
                       />
@@ -444,7 +374,7 @@ export default function UploadPage() {
                         id="program" 
                         placeholder="Ej: Programa de Intercambio ARFITEC" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Movilidad" || type === "Pasantía"}
+                        required={isSpecialType}
                         value={programName}
                         onChange={(e) => setProgramName(e.target.value)}
                       />
@@ -457,7 +387,7 @@ export default function UploadPage() {
                         id="convocatoria" 
                         placeholder="Ej: Convocatoria 2024 - 1er Cuatrimestre" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        required={type === "Movilidad" || type === "Pasantía"}
+                        required={isSpecialType}
                         value={convocatoria}
                         onChange={(e) => setConvocatoria(e.target.value)}
                       />
@@ -500,10 +430,10 @@ export default function UploadPage() {
                       size="sm" 
                       className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
                       onClick={handleAiSummarize}
-                      disabled={isSummarizing}
+                      disabled={isSummarizing || (!file && !externalUrl)}
                     >
                       {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      Generar con IA
+                      Analizar Documento con IA
                     </Button>
                   </div>
                   {aiError && (
@@ -517,7 +447,7 @@ export default function UploadPage() {
                   )}
                   <Textarea 
                     id="description" 
-                    placeholder="Escriba manualmente el resumen o generelo automáticamente con IA analizando el documento..." 
+                    placeholder="Escriba manualmente el resumen o use el botón de IA una vez adjuntada la documentación al final..." 
                     className="min-h-[140px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -550,7 +480,94 @@ export default function UploadPage() {
                   </div>
                 </div>
               </div>
+            </section>
 
+            {/* PASO 3: ORIGEN DEL CONTENIDO / DOCUMENTACIÓN RESPALDATORIA */}
+            <section className={`transition-opacity duration-300 ${title ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="bg-primary/20 text-primary p-2 rounded-none">
+                  <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
+                </div>
+                <h2 className="text-xl font-headline font-bold uppercase tracking-tight">
+                  {isSpecialType ? 'Documentación Respaldatoria' : 'Origen del Contenido'}
+                </h2>
+              </div>
+
+              {isSpecialType && (
+                <div className="mb-6 p-4 bg-primary/5 border border-dashed border-primary/20 rounded-2xl flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-primary shrink-0" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                    Adjunte Convenios, Resoluciones o Actas que avalen este registro de {type}.
+                  </p>
+                </div>
+              )}
+
+              <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
+                  <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                    <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
+                  </TabsTrigger>
+                  <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                    <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="file" className="mt-0">
+                  <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
+                    {file ? (
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="bg-primary/20 p-4 rounded-full">
+                          <FileText className="w-12 h-12 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
+                          <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
+                          <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-primary/10 p-4 rounded-full mb-4">
+                          <Upload className="w-10 h-10 text-primary" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Documentación</p>
+                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Formato PDF (Máx 20MB)</p>
+                          <Label htmlFor="file-upload" className="cursor-pointer">
+                            <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                              Seleccionar Archivo
+                            </div>
+                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                          </Label>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="url" className="mt-0">
+                  <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
+                    <div className="flex items-center gap-3 text-primary mb-2">
+                      <LinkIcon className="w-6 h-6" />
+                      <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="external-url" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Dirección URL del documento</Label>
+                      <Input 
+                        id="external-url"
+                        placeholder="https://docs.google.com/... o https://sitio.com/archivo.pdf"
+                        className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold"
+                        value={externalUrl}
+                        onChange={(e) => setExternalUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* BOTONES DE ACCIÓN AL FINAL DEL PASO 3 */}
               <div className="flex flex-col md:flex-row items-center justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button 
                   type="button" 
