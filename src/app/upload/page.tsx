@@ -19,7 +19,9 @@ import {
   Sparkles,
   CheckCircle2,
   AlertCircle,
-  UserCheck
+  UserCheck,
+  Search,
+  FileCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -38,8 +40,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
+import { AgriculturalDocument } from "@/lib/mock-data";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -80,6 +83,12 @@ export default function UploadPage() {
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
 
+  // Búsqueda de proyecto para Resolución de Aprobación
+  const [searchProjectNumber, setSearchProjectNumber] = useState("");
+  const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
+  const [isSearchingProject, setIsSearchingProject] = useState(false);
+  const [foundProject, setFoundProject] = useState<AgriculturalDocument | null>(null);
+
   const formatTitle = (text: string) => {
     if (!text) return "";
     return text
@@ -97,6 +106,44 @@ export default function UploadPage() {
   const generateProjectCode = () => {
     const random = Math.floor(1000 + Math.random() * 9000);
     return `FCA-EXT-${random}-${new Date().getFullYear()}`;
+  };
+
+  const handleSearchProject = async () => {
+    if (!searchProjectNumber) return;
+    
+    setIsSearchingProject(true);
+    const targetCode = `FCA-EXT-${searchProjectNumber}-${searchProjectYear}`;
+    
+    try {
+      const q = query(
+        collection(db, 'documents'), 
+        where('projectCode', '==', targetCode),
+        where('extensionDocType', '==', 'Proyecto de Extensión'),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const project = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as AgriculturalDocument;
+        setFoundProject(project);
+        setTitle(project.title);
+        setDescription(project.description || "");
+        setObjetivoGeneral(project.objetivoGeneral || "");
+        setObjetivosEspecificos(project.objetivosEspecificos || []);
+        setAuthors(project.authors?.join(", ") || "");
+        setProjectCode(project.projectCode || "");
+        setExecutionPeriod(project.executionPeriod || "");
+        toast({ title: "Proyecto encontrado", description: "Los datos se han cargado automáticamente." });
+      } else {
+        setFoundProject(null);
+        toast({ variant: "destructive", title: "Proyecto no encontrado", description: "Verifique el número y el año." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error en la búsqueda" });
+    } finally {
+      setIsSearchingProject(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,7 +215,7 @@ export default function UploadPage() {
     const documentData: any = {
       title: formatTitle(title),
       type,
-      date: extensionDocType === "Proyecto de Extensión" ? new Date().toISOString() : finalDate,
+      date: (extensionDocType === "Proyecto de Extensión" || extensionDocType === "Resolución de Aprobación") ? new Date().toISOString() : finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       description,
@@ -190,11 +237,9 @@ export default function UploadPage() {
       documentData.executionPeriod = executionPeriod;
       documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
       
-      if (extensionDocType === "Proyecto de Extensión") {
+      if (extensionDocType === "Proyecto de Extensión" || extensionDocType === "Resolución de Aprobación") {
         documentData.objetivoGeneral = objetivoGeneral;
-        if (hasSpecificObjectives) {
-          documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
-        }
+        documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
       }
     } else {
       documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
@@ -217,6 +262,7 @@ export default function UploadPage() {
   };
 
   const isExtensionProyectoSubtype = type === "Proyecto" && extensionDocType === "Proyecto de Extensión";
+  const isExtensionResolucionSubtype = type === "Proyecto" && extensionDocType === "Resolución de Aprobación";
 
   return (
     <SidebarProvider>
@@ -246,6 +292,7 @@ export default function UploadPage() {
                     onClick={() => {
                       setType(item.id);
                       if (item.id !== "Proyecto") setExtensionDocType("");
+                      setFoundProject(null);
                     }}
                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
                       type === item.id ? 'border-primary bg-primary/10 text-primary shadow-md' : 'border-muted-foreground/10 bg-white'
@@ -272,7 +319,10 @@ export default function UploadPage() {
                       <button
                         key={subType}
                         type="button"
-                        onClick={() => setExtensionDocType(subType)}
+                        onClick={() => {
+                          setExtensionDocType(subType);
+                          setFoundProject(null);
+                        }}
                         className={`p-3 rounded-xl border-2 text-[9px] font-black uppercase tracking-tight transition-all text-center ${
                           extensionDocType === subType 
                             ? 'border-primary bg-primary/5 text-primary' 
@@ -284,6 +334,43 @@ export default function UploadPage() {
                     ))}
                   </div>
                 </div>
+
+                {isExtensionResolucionSubtype && (
+                  <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-6 animate-in slide-in-from-top-4">
+                    <div className="flex items-center gap-3">
+                      <Search className="w-5 h-5 text-primary" />
+                      <h3 className="font-headline font-bold text-sm uppercase tracking-tight text-primary">Vincular con Proyecto</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Número de Proyecto</Label>
+                        <Input 
+                          placeholder="Ej: 4829" 
+                          value={searchProjectNumber}
+                          onChange={(e) => setSearchProjectNumber(e.target.value)}
+                          className="h-10 rounded-lg font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground">Año</Label>
+                        <Select value={searchProjectYear} onValueChange={setSearchProjectYear}>
+                          <SelectTrigger className="h-10 rounded-lg font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <Button 
+                          type="button" 
+                          onClick={handleSearchProject}
+                          disabled={isSearchingProject || !searchProjectNumber}
+                          className="w-full h-10 rounded-lg font-black uppercase text-[10px] tracking-widest"
+                        >
+                          {isSearchingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : "Buscar Proyecto"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {extensionDocType && (
                   <div className="space-y-8 animate-in slide-in-from-top-4 duration-500">
@@ -297,11 +384,12 @@ export default function UploadPage() {
                         value={title} 
                         onChange={(e) => setTitle(e.target.value)} 
                         required 
+                        disabled={isExtensionResolucionSubtype && !!foundProject}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {!isExtensionProyectoSubtype && (
+                      {!(isExtensionProyectoSubtype || isExtensionResolucionSubtype) && (
                         <div className="space-y-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Registro / Aprobación</Label>
                           <div className="grid grid-cols-3 gap-1">
@@ -313,11 +401,17 @@ export default function UploadPage() {
                       )}
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables / Equipo Técnico</Label>
-                        <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
+                        <Input 
+                          placeholder="Dr. Mario Rojas, Lic. Ana Gómez" 
+                          className="h-12 rounded-xl font-bold" 
+                          value={authors} 
+                          onChange={(e) => setAuthors(e.target.value)} 
+                          disabled={isExtensionResolucionSubtype && !!foundProject}
+                        />
                       </div>
                     </div>
 
-                    {extensionDocType === "Proyecto de Extensión" && (
+                    {(isExtensionProyectoSubtype || isExtensionResolucionSubtype) && (
                       <>
                         <div className="space-y-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Objetivo General</Label>
@@ -326,6 +420,7 @@ export default function UploadPage() {
                             className="min-h-[100px] rounded-xl font-medium" 
                             value={objetivoGeneral} 
                             onChange={(e) => setObjetivoGeneral(e.target.value)} 
+                            disabled={isExtensionResolucionSubtype && !!foundProject}
                           />
                         </div>
 
@@ -333,12 +428,14 @@ export default function UploadPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Target className="w-5 h-5 text-primary" />
-                              <span className="font-black uppercase text-[10px] tracking-widest text-primary">¿Tiene objetivos específicos?</span>
+                              <span className="font-black uppercase text-[10px] tracking-widest text-primary">Objetivos Específicos</span>
                             </div>
-                            <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
+                            {isExtensionProyectoSubtype && (
+                              <Switch checked={hasSpecificObjectives} onCheckedChange={setHasSpecificObjectives} />
+                            )}
                           </div>
 
-                          {hasSpecificObjectives && (
+                          {(hasSpecificObjectives || (isExtensionResolucionSubtype && objetivosEspecificos.length > 0)) && (
                             <div className="space-y-4 animate-in fade-in duration-300">
                               {objetivosEspecificos.map((obj, i) => (
                                 <div key={i} className="flex gap-2">
@@ -350,25 +447,30 @@ export default function UploadPage() {
                                     className="h-12 rounded-xl font-medium" 
                                     value={obj} 
                                     onChange={(e) => handleObjectiveChange(i, e.target.value)} 
+                                    disabled={isExtensionResolucionSubtype && !!foundProject}
                                   />
-                                  <Button 
-                                    type="button" 
-                                    variant="ghost" 
-                                    className="h-12 w-12 rounded-xl text-destructive"
-                                    onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
-                                  >
-                                    <X className="w-5 h-5" />
-                                  </Button>
+                                  {isExtensionProyectoSubtype && (
+                                    <Button 
+                                      type="button" 
+                                      variant="ghost" 
+                                      className="h-12 w-12 rounded-xl text-destructive"
+                                      onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
+                                    >
+                                      <X className="w-5 h-5" />
+                                    </Button>
+                                  )}
                                 </div>
                               ))}
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
-                                onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
-                              >
-                                <Plus className="w-4 h-4 mr-2" /> Añadir otro objetivo específico
-                              </Button>
+                              {isExtensionProyectoSubtype && (
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  className="w-full h-12 rounded-xl border-dashed font-black uppercase text-[10px] tracking-widest"
+                                  onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
+                                >
+                                  <Plus className="w-4 h-4 mr-2" /> Añadir otro objetivo específico
+                                </Button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -384,6 +486,7 @@ export default function UploadPage() {
                           value={projectCode} 
                           onChange={(e) => setProjectCode(e.target.value)} 
                           required
+                          disabled={isExtensionResolucionSubtype && !!foundProject}
                         />
                       </div>
                     )}
@@ -495,7 +598,7 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && (
+            {type && (!isExtensionResolucionSubtype || foundProject) && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -541,6 +644,7 @@ export default function UploadPage() {
                     className="min-h-[120px] rounded-xl font-medium bg-white" 
                     value={description} 
                     onChange={(e) => setDescription(e.target.value)} 
+                    disabled={isExtensionResolucionSubtype && !!foundProject}
                   />
                   {!fileDataUri && (
                     <p className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase">
@@ -551,10 +655,21 @@ export default function UploadPage() {
               </section>
             )}
 
+            {isExtensionResolucionSubtype && !foundProject && (
+              <div className="py-20 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted animate-pulse">
+                <FileCheck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-muted-foreground font-black uppercase text-xs tracking-widest">Debe buscar y vincular un proyecto para habilitar la carga</p>
+              </div>
+            )}
+
             {type && (
               <div className="flex justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                 <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving}>
+                <Button 
+                  type="submit" 
+                  className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" 
+                  disabled={isSaving || (isExtensionResolucionSubtype && !foundProject)}
+                >
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}
                 </Button>
               </div>
