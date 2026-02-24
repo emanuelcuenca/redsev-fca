@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,7 +33,8 @@ import {
   MapPin,
   Globe,
   Landmark,
-  ListTodo
+  ListTodo,
+  CheckCircle2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -140,6 +142,9 @@ export default function UploadPage() {
   const [hasAssociatedConvenio, setHasAssociatedConvenio] = useState(false);
   const [associatedConvenioNumber, setAssociatedConvenioNumber] = useState("");
   const [associatedConvenioYear, setAssociatedConvenioYear] = useState(new Date().getFullYear().toString());
+  const [linkedConvenioFound, setLinkedConvenioFound] = useState(false);
+  const [associatedConvenioTitle, setAssociatedConvenioTitle] = useState("");
+  const [associatedConvenioCounterpart, setAssociatedConvenioCounterpart] = useState("");
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
   const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución" || type === "Reglamento";
@@ -193,6 +198,9 @@ export default function UploadPage() {
     setHasAssociatedConvenio(false);
     setAssociatedConvenioNumber("");
     setAssociatedConvenioYear(new Date().getFullYear().toString());
+    setLinkedConvenioFound(false);
+    setAssociatedConvenioTitle("");
+    setAssociatedConvenioCounterpart("");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -394,13 +402,14 @@ export default function UploadPage() {
     return "Ingrese el título oficial del registro...";
   };
 
+  // Efecto para buscar PROYECTOS asociados
   useEffect(() => {
     async function fetchProjectData() {
       if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
         setIsProjectDataLoading(true);
         try {
           const currentYear = new Date().getFullYear();
-          const targetCode = `FCA-EXT-${projectCodeNumber}-${currentYear}`;
+          const targetCode = `FCA-EXT-${projectCodeNumber.padStart(3, '0')}-${currentYear}`;
           
           const q = query(
             collection(db, 'documents'), 
@@ -421,9 +430,6 @@ export default function UploadPage() {
               description: `Información cargada para ${targetCode}`,
             });
           } else {
-            setTitle("");
-            setAuthors("");
-            setExecutionPeriod("");
             setLinkedProjectFound(false);
           }
         } catch (error) {
@@ -436,6 +442,47 @@ export default function UploadPage() {
 
     fetchProjectData();
   }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
+
+  // Efecto para buscar CONVENIOS asociados (Pasantías)
+  useEffect(() => {
+    async function fetchConvenioData() {
+      if (type === "Pasantía" && hasAssociatedConvenio && associatedConvenioNumber.length === 3) {
+        setIsProjectDataLoading(true);
+        try {
+          const targetCode = `FCA-CONV-${associatedConvenioNumber.padStart(3, '0')}-${associatedConvenioYear}`;
+          
+          const q = query(
+            collection(db, 'documents'), 
+            where("projectCode", "==", targetCode),
+            where("type", "==", "Convenio"),
+            limit(1)
+          );
+          
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const conv = querySnapshot.docs[0].data();
+            setAssociatedConvenioTitle(conv.title || "");
+            setAssociatedConvenioCounterpart(conv.counterpart || "");
+            setLinkedConvenioFound(true);
+            toast({
+              title: "Convenio localizado",
+              description: `Vínculo institucional confirmado para ${targetCode}`,
+            });
+          } else {
+            setLinkedConvenioFound(false);
+            setAssociatedConvenioTitle("");
+            setAssociatedConvenioCounterpart("");
+          }
+        } catch (error) {
+          console.error("Error fetching convenio data:", error);
+        } finally {
+          setIsProjectDataLoading(false);
+        }
+      }
+    }
+
+    fetchConvenioData();
+  }, [associatedConvenioNumber, associatedConvenioYear, hasAssociatedConvenio, type, db]);
 
   const addSpecificObjective = () => {
     setSpecificObjectives([...specificObjectives, ""]);
@@ -623,7 +670,7 @@ export default function UploadPage() {
                           required 
                           value={title}
                           onChange={(e) => setTitle(e.target.value)}
-                          disabled={isSecondaryExtensionDoc}
+                          disabled={linkedProjectFound}
                         />
                       </div>
 
@@ -982,37 +1029,59 @@ export default function UploadPage() {
                             <Handshake className="w-6 h-6 text-primary" />
                             <div className="flex flex-col">
                               <span className="font-black uppercase text-[10px] tracking-widest text-primary leading-tight">Convenio Asociado</span>
-                              <span className="text-[9px] font-bold text-muted-foreground uppercase">¿Existe un convenio para esta actividad?</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase">Asocie el convenio mediante su código único</span>
                             </div>
                           </div>
                           <Switch checked={hasAssociatedConvenio} onCheckedChange={setHasAssociatedConvenio} />
                         </div>
 
                         {hasAssociatedConvenio && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-in fade-in slide-in-from-top-2">
-                            <div className="space-y-2">
-                              <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Número de Convenio</Label>
-                              <Input 
-                                placeholder="Ej: 456" 
-                                className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold"
-                                value={associatedConvenioNumber}
-                                onChange={(e) => setAssociatedConvenioNumber(e.target.value)}
-                                required={hasAssociatedConvenio}
-                              />
+                          <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                              <div className="space-y-2">
+                                <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Número de Convenio (XXX)</Label>
+                                <Input 
+                                  placeholder="Ej: 001" 
+                                  maxLength={3}
+                                  className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold"
+                                  value={associatedConvenioNumber}
+                                  onChange={(e) => setAssociatedConvenioNumber(e.target.value.replace(/\D/g, ""))}
+                                  required={hasAssociatedConvenio}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año del Convenio</Label>
+                                <Select value={associatedConvenioYear} onValueChange={setAssociatedConvenioYear}>
+                                  <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {YEARS.map(y => (
+                                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Año del Convenio</Label>
-                              <Select value={associatedConvenioYear} onValueChange={setAssociatedConvenioYear}>
-                                <SelectTrigger className="h-11 md:h-12 rounded-xl border-primary/20 bg-white font-bold">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {YEARS.map(y => (
-                                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+
+                            {linkedConvenioFound && (
+                              <div className="bg-white/80 p-4 rounded-xl border-2 border-primary/20 animate-in zoom-in-95">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                                  <span className="font-black uppercase text-[10px] tracking-widest text-primary">Convenio Vinculado Exitosamente</span>
+                                </div>
+                                <div className="space-y-3">
+                                  <div>
+                                    <p className="text-[9px] font-bold text-muted-foreground uppercase">Título del Acuerdo</p>
+                                    <p className="text-xs font-bold text-primary">{associatedConvenioTitle}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[9px] font-bold text-muted-foreground uppercase">Contraparte</p>
+                                    <p className="text-xs font-bold text-primary">{associatedConvenioCounterpart}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
