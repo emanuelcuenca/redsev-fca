@@ -69,7 +69,7 @@ const MONTHS = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
-const YEARS = Array.from({ length: 21 }, (_, i) => new Date().getFullYear() - 10 + i);
+const YEARS_LIST = Array.from({ length: 41 }, (_, i) => new Date().getFullYear() - 30 + i);
 
 const CONVENIO_CATEGORIES = [
   "Capacitación",
@@ -627,7 +627,7 @@ export default function UploadPage() {
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {YEARS.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                                        {YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
                                       </SelectContent>
                                    </Select>
                                  </div>
@@ -648,7 +648,7 @@ export default function UploadPage() {
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {YEARS.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                                        {YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
                                       </SelectContent>
                                    </Select>
                                  </div>
@@ -816,6 +816,9 @@ export default function UploadPage() {
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
+                              captionLayout="dropdown-buttons"
+                              fromYear={1980}
+                              toYear={new Date().getFullYear() + 10}
                               selected={approvalDate}
                               onSelect={setApprovalDate}
                               initialFocus
@@ -997,7 +1000,7 @@ export default function UploadPage() {
                             <SelectValue placeholder="Año" />
                           </SelectTrigger>
                           <SelectContent>
-                            {YEARS.map(y => (
+                            {YEARS_LIST.map(y => (
                               <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                             ))}
                           </SelectContent>
@@ -1015,7 +1018,15 @@ export default function UploadPage() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={approvalDate} onSelect={setApprovalDate} initialFocus />
+                            <Calendar 
+                              mode="single" 
+                              captionLayout="dropdown-buttons"
+                              fromYear={1980}
+                              toYear={new Date().getFullYear() + 10}
+                              selected={approvalDate} 
+                              onSelect={setApprovalDate} 
+                              initialFocus 
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -1072,7 +1083,7 @@ export default function UploadPage() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {YEARS.map(y => (
+                                    {YEARS_LIST.map(y => (
                                       <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                                     ))}
                                   </SelectContent>
