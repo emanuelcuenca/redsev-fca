@@ -852,10 +852,11 @@ export default function UploadPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="CD">CD</SelectItem>
+                            <SelectItem value="CS">CS</SelectItem>
                             <SelectItem value="Decanal">Decanal</SelectItem>
+                            <SelectItem value="Ministerial">Ministerial</SelectItem>
                             <SelectItem value="Rectoral">Rectoral</SelectItem>
                             <SelectItem value="SEU">SEU</SelectItem>
-                            <SelectItem value="Ministerial">Ministerial</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

@@ -120,7 +120,7 @@
         },
         "resolutionType": {
           "type": "string",
-          "enum": ["CD", "Decanal", "Rectoral", "SEU", "Ministerial"],
+          "enum": ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"],
           "description": "Tipo de resolución institucional."
         },
         "date": {
