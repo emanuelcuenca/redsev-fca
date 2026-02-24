@@ -90,7 +90,7 @@ export default function UploadPage() {
   const [presentationDate, setPresentationDate] = useState("");
   const [reportPeriod, setReportPeriod] = useState("");
   const [executionPeriod, setExecutionPeriod] = useState("");
-  const [projectCodeInput, setProjectCodeInput] = useState("");
+  const [projectCodeNumber, setProjectCodeNumber] = useState("");
 
   const resetForm = () => {
     setType("");
@@ -113,7 +113,7 @@ export default function UploadPage() {
     setPresentationDate("");
     setReportPeriod("");
     setExecutionPeriod("");
-    setProjectCodeInput("");
+    setProjectCodeNumber("");
     setAiError(null);
   };
 
@@ -224,6 +224,8 @@ export default function UploadPage() {
       fileUrl: uploadMethod === "file" ? "#" : externalUrl,
     };
 
+    const currentYear = new Date().getFullYear();
+
     if (type === "Convenio") {
       documentData.durationYears = parseInt(durationYears) || 1;
       documentData.counterpart = counterpart;
@@ -243,9 +245,6 @@ export default function UploadPage() {
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
 
-      const currentYear = new Date().getFullYear();
-
-      // Generación automática de código con formato FCA-EXT-000-AÑO
       if (extensionDocType === "Proyecto") {
         try {
           const coll = collection(db, 'documents');
@@ -258,9 +257,9 @@ export default function UploadPage() {
           const randNum = Math.floor(Math.random() * 999).toString().padStart(3, '0');
           documentData.projectCode = `FCA-EXT-${randNum}-${currentYear}`;
         }
-      } else {
-        // Vincular con código existente para Resoluciones e Informes
-        documentData.projectCode = projectCodeInput;
+      } else if (projectCodeNumber) {
+        // Formato solicitado: FCA-EXT-001-AÑO
+        documentData.projectCode = `FCA-EXT-${projectCodeNumber.padStart(3, '0')}-${currentYear}`;
       }
     }
 
@@ -273,8 +272,8 @@ export default function UploadPage() {
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
 
     toast({
-      title: documentData.projectCode ? `Documento guardado (Código: ${documentData.projectCode})` : "Documento almacenado",
-      description: "El registro ha sido creado exitosamente.",
+      title: documentData.projectCode ? `Registro guardado (Código: ${documentData.projectCode})` : "Documento almacenado",
+      description: "El registro institucional ha sido creado exitosamente.",
     });
 
     setIsSaving(false);
@@ -465,7 +464,7 @@ export default function UploadPage() {
                 )}
 
                 {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-start">
                     <div className="space-y-3">
                       <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
                       <Select value={extensionDocType} onValueChange={setExtensionDocType}>
@@ -500,14 +499,23 @@ export default function UploadPage() {
                         <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
                           <Fingerprint className="w-3.5 h-3.5" /> Código del Proyecto Vinculado
                         </Label>
-                        <Input 
-                          id="projectCode" 
-                          placeholder="Ej: FCA-EXT-001-2024" 
-                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                          required={extensionDocType !== "Proyecto"}
-                          value={projectCodeInput}
-                          onChange={(e) => setProjectCodeInput(e.target.value)}
-                        />
+                        <div className="flex items-center gap-0 group">
+                          <div className="h-12 px-4 rounded-l-xl bg-primary text-white flex items-center font-black text-sm uppercase tracking-widest border border-primary border-r-0">
+                            FCA-EXT-
+                          </div>
+                          <Input 
+                            id="projectCode" 
+                            placeholder="001" 
+                            maxLength={3}
+                            className="h-12 rounded-l-none rounded-r-xl border-primary/20 bg-white font-bold focus:ring-primary/10" 
+                            required={extensionDocType !== "Proyecto"}
+                            value={projectCodeNumber}
+                            onChange={(e) => setProjectCodeNumber(e.target.value.replace(/\D/g, ""))}
+                          />
+                        </div>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight mt-1 ml-1">
+                          Ingrese las 3 cifras del proyecto original para vincular este documento.
+                        </p>
                       </div>
                     )}
 
