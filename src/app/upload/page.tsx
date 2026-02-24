@@ -41,7 +41,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
-import { AgriculturalDocument, PersonName } from "@/lib/mock-data";
+import { AgriculturalDocument, PersonName, formatPersonName } from "@/lib/mock-data";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -124,7 +124,6 @@ export default function UploadPage() {
   const handleSearchProject = async () => {
     if (!searchProjectNumber) return;
     setIsSearchingProject(true);
-    // El buscador debe permitir encontrar proyectos con el formato 001, 002, etc.
     const paddedNumber = searchProjectNumber.padStart(3, '0');
     const targetCode = `FCA-EXT-${paddedNumber}-${searchProjectYear}`;
     try {
@@ -396,9 +395,23 @@ export default function UploadPage() {
                 )}
 
                 {isExtensionLinkedSubtype && foundProject && (
-                  <div className="p-6 bg-muted/20 rounded-3xl border border-muted space-y-4 animate-in fade-in">
-                    <div className="flex items-center gap-2 text-primary"><FileUp className="w-5 h-5" /><span className="font-black uppercase text-xs tracking-widest">Proyecto Vinculado</span></div>
-                    <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Título:</p><p className="text-sm font-bold leading-tight">{foundProject.title}</p></div>
+                  <div className="p-6 bg-muted/20 rounded-3xl border border-muted space-y-6 animate-in fade-in">
+                    <div className="flex items-center gap-2 text-primary">
+                      <FileUp className="w-5 h-5" />
+                      <span className="font-black uppercase text-xs tracking-widest">Proyecto Vinculado</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Título:</p>
+                        <p className="text-sm font-bold leading-tight">{foundProject.title}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Director:</p>
+                        <p className="text-sm font-bold text-primary">
+                          {foundProject.director ? formatPersonName(foundProject.director) : 'Sin director asignado'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </section>
