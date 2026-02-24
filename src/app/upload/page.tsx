@@ -113,7 +113,6 @@ export default function UploadPage() {
   const [convenioCategoryOther, setConvenioCategoryOther] = useState("");
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
 
-  // Estados para fecha de firma de Convenio (Dropdowns)
   const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
@@ -134,7 +133,6 @@ export default function UploadPage() {
   const [isProjectDataLoading, setIsProjectDataLoading] = useState(false);
   const [linkedProjectFound, setLinkedProjectFound] = useState(false);
 
-  // Objetivos de Proyecto
   const [objetivoGeneral, setObjetivoGeneral] = useState("");
   const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
   const [specificObjectives, setSpecificObjectives] = useState<string[]>(["", "", ""]);
@@ -147,7 +145,6 @@ export default function UploadPage() {
   const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
   const [pasantiaRange, setPasantiaRange] = useState<{from?: Date, to?: Date}>({});
 
-  // Asociación con Convenio (Pasantías)
   const [hasAssociatedConvenio, setHasAssociatedConvenio] = useState(false);
   const [associatedConvenioNumber, setAssociatedConvenioNumber] = useState("");
   const [associatedConvenioYear, setAssociatedConvenioYear] = useState(new Date().getFullYear().toString());
@@ -156,10 +153,9 @@ export default function UploadPage() {
   const [associatedConvenioCounterpart, setAssociatedConvenioCounterpart] = useState("");
 
   const isSecondaryExtensionDoc = extensionDocType && extensionDocType !== "Proyecto";
-  const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución" || type === "Reglamento";
+  const isResolution = extensionDocType === "Resolución de aprobación" || type === "Resolución";
   const isPasantia = type === "Pasantía";
 
-  // Efecto para sincronizar la fecha de firma del Convenio
   useEffect(() => {
     if (type === "Convenio") {
       const monthIdx = MONTHS.indexOf(signingMonth) + 1;
@@ -177,6 +173,19 @@ export default function UploadPage() {
 
   const updateExecutionPeriod = (sm: string, sy: string, em: string, ey: string) => {
     setExecutionPeriod(`${sm} ${sy} - ${em} ${ey}`);
+  };
+
+  const formatTitle = (text: string) => {
+    return text
+      .split(' ')
+      .filter(Boolean)
+      .map(word => {
+        if (word.length > 0 && word === word.toUpperCase()) {
+          return word;
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
   };
 
   const resetForm = () => {
@@ -302,8 +311,7 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    const trimmedTitle = title.trim();
-    const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
+    const formattedTitle = formatTitle(title);
 
     let finalTitle = formattedTitle;
     if (type === "Resolución") {
@@ -421,7 +429,6 @@ export default function UploadPage() {
     return "Ingrese el título oficial del registro...";
   };
 
-  // Efecto para buscar PROYECTOS asociados
   useEffect(() => {
     async function fetchProjectData() {
       if (type === "Proyecto" && isSecondaryExtensionDoc && projectCodeNumber.length === 3) {
@@ -462,7 +469,6 @@ export default function UploadPage() {
     fetchProjectData();
   }, [projectCodeNumber, extensionDocType, type, db, isSecondaryExtensionDoc]);
 
-  // Efecto para buscar CONVENIOS asociados (Pasantías)
   useEffect(() => {
     async function fetchConvenioData() {
       if (type === "Pasantía" && hasAssociatedConvenio && associatedConvenioNumber.length === 3) {
@@ -684,11 +690,10 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Proyecto</Label>
                         <Input 
                           placeholder={getPlaceholder()}
-                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold disabled:opacity-80 text-xs md:text-sm" 
+                          className="h-11 md:h-12 rounded-xl border-muted-foreground/20 bg-white font-bold text-xs md:text-sm" 
                           required 
                           value={title}
                           onChange={(e) => setTitle(e.target.value)}
-                          disabled={linkedProjectFound}
                         />
                       </div>
 
@@ -1170,29 +1175,15 @@ export default function UploadPage() {
                         </Tabs>
                       </div>
 
-                      {(!isResolution && type !== "Convenio") && (
-                        <div className="space-y-4 animate-in fade-in duration-300">
-                          <div className="flex items-center justify-between">
-                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen (Opcional)</Label>
-                            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
-                              {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
-                            </Button>
-                          </div>
-                          <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                      <div className="space-y-4 animate-in fade-in duration-300">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen / Análisis</Label>
+                          <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
+                            {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
+                          </Button>
                         </div>
-                      )}
-
-                      {(type === "Convenio") && (
-                        <div className="space-y-4 animate-in fade-in duration-300">
-                          <div className="flex items-center justify-between">
-                            <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Resumen del Convenio</Label>
-                            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg text-primary font-black text-[9px]" onClick={handleAiSummarize} disabled={isSummarizing || (!file && !externalUrl)}>
-                              {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ANALIZAR CON IA
-                            </Button>
-                          </div>
-                          <Textarea placeholder="Escriba un resumen manual o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
-                        </div>
-                      )}
+                        <Textarea placeholder="Escriba un resumen o use la IA para generarlo automáticamente..." className="min-h-[150px] md:min-h-[180px] rounded-xl md:rounded-2xl bg-muted/20 font-medium text-xs md:text-sm leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} />
+                      </div>
                     </>
                   )}
                 </div>

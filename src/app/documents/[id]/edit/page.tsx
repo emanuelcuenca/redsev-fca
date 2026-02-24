@@ -60,7 +60,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -95,7 +94,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -126,8 +124,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     convenioCategory: "",
     convenioCategoryOther: "",
     hasInstitutionalResponsible: false,
-    beneficiaryFirstName: "",
-    beneficiaryLastName: "",
+    beneficiaryName: "",
     programName: "",
     convocatoria: "",
     destinationInstitution: "",
@@ -148,7 +145,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     resolutionYear: new Date().getFullYear().toString()
   });
 
-  // Estados locales para la lógica de visualización
   const [signingDay, setSigningDay] = useState("");
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
@@ -188,6 +184,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   }, [user, adminDoc, isUserLoading, isAdminLoading, mounted, router]);
 
+  const formatTitle = (text: string) => {
+    return text
+      .split(' ')
+      .filter(Boolean)
+      .map(word => {
+        if (word.length > 0 && word === word.toUpperCase()) {
+          return word;
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docRef) return;
@@ -204,8 +213,11 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       finalDate = approvalDate.toISOString().split('T')[0];
     }
 
+    const formattedTitle = formatTitle(formData.title);
+
     const updateData: any = {
       ...formData,
+      title: formattedTitle,
       authors: authorsArr,
       date: finalDate,
       updatedAt: new Date().toISOString(),
@@ -217,7 +229,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
     updateDocumentNonBlocking(docRef, updateData);
 
-    toast({ title: "Cambios guardados", description: "Los metadatos han sido actualizados." });
+    toast({ title: "Cambios guardados", description: "Los datos institucionales han sido actualizados." });
     setTimeout(() => router.push(`/documents/${resolvedParams.id}`), 1000);
   };
 
@@ -265,7 +277,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">Editar</h1>
-              <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] mt-1">Corrección de registro institucional</p>
+              <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] mt-1">Gestión completa de registro institucional</p>
             </div>
           </div>
 
@@ -345,6 +357,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       />
                     </div>
                   )}
+
+                  {isProyecto && formData.extensionDocType === "Proyecto" && (
+                    <div className="md:col-span-2 space-y-4 pt-4 border-t border-dashed">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Objetivo General</Label>
+                        <Textarea 
+                          value={formData.objetivoGeneral}
+                          onChange={(e) => setFormData({...formData, objetivoGeneral: e.target.value})}
+                          className="min-h-[100px] rounded-xl bg-primary/5 border-primary/20 font-medium"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-8 border-t border-dashed flex flex-col md:flex-row items-center justify-between gap-4">
@@ -354,6 +379,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   <Button 
                     className="w-full md:w-auto h-14 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px]"
                     disabled={isSaving}
+                    onClick={handleSubmit}
                   >
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Cambios</span>}
                   </Button>
