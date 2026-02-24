@@ -466,39 +466,6 @@ export default function UploadPage() {
                 )}
 
                 <div className="space-y-3 col-span-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
-                      onClick={handleAiSummarize}
-                      disabled={isSummarizing || (!file && !externalUrl)}
-                    >
-                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      Analizar Documento con IA
-                    </Button>
-                  </div>
-                  {aiError && (
-                    <Alert variant="destructive" className="mb-4 rounded-xl">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Fallo en IA</AlertTitle>
-                      <AlertDescription className="text-[11px] font-bold">
-                        {aiError}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <Textarea 
-                    id="description" 
-                    placeholder="Escriba manualmente el resumen o use el botón de IA una vez adjuntada la documentación al final..." 
-                    className="min-h-[140px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-3 col-span-2">
                   <Label htmlFor="keywords" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Etiquetas / Palabras Clave</Label>
                   <div className="flex gap-2">
                     <Input 
@@ -526,14 +493,14 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {/* PASO 3: ORIGEN DEL CONTENIDO / DOCUMENTACIÓN RESPALDATORIA */}
+            {/* PASO 3: DOCUMENTACIÓN Y ANÁLISIS */}
             <section className={`transition-opacity duration-300 ${title ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-primary/20 text-primary p-2 rounded-none">
                   <Badge className="bg-transparent border-none p-0 text-lg font-bold text-primary">3</Badge>
                 </div>
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">
-                  {isSpecialType ? 'Documentación Respaldatoria' : 'Origen del Contenido'}
+                  Documentación y Análisis
                 </h2>
               </div>
 
@@ -546,70 +513,110 @@ export default function UploadPage() {
                 </div>
               )}
 
-              <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
-                  <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
-                  </TabsTrigger>
-                  <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-                    <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
-                  </TabsTrigger>
-                </TabsList>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div className="space-y-6">
+                  <Tabs defaultValue="file" value={uploadMethod} onValueChange={setUploadMethod} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 h-14 rounded-2xl bg-muted/50 p-1 mb-6">
+                      <TabsTrigger value="file" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                        <FileUp className="w-4 h-4" /> Archivo (Solo PDF)
+                      </TabsTrigger>
+                      <TabsTrigger value="url" className="rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
+                        <LinkIcon className="w-4 h-4" /> Enlace Externo (URL)
+                      </TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="file" className="mt-0">
-                  <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
-                    {file ? (
-                      <div className="flex flex-col items-center gap-3 text-center">
-                        <div className="bg-primary/20 p-4 rounded-full">
-                          <FileText className="w-12 h-12 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
-                          <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
-                          <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="bg-primary/10 p-4 rounded-full mb-4">
-                          <Upload className="w-10 h-10 text-primary" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Documentación</p>
-                          <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Formato PDF (Máx 20MB)</p>
-                          <Label htmlFor="file-upload" className="cursor-pointer">
-                            <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                              Seleccionar Archivo
+                    <TabsContent value="file" className="mt-0">
+                      <div className={`relative border-2 border-dashed rounded-[2rem] p-10 flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary hover:bg-muted/30'}`}>
+                        {file ? (
+                          <div className="flex flex-col items-center gap-3 text-center">
+                            <div className="bg-primary/20 p-4 rounded-full">
+                              <FileText className="w-12 h-12 text-primary" />
                             </div>
-                            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
-                          </Label>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </TabsContent>
+                            <div>
+                              <p className="font-black text-lg uppercase truncate max-w-[300px]">{file.name}</p>
+                              <p className="text-xs font-bold text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="rounded-xl mt-2 text-destructive font-bold uppercase tracking-widest text-[10px]">
+                              <X className="w-4 h-4 mr-2" /> Eliminar y Cambiar
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="bg-primary/10 p-4 rounded-full mb-4">
+                              <Upload className="w-10 h-10 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xl font-black mb-1 uppercase tracking-tight">Subir Documentación</p>
+                              <p className="text-muted-foreground text-xs font-bold mb-6 uppercase tracking-widest">Formato PDF (Máx 20MB)</p>
+                              <Label htmlFor="file-upload" className="cursor-pointer">
+                                <div className="bg-primary text-primary-foreground px-10 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                                  Seleccionar Archivo
+                                </div>
+                                <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                              </Label>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </TabsContent>
 
-                <TabsContent value="url" className="mt-0">
-                  <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
-                    <div className="flex items-center gap-3 text-primary mb-2">
-                      <LinkIcon className="w-6 h-6" />
-                      <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="external-url" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Dirección URL del documento</Label>
-                      <Input 
-                        id="external-url"
-                        placeholder="https://docs.google.com/... o https://sitio.com/archivo.pdf"
-                        className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold"
-                        value={externalUrl}
-                        onChange={(e) => setExternalUrl(e.target.value)}
-                      />
-                    </div>
+                    <TabsContent value="url" className="mt-0">
+                      <div className="bg-muted/30 p-8 rounded-[2rem] border-2 border-dashed border-muted-foreground/20 space-y-4">
+                        <div className="flex items-center gap-3 text-primary mb-2">
+                          <LinkIcon className="w-6 h-6" />
+                          <p className="font-black uppercase tracking-tight text-lg">Vincular Recurso Externo</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="external-url" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Dirección URL del documento</Label>
+                          <Input 
+                            id="external-url"
+                            placeholder="https://docs.google.com/... o https://sitio.com/archivo.pdf"
+                            className="h-12 rounded-xl border-muted-foreground/20 bg-white font-bold"
+                            value={externalUrl}
+                            onChange={(e) => setExternalUrl(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resumen del Contenido</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg gap-2 border-primary/20 text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5"
+                      onClick={handleAiSummarize}
+                      disabled={isSummarizing || (!file && !externalUrl)}
+                    >
+                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      Analizar con IA
+                    </Button>
                   </div>
-                </TabsContent>
-              </Tabs>
+                  {aiError && (
+                    <Alert variant="destructive" className="mb-4 rounded-xl">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Fallo en IA</AlertTitle>
+                      <AlertDescription className="text-[11px] font-bold">
+                        {aiError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  <Textarea 
+                    id="description" 
+                    placeholder="El resumen se generará automáticamente tras subir el documento y presionar el botón de IA..." 
+                    className="min-h-[180px] rounded-2xl border-muted-foreground/20 bg-muted/20 font-medium p-4 leading-relaxed" 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight italic">
+                    * El análisis de IA utiliza Gemini 2.5 Flash para interpretar el contenido visual del archivo.
+                  </p>
+                </div>
+              </div>
 
               {/* BOTONES DE ACCIÓN AL FINAL DEL PASO 3 */}
               <div className="flex flex-col md:flex-row items-center justify-end gap-4 mt-12 pt-8 border-t border-dashed">
