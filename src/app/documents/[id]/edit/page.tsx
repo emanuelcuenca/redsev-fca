@@ -4,39 +4,15 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { 
-  Upload, 
-  X, 
-  FileText, 
-  Plus, 
   Save, 
   ArrowLeft,
   Loader2,
-  Building2,
-  Calendar as CalendarIcon,
-  ScrollText,
-  GraduationCap,
-  FileUp,
-  Clock,
-  Sparkles,
-  AlertCircle,
-  Link as LinkIcon,
-  Plane,
-  Handshake,
-  User,
-  BookOpen,
-  ClipboardList,
-  UserCheck,
-  Timer,
-  ArrowLeftRight,
-  Fingerprint,
-  ChevronDown,
-  MapPin,
-  Globe,
-  Landmark,
-  ListTodo,
-  CheckCircle2,
+  Pencil,
   RotateCcw,
-  Pencil
+  UserCheck,
+  ListTodo,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -52,17 +28,11 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { AgriculturalDocument } from "@/lib/mock-data";
 
 const MONTHS = [
@@ -83,8 +53,6 @@ const CONVENIO_CATEGORIES = [
   "Movilidad estudiantil",
   "Prácticas/Pasantías"
 ].sort();
-
-const RESOLUTION_TYPES = ["CD", "CS", "Decanal", "Ministerial", "Rectoral", "SEU"].sort();
 
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -122,7 +90,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     counterpart: "",
     convenioSubType: "Marco",
     convenioCategory: "",
-    convenioCategoryOther: "",
     hasInstitutionalResponsible: false,
     beneficiaryName: "",
     programName: "",
@@ -148,7 +115,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [signingDay, setSigningDay] = useState("");
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
-  const [approvalDate, setApprovalDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (docData) {
@@ -170,7 +136,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningDay(d.getDate().toString());
         setSigningMonth(MONTHS[d.getMonth()]);
         setSigningYearSelect(d.getFullYear().toString());
-        setApprovalDate(d);
       }
     }
   }, [docData]);
@@ -185,13 +150,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   }, [user, adminDoc, isUserLoading, isAdminLoading, mounted, router]);
 
   const formatTitle = (text: string) => {
+    if (!text) return "";
     return text
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length > 0 && word === word.toUpperCase()) {
+        // Si la palabra es puramente mayúsculas (y tiene más de 1 letra), la dejamos igual para siglas
+        if (word.length > 1 && word === word.toUpperCase()) {
           return word;
         }
+        // De lo contrario, capitalizamos la primera y minúsculas el resto
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');
@@ -203,14 +171,14 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
     setIsSaving(true);
     
-    const authorsArr = formData.authors.split(',').map((a: string) => a.trim()).filter(Boolean);
+    const authorsArr = typeof formData.authors === 'string' 
+      ? formData.authors.split(',').map((a: string) => a.trim()).filter(Boolean)
+      : formData.authors;
     
     let finalDate = formData.date;
-    if (formData.type === "Convenio") {
+    if (formData.type === "Convenio" && signingDay && signingMonth && signingYearSelect) {
       const monthIdx = MONTHS.indexOf(signingMonth) + 1;
       finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
-    } else if (approvalDate) {
-      finalDate = approvalDate.toISOString().split('T')[0];
     }
 
     const formattedTitle = formatTitle(formData.title);
@@ -229,7 +197,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
     updateDocumentNonBlocking(docRef, updateData);
 
-    toast({ title: "Cambios guardados", description: "Los datos institucionales han sido actualizados." });
+    toast({ title: "Registro actualizado", description: "Los cambios se guardaron correctamente." });
     setTimeout(() => router.push(`/documents/${resolvedParams.id}`), 1000);
   };
 
@@ -241,11 +209,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  if (!docData) return null;
-
-  const isProyecto = formData.type === "Proyecto";
   const isConvenio = formData.type === "Convenio";
-  const isResolution = formData.type === "Resolución" || formData.extensionDocType === "Resolución de aprobación";
+  const isProyecto = formData.type === "Proyecto";
+  const isPasantia = formData.type === "Pasantía";
+  const isMovilidad = formData.type === "Movilidad";
 
   return (
     <SidebarProvider>
@@ -257,12 +224,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
-                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
-              </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
-                FCA - UNCA
-              </span>
+              <span className="text-[12px] md:text-2xl font-headline text-primary uppercase tracking-tighter">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] md:text-2xl font-headline text-black uppercase tracking-tighter">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -272,21 +235,20 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
           <div className="flex items-center gap-3 mb-8">
-            <div className="bg-primary/10 p-2.5 rounded-xl">
-              <Pencil className="w-6 h-6 text-primary" />
-            </div>
+            <div className="bg-primary/10 p-2.5 rounded-xl text-primary"><Pencil className="w-6 h-6" /></div>
             <div>
               <h1 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">Editar</h1>
-              <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] mt-1">Gestión completa de registro institucional</p>
+              <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Gestión total de metadatos institucionales</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm">
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white overflow-hidden">
               <CardContent className="p-8 space-y-8">
+                {/* CAMPOS COMUNES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Título del Registro</Label>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
                     <Input 
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -303,6 +265,18 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           onChange={(e) => setFormData({...formData, counterpart: e.target.value})}
                           className="h-12 rounded-xl border-muted-foreground/20 font-bold"
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Área de Aplicación</Label>
+                        <Select value={formData.convenioCategory} onValueChange={(v) => setFormData({...formData, convenioCategory: v})}>
+                          <SelectTrigger className="h-12 rounded-xl font-bold">
+                            <SelectValue placeholder="Seleccione área" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CONVENIO_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            <SelectItem value="Otro...">Otro...</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Fecha de Firma</Label>
@@ -333,21 +307,56 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           </Select>
                         </div>
                       </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Duración (Años)</Label>
+                        <Input 
+                          type="number"
+                          value={formData.durationYears}
+                          onChange={(e) => setFormData({...formData, durationYears: e.target.value})}
+                          className="h-12 rounded-xl font-bold"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2 space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <div className="flex items-center gap-3">
+                            <RotateCcw className="w-5 h-5 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Renovación Automática</span>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={formData.hasAutomaticRenewal} 
+                            onCheckedChange={(v) => setFormData({...formData, hasAutomaticRenewal: v})} 
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                          <div className="flex items-center gap-3">
+                            <UserCheck className="w-5 h-5 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Responsable Institucional</span>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={formData.hasInstitutionalResponsible} 
+                            onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} 
+                          />
+                        </div>
+                      </div>
                     </>
                   )}
 
-                  {!isResolution && (
-                    <div className="md:col-span-2 space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Resumen / Descripción</Label>
-                      <Textarea 
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        className="min-h-[150px] rounded-xl bg-muted/20 font-medium"
-                      />
-                    </div>
-                  )}
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Resumen / Descripción</Label>
+                    <Textarea 
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      className="min-h-[150px] rounded-xl font-medium"
+                    />
+                  </div>
 
-                  {(isProyecto || isConvenio) && (
+                  {(isProyecto || isConvenio || isMovilidad || isPasantia) && (
                     <div className="md:col-span-2 space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Autores / Responsables (sep. por comas)</Label>
                       <Input 
@@ -358,8 +367,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {isProyecto && formData.extensionDocType === "Proyecto" && (
-                    <div className="md:col-span-2 space-y-4 pt-4 border-t border-dashed">
+                  {isProyecto && (
+                    <div className="md:col-span-2 space-y-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Objetivo General</Label>
                         <Textarea 
@@ -368,6 +377,45 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           className="min-h-[100px] rounded-xl bg-primary/5 border-primary/20 font-medium"
                         />
                       </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                        <div className="flex items-center gap-3">
+                          <ListTodo className="w-5 h-5 text-primary" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Objetivos Específicos</span>
+                        </div>
+                        <Switch 
+                          checked={formData.hasSpecificObjectives} 
+                          onCheckedChange={(v) => setFormData({...formData, hasSpecificObjectives: v})} 
+                        />
+                      </div>
+
+                      {formData.hasSpecificObjectives && (
+                        <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                          {formData.specificObjectives?.map((obj: string, i: number) => (
+                            <div key={i} className="flex gap-2">
+                              <Input 
+                                value={obj}
+                                onChange={(e) => {
+                                  const newObj = [...formData.specificObjectives];
+                                  newObj[i] = e.target.value;
+                                  setFormData({...formData, specificObjectives: newObj});
+                                }}
+                                className="h-10 rounded-xl"
+                                placeholder={`Objetivo ${i+1}`}
+                              />
+                            </div>
+                          ))}
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-primary font-bold text-[10px] uppercase"
+                            onClick={() => setFormData({...formData, specificObjectives: [...formData.specificObjectives, ""]})}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Agregar Objetivo
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -392,3 +440,4 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     </SidebarProvider>
   );
 }
+
