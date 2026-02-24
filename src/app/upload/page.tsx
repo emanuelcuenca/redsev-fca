@@ -13,9 +13,7 @@ import {
   GraduationCap,
   Plane,
   Handshake,
-  ArrowLeftRight,
-  RotateCcw,
-  UserCheck
+  ArrowLeftRight
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -34,8 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, where, getCountFromServer } from "firebase/firestore";
-import { cn } from "@/lib/utils";
+import { collection } from "firebase/firestore";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -53,11 +50,14 @@ export default function UploadPage() {
   const [type, setType] = useState("");
   const [title, setTitle] = useState("");
   const [authors, setAuthors] = useState("");
+  const [description, setDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [durationYears, setDurationYears] = useState("1");
   const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
   const [counterparts, setCounterparts] = useState([""]);
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
+  const [projectCode, setProjectCode] = useState("");
+  const [executionPeriod, setExecutionPeriod] = useState("");
   const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
@@ -68,7 +68,7 @@ export default function UploadPage() {
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length >= 2 && word.length <= 5 && word === word.toUpperCase()) {
+        if (word.length >= 2 && word === word.toUpperCase()) {
           return word;
         }
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -81,7 +81,6 @@ export default function UploadPage() {
     if (!user || !type) return;
 
     setIsSaving(true);
-    const currentYear = new Date().getFullYear();
     const monthIdx = MONTHS.indexOf(signingMonth) + 1;
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
@@ -91,6 +90,7 @@ export default function UploadPage() {
       date: finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
+      description,
       fileUrl: "#",
       fileType: "application/pdf"
     };
@@ -103,12 +103,16 @@ export default function UploadPage() {
       documentData.counterpart = filteredCp.join(", ");
       documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
       documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
+    } else {
+      documentData.authors = authors.split(',').map(a => a.trim()).filter(Boolean);
+      documentData.projectCode = projectCode;
+      documentData.executionPeriod = executionPeriod;
     }
 
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
-    toast({ title: "Registro almacenado" });
+    toast({ title: "Registro institucional almacenado" });
     setIsSaving(false);
-    router.push("/");
+    router.push("/documents");
   };
 
   return (
@@ -117,7 +121,7 @@ export default function UploadPage() {
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 text-center"><span className="font-headline font-bold text-primary uppercase">Cargar Registro</span></div>
+          <div className="flex-1 text-center"><span className="font-headline font-bold text-primary uppercase">Cargar Registro SEyV</span></div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
@@ -152,14 +156,29 @@ export default function UploadPage() {
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in">
                 <div className="space-y-8">
                   <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                    <Input placeholder="Ej: Acuerdo de Cooperación..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label>
+                    <Input placeholder="Ej: Acuerdo de Cooperación Técnica..." className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Aprobación</Label>
+                      <div className="grid grid-cols-3 gap-1">
+                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (sep. por coma)</Label>
+                      <Input placeholder="Dr. Mario Rojas, Lic. Ana Gómez" className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
+                    </div>
                   </div>
 
                   {type === "Convenio" && (
                     <>
                       <div className="space-y-4">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes</Label>
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Contrapartes Institucionales</Label>
                         <div className="space-y-3">
                           {counterparts.map((cp, i) => (
                             <div key={i} className="flex gap-2">
@@ -168,50 +187,54 @@ export default function UploadPage() {
                                 newCp[i] = e.target.value;
                                 setCounterparts(newCp);
                               }} required={i === 0} />
-                              <Button type="button" variant="ghost" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
+                              <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl" onClick={() => setCounterparts(counterparts.filter((_, idx) => idx !== i))}><X className="w-5 h-5 text-destructive" /></Button>
                             </div>
                           ))}
-                          <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar</Button>
+                          <Button type="button" variant="outline" className="rounded-xl text-[10px] font-black uppercase h-10 border-dashed" onClick={() => setCounterparts([...counterparts, ""])}><Plus className="w-4 h-4 mr-2" /> Agregar Institución</Button>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha de Firma</Label>
-                          <div className="grid grid-cols-3 gap-1">
-                            <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                            <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                            <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label>
                           <Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} />
                         </div>
+                        <div className="space-y-4 pt-6">
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
+                            <span className="font-black uppercase text-[10px] tracking-widest">Renovación Automática</span>
+                            <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
+                            <span className="font-black uppercase text-[10px] tracking-widest">Responsable Institucional</span>
+                            <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                          <span className="font-black uppercase text-[10px] tracking-widest">Renovación Automática</span>
-                          <Switch checked={hasAutomaticRenewal} onCheckedChange={setHasAutomaticRenewal} />
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border">
-                          <span className="font-black uppercase text-[10px] tracking-widest">Responsable Institucional</span>
-                          <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
-                        </div>
-                      </div>
-                      {hasInstitutionalResponsible && (
-                        <div className="space-y-2">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Responsables (separados por coma)</Label>
-                          <Input className="h-12 rounded-xl font-bold" value={authors} onChange={(e) => setAuthors(e.target.value)} />
-                        </div>
-                      )}
                     </>
                   )}
+
+                  {type !== "Convenio" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código de Proyecto / Expediente</Label>
+                        <Input placeholder="FCA-EXT-001-2024" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período de Ejecución</Label>
+                        <Input placeholder="2024-2025" className="h-12 rounded-xl font-bold" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                    <Textarea placeholder="Objetivos generales y alcance del registro..." className="min-h-[120px] rounded-xl font-medium" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-4 mt-12 pt-8 border-t border-dashed">
                   <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                  <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px]" disabled={isSaving}>
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar</span>}
+                  <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving}>
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}
                   </Button>
                 </div>
               </section>

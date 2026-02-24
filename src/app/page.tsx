@@ -21,7 +21,8 @@ import {
   UserPlus,
   ShieldCheck,
   AlertTriangle,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Fingerprint
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -50,7 +51,6 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
-  // REDIRECCIÓN ESTRICTA: Si no hay usuario y ya cargó, fuera.
   useEffect(() => {
     if (mounted && !isUserLoading && !user) {
       router.push('/login');
@@ -79,8 +79,6 @@ export default function Dashboard() {
   const { data: recentDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
   const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0].toUpperCase() || '');
-
-  // Verificar si faltan datos institucionales
   const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
 
   if (!mounted || isUserLoading) {
@@ -91,7 +89,6 @@ export default function Dashboard() {
     );
   }
 
-  // SI NO HAY USUARIO, BLOQUEO TOTAL DE RENDERIZADO
   if (!user) return null;
 
   return (
@@ -126,7 +123,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h4 className="font-headline font-black uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
-                  <p className="text-xs text-muted-foreground font-medium">Por favor, complete su cargo y dependencia para poder participar plenamente del sistema.</p>
+                  <p className="text-xs text-muted-foreground font-medium">Por favor, complete su cargo y dependencia para participar plenamente del sistema.</p>
                 </div>
               </div>
               <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl font-black uppercase tracking-widest text-[10px] px-6">
@@ -251,7 +248,7 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
           </Badge>
           <div className="text-primary/40"><FileText className="w-5 h-5" /></div>
         </div>
-        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2 uppercase">
+        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
           {document.title}
         </CardTitle>
         <CardDescription className="flex items-center gap-2 mt-3 font-black text-[10px] md:text-xs uppercase tracking-widest text-primary/70">
@@ -267,7 +264,7 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
         <div className="flex flex-wrap gap-1.5">
           {document.projectCode && (
             <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-primary/20 text-primary bg-primary/5">
-              {document.projectCode}
+              <Fingerprint className="w-3 h-3 mr-1" /> {document.projectCode}
             </Badge>
           )}
         </div>

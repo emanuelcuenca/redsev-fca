@@ -154,7 +154,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="flex items-center gap-3">
                   <div className="bg-primary/10 p-3 rounded-2xl">{getDocIcon()}</div>
                   <div>
-                    <h1 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight text-primary">{documentData.title}</h1>
+                    <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">{documentData.title}</h1>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.type}</Badge>
                       {isConvenio && (
@@ -166,22 +166,20 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                   </div>
                 </div>
-                {!isPasantia && (
-                  <Button className="rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-10 shadow-sm font-bold" variant="outline" asChild>
-                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer"><Eye className="w-4 h-4 mr-2" /> Ver PDF</a>
-                  </Button>
-                )}
+                <Button className="rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-10 shadow-sm font-bold" variant="outline" asChild>
+                  <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer"><Eye className="w-4 h-4 mr-2" /> Ver PDF</a>
+                </Button>
               </div>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                  <div className="space-y-6">
+              <div className="space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-6">
+                  <div className="space-y-8">
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Datos Principales</h3>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center gap-3">
                         <Calendar className="w-5 h-5 text-primary/60" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Fecha</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Fecha de Firma / Referencia</p>
                           <p className="font-bold text-sm">
                             {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
                           </p>
@@ -191,38 +189,60 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div className="flex items-center gap-3">
                           <User className="w-5 h-5 text-primary/60" />
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Responsables</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Responsables SEyV / Autores</p>
                             <p className="font-bold text-sm">{documentData.authors.join(', ')}</p>
                           </div>
                         </div>
                       )}
-                      {documentData.projectCode && (
+                      {(documentData.projectCode || documentData.executionPeriod) && (
                         <div className="flex items-center gap-3">
                           <Fingerprint className="w-5 h-5 text-primary/60" />
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Código Institucional</p>
-                            <p className="font-bold text-sm text-primary">{documentData.projectCode}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Identificación Institucional</p>
+                            <p className="font-bold text-sm text-primary">
+                              {documentData.projectCode || 'N/A'} {documentData.executionPeriod ? `| Período: ${documentData.executionPeriod}` : ''}
+                            </p>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Contrapartes</h3>
-                    <div className="space-y-4">
-                      {counterparts.length > 0 ? counterparts.map((cp, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <Building2 className="w-5 h-5 text-primary/60" />
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Institución {idx + 1}</p>
-                            <p className="font-bold text-sm">{cp}</p>
-                          </div>
+                  <div className="space-y-8">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Partes Intervinientes</h3>
+                    <div className="space-y-6">
+                      {counterparts.length > 0 ? (
+                        <div className="space-y-4">
+                          {counterparts.map((cp, idx) => (
+                            <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted">
+                              <Building2 className="w-5 h-5 text-primary/60" />
+                              <div className="overflow-hidden">
+                                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate">Institución Contraparte</p>
+                                <p className="font-bold text-sm truncate">{cp}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      )) : <p className="text-sm font-bold text-muted-foreground">No registradas</p>}
+                      ) : (
+                        <div className="flex items-center gap-3 opacity-50">
+                          <Building2 className="w-5 h-5 text-muted-foreground" />
+                          <p className="text-sm font-bold text-muted-foreground italic">No hay contrapartes registradas</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+
+                {documentData.description && (
+                  <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" /> Descripción y Objetivos
+                    </h3>
+                    <p className="text-sm leading-relaxed font-medium text-muted-foreground whitespace-pre-wrap">
+                      {documentData.description}
+                    </p>
+                  </div>
+                )}
               </div>
             </section>
           </div>
