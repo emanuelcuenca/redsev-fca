@@ -14,7 +14,8 @@ export interface AgriculturalDocument {
   isVigente?: boolean;
   signingYear?: number;
   counterpart?: string;
-  convenioSubType?: 'Marco' | 'Específico' | 'Pasantía';
+  convenioSubType?: 'Marco' | 'Específico' | 'Práctica/Pasantía';
+  hasInstitutionalResponsible?: boolean;
   // Campos específicos para Movilidad y Pasantías
   beneficiaryName?: string;
   programName?: string;
@@ -29,13 +30,14 @@ export const MOCK_DOCUMENTS: AgriculturalDocument[] = [
     type: 'Convenio',
     date: '2024-01-15',
     uploadDate: '2024-01-15T10:00:00Z',
-    authors: ['Dr. Mario Rojas', 'Dra. Elena Gómez'],
+    authors: ['Dr. Mario Rojas'],
     keywords: ['Suelo', 'Fertilidad', 'Convenio'],
     description: 'Este documento establece las bases para la cooperación técnica en la mejora de la fertilidad de los suelos en la región andina.',
     isVigente: true,
     signingYear: 2024,
     counterpart: 'INTA',
-    convenioSubType: 'Marco'
+    convenioSubType: 'Marco',
+    hasInstitutionalResponsible: true
   },
   {
     id: '3',

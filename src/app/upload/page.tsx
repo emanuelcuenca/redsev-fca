@@ -24,7 +24,8 @@ import {
   Handshake,
   User,
   BookOpen,
-  ClipboardList
+  ClipboardList,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -68,11 +69,11 @@ export default function UploadPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  // Campos específicos
+  // Campos específicos Convenio
   const [isVigente, setIsVigente] = useState(true);
-  const [signingYear, setSigningYear] = useState(new Date().getFullYear().toString());
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
+  const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   
   // Campos para Movilidad y Pasantía
   const [beneficiaryName, setBeneficiaryName] = useState("");
@@ -176,7 +177,7 @@ export default function UploadPage() {
       title: formattedTitle,
       type,
       date,
-      authors: authors.split(',').map(a => a.trim()).filter(Boolean),
+      authors: hasInstitutionalResponsible ? authors.split(',').map(a => a.trim()).filter(Boolean) : [],
       description,
       keywords,
       uploadDate: new Date().toISOString(),
@@ -188,9 +189,12 @@ export default function UploadPage() {
 
     if (type === "Convenio") {
       documentData.isVigente = isVigente;
-      documentData.signingYear = parseInt(signingYear);
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
+      documentData.hasInstitutionalResponsible = hasInstitutionalResponsible;
+      if (date) {
+        documentData.signingYear = new Date(date).getFullYear();
+      }
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -324,21 +328,21 @@ export default function UploadPage() {
                         <SelectContent>
                           <SelectItem value="Marco">Marco</SelectItem>
                           <SelectItem value="Específico">Específico</SelectItem>
-                          <SelectItem value="Pasantía">Pasantía</SelectItem>
+                          <SelectItem value="Práctica/Pasantía">Práctica/Pasantía</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-3">
-                      <Label htmlFor="signingYear" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5" /> Año de Firma
+                      <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Firma
                       </Label>
                       <Input 
-                        id="signingYear" 
-                        type="number"
+                        id="date" 
+                        type="date" 
                         className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
                         required={type === "Convenio"}
-                        value={signingYear}
-                        onChange={(e) => setSigningYear(e.target.value)}
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
                       />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-primary/10">
@@ -348,6 +352,33 @@ export default function UploadPage() {
                       </div>
                       <Switch checked={isVigente} onCheckedChange={setIsVigente} />
                     </div>
+                    
+                    <div className="col-span-2 flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 p-2 rounded-lg">
+                          <UserCheck className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-black uppercase text-[10px] tracking-widest text-primary">Responsable Institucional</span>
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase">¿El convenio tiene un responsable asignado?</span>
+                        </div>
+                      </div>
+                      <Switch checked={hasInstitutionalResponsible} onCheckedChange={setHasInstitutionalResponsible} />
+                    </div>
+
+                    {hasInstitutionalResponsible && (
+                      <div className="col-span-2 space-y-3 animate-in fade-in slide-in-from-top-2">
+                        <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Nombres de los Responsables (separados por coma)</Label>
+                        <Input 
+                          id="authors" 
+                          placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                          className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                          required={hasInstitutionalResponsible}
+                          value={authors}
+                          onChange={(e) => setAuthors(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -395,31 +426,35 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                <div className="space-y-3">
-                  <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                    <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
-                  </Label>
-                  <Input 
-                    id="date" 
-                    type="date" 
-                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                    required 
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </div>
+                {type !== "Convenio" && (
+                  <div className="space-y-3">
+                    <Label htmlFor="date" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                      <CalendarIcon className="w-3.5 h-3.5" /> Fecha de Registro
+                    </Label>
+                    <Input 
+                      id="date" 
+                      type="date" 
+                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                      required 
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                    />
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (separados por coma)</Label>
-                  <Input 
-                    id="authors" 
-                    placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
-                    className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
-                    required 
-                    value={authors}
-                    onChange={(e) => setAuthors(e.target.value)}
-                  />
-                </div>
+                {type !== "Convenio" && (
+                  <div className="space-y-3">
+                    <Label htmlFor="authors" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables (separados por coma)</Label>
+                    <Input 
+                      id="authors" 
+                      placeholder="Ej: Dr. Gómez, Ing. Pérez..." 
+                      className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
+                      required 
+                      value={authors}
+                      onChange={(e) => setAuthors(e.target.value)}
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-3 col-span-2">
                   <div className="flex items-center justify-between">

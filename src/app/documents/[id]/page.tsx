@@ -21,7 +21,8 @@ import {
   BookOpen,
   ClipboardList,
   GraduationCap,
-  Plane
+  Plane,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -105,6 +106,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   }
 
   const displayDate = documentData.date || documentData.uploadDate;
+  const isConvenio = documentData.type === 'Convenio';
 
   return (
     <SidebarProvider>
@@ -193,14 +195,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        {documentData.type === 'Convenio' ? <Handshake className="w-4 h-4 md:w-5 h-5 text-primary" /> : <FileText className="w-4 h-4 md:w-5 h-5 text-primary" />}
+                        {isConvenio ? <Handshake className="w-4 h-4 md:w-5 h-5 text-primary" /> : <FileText className="w-4 h-4 md:w-5 h-5 text-primary" />}
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Registro</p>
                         <p className="font-semibold text-sm md:text-base">{documentData.type}</p>
                       </div>
                     </div>
-                    {documentData.type === 'Convenio' && (
+                    {isConvenio && (
                       <div className="flex items-start gap-3 md:gap-4">
                         <div className="bg-secondary p-2 rounded-lg shrink-0">
                           <Building2 className="w-4 h-4 md:w-5 h-5 text-primary" />
@@ -216,7 +218,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <Calendar className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha de Registro</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">{isConvenio ? 'Fecha de Firma' : 'Fecha de Registro'}</p>
                         <p className="font-semibold text-sm md:text-base">
                           {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}
                         </p>
@@ -226,11 +228,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <User className="w-4 h-4 md:w-5 h-5 text-primary" />
+                        {isConvenio && documentData.hasInstitutionalResponsible ? <UserCheck className="w-4 h-4 md:w-5 h-5 text-primary" /> : <User className="w-4 h-4 md:w-5 h-5 text-primary" />}
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Responsables</p>
-                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || 'Secretaría de Extensión'}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Responsables {isConvenio && "(Seguimiento)"}</p>
+                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || (isConvenio ? 'Sin responsable asignado' : 'Secretaría de Extensión')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 md:gap-4">
