@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -14,7 +15,13 @@ import {
   Tag,
   Loader2,
   FileText,
-  Eye
+  Eye,
+  Handshake,
+  Building2,
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+  Plane
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -133,6 +140,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <h2 className="text-xl md:text-2xl font-headline font-bold flex items-center gap-2 uppercase tracking-tight">
                     <Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Visualización
                   </h2>
+                  <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
+                    {documentData.type}
+                  </Badge>
                 </div>
                 <div className="relative aspect-[3/4] w-full bg-muted rounded-2xl md:rounded-3xl overflow-hidden border-2 border-muted shadow-lg">
                   <Image 
@@ -145,10 +155,37 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 text-white p-4 md:p-6 backdrop-blur-md bg-white/10 rounded-xl md:rounded-2xl border border-white/20">
                     <h3 className="text-lg md:text-xl font-headline font-bold mb-1 md:mb-2 line-clamp-2 uppercase">{documentData.title}</h3>
-                    <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{documentData.content || documentData.description || 'Sin contenido de previsualización disponible.'}</p>
+                    <p className="text-xs md:text-sm opacity-90 line-clamp-2 md:line-clamp-3 leading-relaxed">{documentData.description || 'Sin contenido de previsualización disponible.'}</p>
                   </div>
                 </div>
               </section>
+
+              {/* Información específica para Movilidad / Pasantía */}
+              {(documentData.type === "Movilidad" || documentData.type === "Pasantía") && (
+                <section className="bg-primary/5 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-primary/20 space-y-6">
+                  <div className="flex items-center gap-3">
+                    {documentData.type === "Movilidad" ? <Plane className="w-6 h-6 text-primary" /> : <GraduationCap className="w-6 h-6 text-primary" />}
+                    <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Detalles del Beneficiario</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Nombre del Beneficiario / Pasante</p>
+                      <p className="font-bold text-lg text-primary">{documentData.beneficiaryName || 'No registrado'}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Programa Institucional</p>
+                      <p className="font-bold text-lg">{documentData.programName || 'No registrado'}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border md:col-span-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">Convocatoria Correspondiente</p>
+                      <p className="font-bold text-lg flex items-center gap-2">
+                        <ClipboardList className="w-5 h-5 text-primary" />
+                        {documentData.convocatoria || 'No especificada'}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               <section className="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-muted space-y-4 md:space-y-6">
                 <h2 className="text-xl md:text-2xl font-headline font-bold uppercase tracking-tight">Metadatos Oficiales</h2>
@@ -156,19 +193,30 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="space-y-4">
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
-                        <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                        {documentData.type === 'Convenio' ? <Handshake className="w-4 h-4 md:w-5 h-5 text-primary" /> : <FileText className="w-4 h-4 md:w-5 h-5 text-primary" />}
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Documento</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Tipo de Registro</p>
                         <p className="font-semibold text-sm md:text-base">{documentData.type}</p>
                       </div>
                     </div>
+                    {documentData.type === 'Convenio' && (
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className="bg-secondary p-2 rounded-lg shrink-0">
+                          <Building2 className="w-4 h-4 md:w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Contraparte</p>
+                          <p className="font-semibold text-sm md:text-base">{documentData.counterpart || 'N/A'}</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-start gap-3 md:gap-4">
                       <div className="bg-secondary p-2 rounded-lg shrink-0">
                         <Calendar className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha de Firma / Registro</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Fecha de Registro</p>
                         <p className="font-semibold text-sm md:text-base">
                           {mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}
                         </p>
@@ -181,8 +229,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <User className="w-4 h-4 md:w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Autores / Responsables</p>
-                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || 'Personal de Secretaría'}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">Responsables</p>
+                        <p className="font-semibold text-sm md:text-base truncate max-w-[200px] md:max-w-xs">{documentData.authors?.join(', ') || 'Secretaría de Extensión'}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 md:gap-4">
@@ -209,11 +257,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="flex items-center gap-2 text-primary-foreground/90 font-headline font-bold uppercase tracking-wider text-[10px] mb-1">
                     <Sparkles className="w-3.5 h-3.5" /> Inteligencia Artificial
                   </div>
-                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold uppercase">Resumen</CardTitle>
+                  <CardTitle className="text-2xl md:text-3xl font-headline font-bold uppercase">Análisis Smart</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 pt-0">
                   <p className="text-primary-foreground/80 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
-                    Extraiga conclusiones clave instantáneamente con Gemini 2.5 Flash.
+                    Genere un resumen ejecutivo y extraiga los puntos clave con Gemini 2.5 Flash.
                   </p>
                   
                   {summary ? (
@@ -238,7 +286,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       {isSummarizing ? (
                         <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
                       ) : (
-                        <span className="flex items-center gap-2">Generar <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" /></span>
+                        <span className="flex items-center gap-2">Analizar Documento <Sparkles className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" /></span>
                       )}
                     </Button>
                   )}
@@ -246,24 +294,20 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </Card>
 
               <section className="bg-secondary/30 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-secondary space-y-4 md:space-y-6">
-                <h3 className="text-lg md:text-xl font-headline font-bold text-primary uppercase tracking-tight">Información de Sistema</h3>
-                <ul className="space-y-3 md:space-y-4">
-                  <li className="flex items-center justify-between group text-xs md:text-sm">
-                    <span className="text-muted-foreground">ID del Registro</span>
-                    <span className="font-mono font-bold truncate ml-2 text-[10px]">{documentData.id}</span>
-                  </li>
-                  <li className="flex items-center justify-between group text-xs md:text-sm">
-                    <span className="text-muted-foreground">Proyecto Relacionado</span>
-                    <span className="font-bold text-right text-primary truncate ml-2">{documentData.project || 'Sin proyecto'}</span>
-                  </li>
-                  <li className="flex items-center justify-between group text-xs md:text-sm">
-                    <span className="text-muted-foreground">Estado Acceso</span>
-                    <Badge className="bg-green-600 text-white border-none text-[9px] md:text-[10px]">Público / SEyV</Badge>
-                  </li>
-                </ul>
+                <h3 className="text-lg md:text-xl font-headline font-bold text-primary uppercase tracking-tight">Acceso Rápido</h3>
+                <div className="space-y-3">
+                  <Button className="w-full rounded-xl bg-white text-primary border-primary/20 hover:bg-primary/5 h-12 shadow-sm font-bold" variant="outline" asChild>
+                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer">
+                      <Eye className="w-4 h-4 mr-2" /> Previsualizar PDF
+                    </a>
+                  </Button>
+                  <Button className="w-full rounded-xl h-12 font-bold" variant="default">
+                    <Download className="w-4 h-4 mr-2" /> Descargar Copia
+                  </Button>
+                </div>
                 <Separator className="bg-secondary" />
-                <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed italic">
-                  Documento digitalizado y resguardado por la Secretaría de Extensión y Vinculación FCA - UNCA.
+                <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed italic text-center">
+                  VínculoAgro - FCA UNCA<br/>Resguardo Digital Institucional
                 </p>
               </section>
             </div>

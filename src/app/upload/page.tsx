@@ -21,7 +21,10 @@ import {
   AlertCircle,
   Link as LinkIcon,
   Plane,
-  Handshake
+  Handshake,
+  User,
+  BookOpen,
+  ClipboardList
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -65,10 +68,16 @@ export default function UploadPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // Campos específicos
   const [isVigente, setIsVigente] = useState(true);
   const [signingYear, setSigningYear] = useState(new Date().getFullYear().toString());
   const [counterpart, setCounterpart] = useState("");
   const [convenioSubType, setConvenioSubType] = useState("Marco");
+  
+  // Campos para Movilidad y Pasantía
+  const [beneficiaryName, setBeneficiaryName] = useState("");
+  const [programName, setProgramName] = useState("");
+  const [convocatoria, setConvocatoria] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -160,7 +169,6 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    // Formateo de título: Mayúscula inicial, resto tal cual se escribió.
     const trimmedTitle = title.trim();
     const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
 
@@ -183,6 +191,12 @@ export default function UploadPage() {
       documentData.signingYear = parseInt(signingYear);
       documentData.counterpart = counterpart;
       documentData.convenioSubType = convenioSubType;
+    }
+
+    if (type === "Movilidad" || type === "Pasantía") {
+      documentData.beneficiaryName = beneficiaryName;
+      documentData.programName = programName;
+      documentData.convocatoria = convocatoria;
     }
 
     addDocumentNonBlocking(collection(db, 'documents'), documentData);
@@ -403,6 +417,50 @@ export default function UploadPage() {
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">{isVigente ? 'Vigente' : 'No Vigente'}</span>
                       </div>
                       <Switch checked={isVigente} onCheckedChange={setIsVigente} />
+                    </div>
+                  </div>
+                )}
+
+                {(type === "Movilidad" || type === "Pasantía") && (
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
+                    <div className="space-y-3">
+                      <Label htmlFor="beneficiary" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <User className="w-3.5 h-3.5" /> Nombre del Beneficiario / Pasante
+                      </Label>
+                      <Input 
+                        id="beneficiary" 
+                        placeholder="Ej: Juan Pérez" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Movilidad" || type === "Pasantía"}
+                        value={beneficiaryName}
+                        onChange={(e) => setBeneficiaryName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="program" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <BookOpen className="w-3.5 h-3.5" /> Programa Institucional
+                      </Label>
+                      <Input 
+                        id="program" 
+                        placeholder="Ej: Programa de Intercambio ARFITEC" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Movilidad" || type === "Pasantía"}
+                        value={programName}
+                        onChange={(e) => setProgramName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-3 col-span-2">
+                      <Label htmlFor="convocatoria" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <ClipboardList className="w-3.5 h-3.5" /> Convocatoria / Año
+                      </Label>
+                      <Input 
+                        id="convocatoria" 
+                        placeholder="Ej: Convocatoria 2024 - 1er Cuatrimestre" 
+                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
+                        required={type === "Movilidad" || type === "Pasantía"}
+                        value={convocatoria}
+                        onChange={(e) => setConvocatoria(e.target.value)}
+                      />
                     </div>
                   </div>
                 )}
