@@ -49,7 +49,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -89,8 +89,6 @@ export default function UploadPage() {
   const [presentationDate, setPresentationDate] = useState("");
   const [reportPeriod, setReportPeriod] = useState("");
   const [executionPeriod, setExecutionPeriod] = useState("");
-  const [projectCode, setProjectCode] = useState("");
-  const [isProjectSearchLoading, setIsProjectSearchLoading] = useState(false);
 
   const resetForm = () => {
     setType("");
@@ -113,47 +111,7 @@ export default function UploadPage() {
     setPresentationDate("");
     setReportPeriod("");
     setExecutionPeriod("");
-    setProjectCode("");
     setAiError(null);
-  };
-
-  const handleProjectSearch = async () => {
-    if (!projectCode.trim()) return;
-    setIsProjectSearchLoading(true);
-    try {
-      const q = query(
-        collection(db, 'documents'), 
-        where('projectCode', '==', projectCode.trim()),
-        orderBy('uploadDate', 'desc'),
-        limit(1)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const data = querySnapshot.docs[0].data();
-        setTitle(data.title || "");
-        setAuthors(data.authors?.join(', ') || "");
-        setExecutionPeriod(data.executionPeriod || "");
-        toast({
-          title: "Proyecto encontrado",
-          description: "Los datos base se han cargado automáticamente.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Código no encontrado",
-          description: "No se encontraron proyectos previos con ese código.",
-        });
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error de búsqueda",
-        description: "Hubo un problema al consultar la base de datos.",
-      });
-    } finally {
-      setIsProjectSearchLoading(false);
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,16 +190,6 @@ export default function UploadPage() {
     setKeywords(keywords.filter(k => k !== tag));
   };
 
-  const generateProjectCode = async () => {
-    const year = new Date().getFullYear();
-    const prefix = `FCA-EXT-${year}`;
-    
-    // En un entorno real, consultaríamos el último correlativo en Firestore.
-    // Para este prototipo, generamos un correlativo aleatorio para simular la secuencia.
-    const sequence = Math.floor(100 + Math.random() * 899).toString();
-    return `${prefix}-${sequence}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -258,12 +206,6 @@ export default function UploadPage() {
     
     const trimmedTitle = title.trim();
     const formattedTitle = trimmedTitle.charAt(0).toUpperCase() + trimmedTitle.slice(1);
-
-    // Generar código si es un nuevo proyecto
-    let finalProjectCode = projectCode;
-    if (type === "Proyecto" && !finalProjectCode && extensionDocType === "Proyecto") {
-      finalProjectCode = await generateProjectCode();
-    }
 
     const documentData: any = {
       title: formattedTitle,
@@ -297,7 +239,6 @@ export default function UploadPage() {
       documentData.presentationDate = presentationDate;
       documentData.reportPeriod = reportPeriod;
       documentData.executionPeriod = executionPeriod;
-      documentData.projectCode = finalProjectCode;
     }
 
     if (type === "Movilidad" || type === "Pasantía") {
@@ -310,9 +251,7 @@ export default function UploadPage() {
 
     toast({
       title: "Documento almacenado",
-      description: finalProjectCode 
-        ? `El registro se guardó con el código: ${finalProjectCode}`
-        : "El registro ha sido creado exitosamente.",
+      description: "El registro ha sido creado exitosamente.",
     });
 
     setIsSaving(false);
@@ -403,37 +342,7 @@ export default function UploadPage() {
                 <h2 className="text-xl font-headline font-bold uppercase tracking-tight">Metadatos y Detalles</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-                {type === "Proyecto" && (
-                  <div className="col-span-2 space-y-3 p-4 bg-primary/5 rounded-xl border border-primary/10 mb-2">
-                    <Label htmlFor="projectCode" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5" /> Vincular a Proyecto Existente (Opcional)
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        id="projectCode" 
-                        placeholder="Ingrese código (ej: FCA-EXT-2024-001)" 
-                        className="h-12 rounded-xl border-primary/20 bg-white font-bold" 
-                        value={projectCode}
-                        onChange={(e) => setProjectCode(e.target.value)}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        className="h-12 px-6 rounded-xl border-primary/20 bg-white font-bold text-primary hover:bg-primary/5"
-                        onClick={handleProjectSearch}
-                        disabled={isProjectSearchLoading}
-                      >
-                        {isProjectSearchLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                        <span className="ml-2 hidden md:inline">Vincular</span>
-                      </Button>
-                    </div>
-                    <p className="text-[9px] text-muted-foreground font-medium px-1 italic">
-                      Si es un nuevo proyecto, deje este campo vacío y se generará un código automáticamente al finalizar.
-                    </p>
-                  </div>
-                )}
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 <div className="space-y-3 col-span-2">
                   <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
                   <Input 
@@ -533,7 +442,7 @@ export default function UploadPage() {
                 )}
 
                 {type === "Proyecto" && (
-                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10 items-end">
+                  <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-secondary/30 rounded-2xl border-2 border-primary/10">
                     <div className="space-y-3">
                       <Label htmlFor="extensionType" className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Documentación</Label>
                       <Select value={extensionDocType} onValueChange={setExtensionDocType}>
