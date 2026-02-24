@@ -239,6 +239,13 @@ export default function UploadPage() {
 
   const isSpecialType = type === "Movilidad" || type === "Pasantía";
 
+  const getPlaceholder = () => {
+    if (type === "Proyecto") return "Ej: Transición de sistema de producción convencional de vid a sistema de producción orgánica en Hualfín, Catamarca";
+    if (type === "Convenio") return "Ej: Convenio Marco de Cooperación Académica...";
+    if (isSpecialType) return `Ej: Registro de ${type} Estudiantil 2024...`;
+    return "Ingrese el título oficial del registro...";
+  };
+
   return (
     <SidebarProvider>
       <MainSidebar />
@@ -318,7 +325,7 @@ export default function UploadPage() {
                   <Label htmlFor="title" className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título Oficial del Registro</Label>
                   <Input 
                     id="title" 
-                    placeholder={isSpecialType ? "Ej: Registro de Movilidad Estudiantil 2024..." : "Ej: Convenio Marco de Cooperación Académica..."}
+                    placeholder={getPlaceholder()}
                     className="h-12 rounded-xl border-muted-foreground/20 bg-muted/20 font-bold" 
                     required 
                     value={title}
