@@ -5,12 +5,12 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Secretaría de Extensión y Vinculación FCA - UNCA',
-  description: 'Sistema de gestión de documentos para convenios y proyectos de extensión agraria de la Facultad de Ciencias Agrarias - UNCA.',
+  title: 'REDSEV FCA - Secretaría de Extensión y Vinculación',
+  description: 'Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'VínculoAgro',
+    title: 'REDSEV FCA',
   },
   formatDetection: {
     telephone: false,

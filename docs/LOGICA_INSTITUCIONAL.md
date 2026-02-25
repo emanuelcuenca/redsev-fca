@@ -1,5 +1,5 @@
 
-# Memoria de Lógica Institucional - VínculoAgro
+# Memoria de Lógica Institucional - REDSEV FCA
 
 Este documento detalla las reglas de negocio personalizadas implementadas en el sistema para asegurar la integridad de los datos de la Secretaría.
 

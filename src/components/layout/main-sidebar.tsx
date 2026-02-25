@@ -71,14 +71,14 @@ export function MainSidebar() {
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
         <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center border border-white/10">
-          <span className="font-black text-xl tracking-tighter">SEV</span>
+          <span className="font-black text-xl tracking-tighter">RS</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
           <span className="text-[13px] text-muted-foreground font-medium uppercase tracking-[0.1em] leading-tight">
-            Extensión y Vinculación
+            REDSEV
           </span>
         </div>
       </SidebarHeader>
@@ -135,7 +135,7 @@ export function MainSidebar() {
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <div className="px-4 py-2 text-[10px] text-muted-foreground font-bold italic group-data-[collapsible=icon]:hidden">
-              VínculoAgro v1.0
+              REDSEV FCA v1.0
             </div>
           </SidebarMenuItem>
         </SidebarMenu>

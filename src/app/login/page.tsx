@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 flex flex-col items-center">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="bg-primary w-20 h-20 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
-            <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
+            <span className="text-3xl font-black text-primary-foreground tracking-tighter">RS</span>
           </Link>
           <h1 className="text-sm md:text-base font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
           <p className="text-sm md:text-base font-headline text-black uppercase tracking-tighter text-center mt-1">
@@ -134,7 +134,7 @@ export default function LoginPage() {
         </Card>
         
         <p className="text-[10px] text-muted-foreground text-center mt-8 font-bold uppercase tracking-widest opacity-60">
-          VínculoAgro - FCA UNCA © {new Date().getFullYear()}
+          REDSEV FCA - UNCA © {new Date().getFullYear()}
         </p>
       </div>
     </div>
