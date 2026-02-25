@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -171,6 +170,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de {isPasantia ? 'Práctica/Pasantía' : 'Movilidad'}</p>
                           <p className="font-bold text-sm">Desde: {formatDateString(documentData.mobilityStartDate)}</p>
                           <p className="font-bold text-sm">Hasta: {formatDateString(documentData.mobilityEndDate)}</p>
+                        </div>
+                      </div>
+                    ) : isExtensionProyecto && documentData.executionStartDate ? (
+                       <div className="flex items-start gap-3">
+                        <Clock className="w-5 h-5 text-primary/60 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de Ejecución</p>
+                          <p className="font-bold text-sm">Desde: {formatDateString(documentData.executionStartDate)}</p>
+                          <p className="font-bold text-sm">Hasta: {formatDateString(documentData.executionEndDate)}</p>
                         </div>
                       </div>
                     ) : (

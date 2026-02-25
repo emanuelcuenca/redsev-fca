@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -24,7 +23,8 @@ import {
   GraduationCap,
   MapPin,
   Calendar,
-  ListTodo
+  ListTodo,
+  Clock
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -89,11 +89,18 @@ export default function UploadPage() {
   const [counterparts, setCounterparts] = useState([""]);
   const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   const [projectCode, setProjectCode] = useState("");
-  const [executionPeriod, setExecutionPeriod] = useState("");
   
   const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
+
+  // Período de ejecución para Proyectos de Extensión
+  const [execStartDay, setExecStartDay] = useState(new Date().getDate().toString());
+  const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [execStartYear, setExecStartYear] = useState(new Date().getFullYear().toString());
+  const [execEndDay, setExecEndDay] = useState(new Date().getDate().toString());
+  const [execEndMonth, setExecEndMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [execEndYear, setExecEndYear] = useState(new Date().getFullYear().toString());
 
   const [mobilityStartDay, setMobilityStartDay] = useState(new Date().getDate().toString());
   const [mobilityStartMonth, setMobilityStartMonth] = useState(MONTHS[new Date().getMonth()]);
@@ -229,6 +236,13 @@ export default function UploadPage() {
       documentData.authors = filteredTeam;
       documentData.objetivoGeneral = objetivoGeneral;
       documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
+      
+      if (extensionDocType === "Proyecto de Extensión") {
+        const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
+        const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
+        documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
+        documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+      }
     } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
@@ -331,7 +345,7 @@ export default function UploadPage() {
                       <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-4">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
                         <StaffAutocomplete onSelect={(s) => setDirector({ firstName: s.firstName, lastName: s.lastName })} label="Director" />
@@ -340,6 +354,32 @@ export default function UploadPage() {
                           <Input placeholder="Nombre" value={director.firstName} onChange={(e) => setDirector({...director, firstName: e.target.value})} className="h-10 rounded-lg font-bold" />
                         </div>
                       </div>
+
+                      {extensionDocType === "Proyecto de Extensión" && (
+                        <div className="space-y-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
+                            <Clock className="w-4 h-4" /> Período de Ejecución
+                          </Label>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
+                              <div className="grid grid-cols-3 gap-1">
+                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
+                              <div className="grid grid-cols-3 gap-1">
+                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-4 border-t pt-4">

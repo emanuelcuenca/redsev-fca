@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -19,7 +18,8 @@ import {
   FileText,
   Calendar,
   MapPin,
-  Building2
+  Building2,
+  Clock
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -97,6 +97,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     objetivoGeneral: "",
     objetivosEspecificos: [],
     executionPeriod: "",
+    executionStartDate: "",
+    executionEndDate: "",
     mobilityStartDate: "",
     mobilityEndDate: "",
     mobilityInstitution: "",
@@ -108,6 +110,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [signingDay, setSigningDay] = useState("");
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
+
+  const [execStartDay, setExecStartDay] = useState("");
+  const [execStartMonth, setExecStartMonth] = useState("");
+  const [execStartYear, setExecStartYear] = useState("");
+  const [execEndDay, setExecEndDay] = useState("");
+  const [execEndMonth, setExecEndMonth] = useState("");
+  const [execEndYear, setExecEndYear] = useState("");
 
   const [mobilityStartDay, setMobilityStartDay] = useState("");
   const [mobilityStartMonth, setMobilityStartMonth] = useState("");
@@ -137,6 +146,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningDay(d.getDate().toString());
         setSigningMonth(MONTHS[d.getMonth()]);
         setSigningYearSelect(d.getFullYear().toString());
+      }
+
+      if (docData.executionStartDate) {
+        const d = new Date(docData.executionStartDate);
+        setExecStartDay(d.getDate().toString());
+        setExecStartMonth(MONTHS[d.getMonth()]);
+        setExecStartYear(d.getFullYear().toString());
+      }
+      if (docData.executionEndDate) {
+        const d = new Date(docData.executionEndDate);
+        setExecEndDay(d.getDate().toString());
+        setExecEndMonth(MONTHS[d.getMonth()]);
+        setExecEndYear(d.getFullYear().toString());
       }
 
       if (docData.mobilityStartDate) {
@@ -224,6 +246,17 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
     }
 
+    let finalExecStart = formData.executionStartDate;
+    if (execStartDay && execStartMonth && execStartYear) {
+      const monthIdx = MONTHS.indexOf(execStartMonth) + 1;
+      finalExecStart = `${execStartYear}-${monthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
+    }
+    let finalExecEnd = formData.executionEndDate;
+    if (execEndDay && execEndMonth && execEndYear) {
+      const monthIdx = MONTHS.indexOf(execEndMonth) + 1;
+      finalExecEnd = `${execEndYear}-${monthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+    }
+
     let finalMobilityStart = formData.mobilityStartDate;
     if (mobilityStartDay && mobilityStartMonth && mobilityStartYear) {
       const monthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
@@ -244,7 +277,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       authors: filteredAuthors,
       director: { firstName: formatText(formData.director.firstName), lastName: formatText(formData.director.lastName) },
       student: { firstName: formatText(formData.student.firstName), lastName: formatText(formData.student.lastName) },
-      date: (formData.type === "Proyecto" && formData.extensionDocType === "Proyecto de Extensión") ? (formData.date || new Date().toISOString()) : finalDate,
+      date: (formData.type === "Proyecto") ? (formData.date || new Date().toISOString()) : finalDate,
+      executionStartDate: finalExecStart,
+      executionEndDate: finalExecEnd,
       mobilityStartDate: finalMobilityStart,
       mobilityEndDate: finalMobilityEnd,
       updatedAt: new Date().toISOString(),
@@ -346,11 +381,36 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
-                      <div className="space-y-4">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.director.firstName} onChange={(e) => setFormData({...formData, director: {...formData.director, firstName: e.target.value}})} />
-                          <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.director.firstName} onChange={(e) => setFormData({...formData, director: {...formData.director, firstName: e.target.value}})} />
+                            <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
+                          </div>
+                        </div>
+                        <div className="space-y-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
+                            <Clock className="w-4 h-4" /> Período de Ejecución
+                          </Label>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
+                              <div className="grid grid-cols-3 gap-1">
+                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
+                              <div className="grid grid-cols-3 gap-1">
+                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -374,7 +434,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   </div>
 
-                  {!isMobilityLike && !isExtensionProyecto && !isConvenio && (
+                  {!isMobilityLike && !isProyecto && !isConvenio && (
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
                       <div className="grid grid-cols-3 gap-1">
@@ -401,7 +461,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                 <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl text-destructive" onClick={() => setFormData({...formData, objetivosEspecificos: formData.objetivosEspecificos.filter((_: any, idx: number) => idx !== i)})}><X className="w-5 h-5" /></Button>
                               </div>
                             ))}
-                            <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setFormData({...formData, objetivosEspecificos: [...formData.objetivosEspecificos, ""]})}><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
+                            <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setObjetivosEspecificos([...formData.objetivosEspecificos, ""])}><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
                           </div>
                         )}
                       </div>
@@ -431,9 +491,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   {(isMobilityLike || !isProyecto) && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                      {!isMobilityLike && (
-                        <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label><Input value={formData.executionPeriod || ""} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                      )}
                     </div>
                   )}
                 </div>

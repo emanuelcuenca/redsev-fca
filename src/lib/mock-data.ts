@@ -1,4 +1,3 @@
-
 export interface PersonName {
   firstName: string;
   lastName: string;
@@ -34,6 +33,8 @@ export interface AgriculturalDocument {
   hasInstitutionalResponsible?: boolean;
   extensionDocType?: 'Proyecto de Extensión' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
   executionPeriod?: string;
+  executionStartDate?: string;
+  executionEndDate?: string;
   mobilityStartDate?: string;
   mobilityEndDate?: string;
   mobilityInstitution?: string;
