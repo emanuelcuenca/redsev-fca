@@ -20,7 +20,8 @@ import {
   Calendar,
   MapPin,
   Building2,
-  Clock
+  Clock,
+  Globe
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -43,6 +44,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from "firebase/firestore";
 import { AgriculturalDocument, PersonName } from "@/lib/mock-data";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -64,6 +66,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [fileDataUri, setFileDataUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [externalUrl, setExternalUrl] = useState("");
+  const [fileSourceMode, setFileMode] = useState<"upload" | "link">("upload");
 
   useEffect(() => {
     setMounted(true);
@@ -169,7 +173,15 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setMobilityEndYear(d.getFullYear().toString());
       }
 
-      if (docData.fileUrl && docData.fileUrl !== "#") setFileName("Documento actual");
+      if (docData.fileUrl && docData.fileUrl !== "#") {
+        if (docData.fileUrl.startsWith('http')) {
+          setExternalUrl(docData.fileUrl);
+          setFileMode('link');
+        } else {
+          setFileName("Documento actual");
+          setFileMode('upload');
+        }
+      }
     }
   }, [docData]);
 
@@ -184,11 +196,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   };
 
   const handleSummarize = async () => {
-    if (!fileDataUri && !docData?.fileUrl) return toast({ variant: "destructive", title: "Archivo requerido" });
+    const finalFileUrl = fileSourceMode === "upload" ? (fileDataUri || docData?.fileUrl) : externalUrl;
+    if (!finalFileUrl) return toast({ variant: "destructive", title: "Archivo o Enlace requerido" });
     setIsSummarizing(true);
     try {
       const result = await summarizeDocument({
-        documentMediaUri: fileDataUri || docData?.fileUrl,
+        documentMediaUri: finalFileUrl,
         documentContent: formData.title
       });
       if (result?.summary) {
@@ -272,7 +285,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       counterparts: Array.isArray(formData.counterparts) ? formData.counterparts.filter((c: string) => c.trim() !== "") : [],
       objetivosEspecificos: hasSpecificObjectives ? formData.objetivosEspecificos.filter((obj: string) => obj.trim() !== "") : [],
       durationYears: parseInt(formData.durationYears) || 1,
-      fileUrl: fileDataUri || formData.fileUrl
+      fileUrl: fileSourceMode === "upload" ? (fileDataUri || formData.fileUrl) : externalUrl
     };
 
     updateDocumentNonBlocking(docRef, updateData);
@@ -313,12 +326,14 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                 <CardTitle className="text-xl font-headline font-bold uppercase text-primary flex items-center gap-3"><Pencil className="w-5 h-5" /> Información General</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
+                {/* ... (All common form fields title, director, etc.) ... */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
                     <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="h-12 rounded-xl font-bold" />
                   </div>
 
+                  {/* Movilidad Docente specific */}
                   {isMobilityDocente && (
                     <div className="md:col-span-2 space-y-4 pt-4 border-t">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Beneficiario</Label>
@@ -335,6 +350,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Mobility generic logic */}
                   {isMobilityLike && (
                     <div className="md:col-span-2 space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
@@ -370,9 +386,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino</Label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label className="text-[9px] font-black uppercase text-muted-foreground">
-                              {formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}
-                            </Label>
+                            <Label className="text-[9px] font-black uppercase text-muted-foreground">{formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}</Label>
                             <Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" />
                           </div>
                           <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
@@ -382,6 +396,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Extension Project specific */}
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -393,9 +408,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           </div>
                         </div>
                         <div className="space-y-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
-                            <Clock className="w-4 h-4" /> Período de Ejecución
-                          </Label>
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Clock className="w-4 h-4" /> Período de Ejecución</Label>
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
@@ -419,6 +432,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Responsables */}
                   {!isMobilityDocente && (
                     <div className="md:col-span-2 space-y-4 border-t pt-4">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables"}</Label>
@@ -437,6 +451,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Date selection for non-special cases */}
                   {!isMobilityLike && !isProyecto && !isConvenio && (
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
@@ -448,6 +463,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Objectives for Extension */}
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-2">
@@ -471,6 +487,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Convenio specifics */}
                   {isConvenio && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-4">
@@ -491,6 +508,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
+                  {/* Project Code */}
                   {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && !isPasantia && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
@@ -498,23 +516,52 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
 
+                {/* File / Link section */}
                 <div className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6 mt-8">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
-                      {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Subir Archivo</span>}
-                    </Button>
-                    {fileName && (
-                      <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3 animate-in fade-in">
-                        <ScrollText className="w-5 h-5 text-primary/60" />
-                        <span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span>
+                  <Tabs defaultValue="upload" value={fileSourceMode} onValueChange={(v: any) => setFileMode(v)} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 h-12 rounded-xl bg-white border border-primary/10">
+                      <TabsTrigger value="upload" className="font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white h-full rounded-lg transition-all">
+                        <FileUp className="w-4 h-4 mr-2" /> Subir Archivo
+                      </TabsTrigger>
+                      <TabsTrigger value="link" className="font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white h-full rounded-lg transition-all">
+                        <Globe className="w-4 h-4 mr-2" /> Enlace Externo
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="upload" className="space-y-6">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
+                          {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Seleccionar Archivo</span>}
+                        </Button>
+                        {fileName && (
+                          <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3 animate-in fade-in">
+                            <ScrollText className="w-5 h-5 text-primary/60" />
+                            <span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </TabsContent>
+
+                    <TabsContent value="link" className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">URL del Documento (Drive, Dropbox, etc.)</Label>
+                        <div className="relative">
+                          <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                          <Input 
+                            placeholder="https://drive.google.com/..." 
+                            className="pl-11 h-14 rounded-xl font-bold bg-white border-primary/20" 
+                            value={externalUrl} 
+                            onChange={(e) => setExternalUrl(e.target.value)} 
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                   
                   <div className="pt-6 border-t border-primary/10">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
-                      <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (!fileDataUri && !docData?.fileUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 transition-all">
+                      <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (fileSourceMode === "upload" ? (!fileDataUri && !docData?.fileUrl) : !externalUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
                         {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
                       </Button>
                     </div>

@@ -27,7 +27,8 @@ import {
   ListTodo,
   Clock,
   SearchCode,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Globe
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -50,6 +51,7 @@ import { collection, query, where, getDocs, limit, orderBy } from "firebase/fire
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { PersonName, StaffMember, AgriculturalDocument } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -84,6 +86,8 @@ export default function UploadPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [fileDataUri, setFileDataUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [externalUrl, setExternalUrl] = useState("");
+  const [fileSourceMode, setFileMode] = useState<"upload" | "link">("upload");
 
   const [durationYears, setDurationYears] = useState("1");
   const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
@@ -223,10 +227,11 @@ export default function UploadPage() {
   };
 
   const handleSummarize = async () => {
-    if (!fileDataUri) return toast({ variant: "destructive", title: "Archivo requerido" });
+    const finalFileUrl = fileSourceMode === "upload" ? fileDataUri : externalUrl;
+    if (!finalFileUrl) return toast({ variant: "destructive", title: "Archivo o Enlace requerido" });
     setIsSummarizing(true);
     try {
-      const result = await summarizeDocument({ documentMediaUri: fileDataUri, documentContent: title });
+      const result = await summarizeDocument({ documentMediaUri: finalFileUrl, documentContent: title });
       if (result?.summary) {
         setDescription(result.summary);
         toast({ title: "Resumen generado" });
@@ -280,8 +285,8 @@ export default function UploadPage() {
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       description: description || "",
-      fileUrl: fileDataUri || "#",
-      fileType: fileName ? fileName.split('.').pop() : "pdf",
+      fileUrl: fileSourceMode === "upload" ? (fileDataUri || "#") : externalUrl,
+      fileType: fileSourceMode === "upload" && fileName ? fileName.split('.').pop() : "link",
       projectCode: finalProjectCode || ""
     };
 
@@ -571,9 +576,9 @@ export default function UploadPage() {
                             )}
                             <StaffAutocomplete 
                               onSelect={(s) => {
-                                const newTeam = [...technicalTeam];
-                                newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
-                                setTechnicalTeam(newTeam);
+                                  const newTeam = [...technicalTeam];
+                                  newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                                  setTechnicalTeam(newTeam);
                               }} 
                               label={`Integrante ${i + 1}`} 
                               placeholder="Buscar por apellido..."
@@ -754,9 +759,9 @@ export default function UploadPage() {
                         )}
                         <StaffAutocomplete 
                           onSelect={(s) => {
-                            const newTeam = [...technicalTeam];
-                            newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
-                            setTechnicalTeam(newTeam);
+                              const newTeam = [...technicalTeam];
+                              newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                              setTechnicalTeam(newTeam);
                           }} 
                           label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
                           placeholder="Buscar por apellido..."
@@ -799,22 +804,57 @@ export default function UploadPage() {
 
             {shouldShowFileSection && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
-                    {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Subir Archivo</span>}
-                  </Button>
-                  <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
-                  {fileName && <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3"><ScrollText className="w-5 h-5 text-primary/60" /><span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span></div>}
-                </div>
+                <Tabs defaultValue="upload" value={fileSourceMode} onValueChange={(v: any) => setFileMode(v)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6 h-12 rounded-xl bg-white border border-primary/10">
+                    <TabsTrigger value="upload" className="font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white h-full rounded-lg transition-all">
+                      <FileUp className="w-4 h-4 mr-2" /> Subir Archivo
+                    </TabsTrigger>
+                    <TabsTrigger value="link" className="font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white h-full rounded-lg transition-all">
+                      <Globe className="w-4 h-4 mr-2" /> Enlace Externo
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="space-y-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                      <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
+                        {fileName ? "Cambiar Archivo" : <span className="flex items-center gap-2"><FileUp className="w-5 h-5" /> Seleccionar Archivo</span>}
+                      </Button>
+                      <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
+                      {fileName && (
+                        <div className="flex-1 bg-white/50 p-4 rounded-xl border border-primary/10 flex items-center gap-3 animate-in fade-in">
+                          <ScrollText className="w-5 h-5 text-primary/60" />
+                          <span className="text-xs font-bold text-primary truncate max-w-[200px]">{fileName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="link" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">URL del Documento (Drive, Dropbox, etc.)</Label>
+                      <div className="relative">
+                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                        <Input 
+                          placeholder="https://drive.google.com/..." 
+                          className="pl-11 h-14 rounded-xl font-bold bg-white border-primary/20" 
+                          value={externalUrl} 
+                          onChange={(e) => setExternalUrl(e.target.value)} 
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
                 <div className="pt-6 border-t border-primary/10">
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
-                    <Button type="button" onClick={handleSummarize} disabled={isSummarizing || !fileDataUri} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
+                    <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (fileSourceMode === "upload" ? !fileDataUri : !externalUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
                       {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
                     </Button>
                   </div>
                   <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
+                
                 <div className="flex justify-end gap-4 mt-8">
                   <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
                   <Button 
