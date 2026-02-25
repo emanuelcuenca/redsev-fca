@@ -42,7 +42,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, getDocs, limit, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, addDoc, orderBy } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { PersonName, StaffMember } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
@@ -138,12 +138,11 @@ export default function UploadPage() {
     const year = new Date().getFullYear();
     const q = query(
       collection(db, 'documents'), 
-      where('type', '==', type)
+      where('type', '==', 'Proyecto'),
+      where('extensionDocType', '==', 'Proyecto de Extensión')
     );
     const snapshot = await getDocs(q);
-    const yearSuffix = `-${year}`;
-    const yearDocs = snapshot.docs.filter(d => d.data().projectCode?.endsWith(yearSuffix));
-    const nextNumber = yearDocs.length + 1;
+    const nextNumber = snapshot.docs.length + 1;
     const paddedNumber = nextNumber.toString().padStart(3, '0');
     return `FCA-${prefix}-${paddedNumber}-${year}`;
   };
@@ -183,13 +182,17 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !type) return;
+    if (type === "Proyecto" && !extensionDocType) {
+      toast({ variant: "destructive", title: "Seleccione tipo de extensión" });
+      return;
+    }
 
     setIsSaving(true);
     const monthIdx = MONTHS.indexOf(signingMonth) + 1;
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
     let finalProjectCode = projectCode;
-    if (type === "Proyecto" && !projectCode) {
+    if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión") {
       finalProjectCode = await generateProjectCode("EXT");
     }
 
@@ -219,11 +222,9 @@ export default function UploadPage() {
     } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
-      documentData.executionPeriod = executionPeriod;
       documentData.director = { firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
-      documentData.authors = filteredTeam;
-      documentData.objetivoGeneral = objetivoGeneral;
-      documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
+      // Para Proyecto de Extensión según requerimiento no se cargan autores manualmente
+      documentData.authors = extensionDocType === "Proyecto de Extensión" ? [] : filteredTeam;
     } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
@@ -296,37 +297,53 @@ export default function UploadPage() {
               </div>
             </section>
 
-            {type && type !== "Resolución" && (
+            {type === "Proyecto" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                  <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                <div className="space-y-4">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Tipo de Extensión</Label>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    {["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"].map((sub) => (
+                      <Button 
+                        key={sub} 
+                        type="button" 
+                        variant={extensionDocType === sub ? "default" : "outline"} 
+                        className="text-[9px] h-10 uppercase font-black" 
+                        onClick={() => setExtensionDocType(sub)}
+                      >
+                        {sub}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
-                {type === "Proyecto" && (
-                  <div className="space-y-8">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                      {["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"].map((sub) => (
-                        <Button key={sub} type="button" variant={extensionDocType === sub ? "default" : "outline"} className="text-[9px] h-10 uppercase font-black" onClick={() => setExtensionDocType(sub)}>{sub}</Button>
-                      ))}
+                {extensionDocType && (
+                  <div className="space-y-8 animate-in slide-in-from-top-4">
+                    <div className="space-y-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
+                      <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                     </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-4">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Director</Label>
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
                         <StaffAutocomplete onSelect={(s) => setDirector({ firstName: s.firstName, lastName: s.lastName })} label="Director" />
                         <div className="grid grid-cols-2 gap-2">
                           <Input placeholder="Apellido" value={director.lastName} onChange={(e) => setDirector({...director, lastName: e.target.value})} className="h-10 rounded-lg font-bold" />
                           <Input placeholder="Nombre" value={director.firstName} onChange={(e) => setDirector({...director, firstName: e.target.value})} className="h-10 rounded-lg font-bold" />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Código / Período</Label>
-                        <Input placeholder="Código" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-10 rounded-lg font-bold mb-2" />
-                        <Input placeholder="Período (Ej: 2024-2025)" value={executionPeriod} onChange={(e) => setExecutionPeriod(e.target.value)} className="h-10 rounded-lg font-bold" />
-                      </div>
                     </div>
                   </div>
                 )}
+              </section>
+            )}
+
+            {type && type !== "Proyecto" && type !== "Resolución" && (
+              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
+                <div className="space-y-2">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
+                  <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
 
                 {(type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") && (
                   <div className="space-y-8">
@@ -403,7 +420,10 @@ export default function UploadPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
-                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label><Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" /></div>
+                  <div className="space-y-2">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>
+                    <Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" />
+                  </div>
                 </div>
               </section>
             )}
@@ -421,7 +441,7 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && (
+            {(type && (type !== "Proyecto" || extensionDocType)) && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
