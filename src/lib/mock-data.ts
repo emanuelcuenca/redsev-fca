@@ -1,4 +1,3 @@
-
 export interface PersonName {
   firstName: string;
   lastName: string;
@@ -18,6 +17,7 @@ export interface AgriculturalDocument {
   type: 'Convenio' | 'Proyecto' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
   projectCode?: string;
   director?: PersonName;
+  student?: PersonName; // Agregado para Movilidad Estudiantil
   date: string;
   uploadDate: string;
   uploadedByUserId: string;

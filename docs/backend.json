@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -49,6 +48,13 @@
         "extensionDocType": { "type": "string" },
         "projectCode": { "type": "string" },
         "director": {
+          "type": "object",
+          "properties": {
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" }
+          }
+        },
+        "student": {
           "type": "object",
           "properties": {
             "firstName": { "type": "string" },
