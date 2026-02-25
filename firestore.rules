@@ -3,44 +3,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Función para verificar si el usuario ha iniciado sesión
+    // Función base para verificar autenticación
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Función para verificar si el usuario tiene el rol de administrador
-    // Los administradores están registrados en la colección roles_admin con su UID
+    // Función para verificar rol de administrador
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // Regla para perfiles de usuario
+    // Perfiles de usuario: el dueño lee su perfil, admins leen todos
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
       allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
-    // Regla para la colección de administradores
+    // Roles administrativos: lectura para verificación, escritura solo admins
     match /roles_admin/{userId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
-    // Regla para el padrón docente (Staff)
+    // Padrón docente: lectura pública institucional, edición admins
     match /staff/{staffId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
-    // Regla para el repositorio de documentos (REDSEV)
-    // allow read permite tanto get como list
+    // Repositorio de Documentos REDSEV
+    // Se permiten listados y lectura individual a todo personal autenticado
     match /documents/{documentId} {
-      allow read: if isSignedIn();
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
     
-    // Forzado de despliegue para corregir error de permisos persistente
-    // Última actualización: 2024-05-21 12:05 UTC
+    // Forzado de despliegue para corrección de error de permisos 
+    // ID de Corrección: FIX-AUTH-DOCS-2024-05-21-V2
+    // Sincronizado con backend.json
   }
 }

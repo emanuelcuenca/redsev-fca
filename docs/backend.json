@@ -27,7 +27,7 @@
       "type": "object",
       "description": "Padrón docente de la facultad.",
       "properties": {
-        "id": { "type": "string", "description": "ID generado automáticamente." },
+        "id": { "type": "string" },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
         "academicRank": { "type": "string", "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"] },
