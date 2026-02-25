@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -284,7 +285,7 @@ export default function UploadPage() {
       documentData.mobilityCountry = formatText(mobilityCountry);
       documentData.projectCode = projectCode; // Resolución
       documentData.authors = filteredTeam;
-      if (type === "Movilidad Estudiantil") {
+      if (type === "Movilidad Estudiantil" || type === "Pasantía") {
         documentData.student = { firstName: formatText(student.firstName), lastName: formatText(student.lastName) };
       }
     } else if (type === "Resolución") {
@@ -565,7 +566,7 @@ export default function UploadPage() {
                   <Input placeholder={`Ej: ${isPasantia ? "Pasantía de Investigación en INTA" : "Intercambio en Universidad Nacional de Chile"}`} className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
                 
-                {isMobilityEstudiantil && (
+                {(isMobilityEstudiantil || isPasantia) && (
                   <div className="space-y-4 border-b pb-8">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Datos del Estudiante</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

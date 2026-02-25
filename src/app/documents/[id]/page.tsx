@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -182,7 +183,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                     )}
 
-                    {isMobilityEstudiantil && documentData.student && (
+                    {(isMobilityEstudiantil || isPasantia) && documentData.student && (
                       <div className="flex items-center gap-3">
                         <User className="w-5 h-5 text-primary/60" />
                         <div>

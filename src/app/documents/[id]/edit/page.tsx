@@ -86,6 +86,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     extensionDocType: "",
     date: "",
     director: { firstName: "", lastName: "" },
+    student: { firstName: "", lastName: "" },
     authors: [],
     description: "",
     durationYears: "1",
@@ -121,6 +122,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         ...docData,
         authors: Array.isArray(docData.authors) ? docData.authors : [],
         director: docData.director || { firstName: "", lastName: "" },
+        student: docData.student || { firstName: "", lastName: "" },
         durationYears: docData.durationYears?.toString() || "1",
         counterparts: Array.isArray(docData.counterparts) ? docData.counterparts : [""],
         objetivosEspecificos: Array.isArray(docData.objetivosEspecificos) ? docData.objetivosEspecificos : ["", "", ""],
@@ -241,6 +243,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       title: formatText(formData.title),
       authors: filteredAuthors,
       director: { firstName: formatText(formData.director.firstName), lastName: formatText(formData.director.lastName) },
+      student: { firstName: formatText(formData.student.firstName), lastName: formatText(formData.student.lastName) },
       date: (formData.type === "Proyecto" && formData.extensionDocType === "Proyecto de Extensión") ? (formData.date || new Date().toISOString()) : finalDate,
       mobilityStartDate: finalMobilityStart,
       mobilityEndDate: finalMobilityEnd,
@@ -266,7 +269,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
-  const isMobilityLike = formData.type === 'Movilidad Estudiantil' || formData.type === 'Movilidad Docente' || formData.type === 'Pasantía';
+  const isMobilityEstudiantil = formData.type === 'Movilidad Estudiantil';
+  const isPasantia = formData.type === 'Pasantía';
+  const isMobilityLike = isMobilityEstudiantil || formData.type === 'Movilidad Docente' || isPasantia;
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
@@ -313,6 +318,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         </div>
                       </div>
 
+                      {(isMobilityEstudiantil || isPasantia) && (
+                        <div className="space-y-4 border-b pb-8">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Datos del Estudiante</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.student.firstName} onChange={(e) => setFormData({...formData, student: {...formData.student, firstName: e.target.value}})} />
+                            <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.student.lastName} onChange={(e) => setFormData({...formData, student: {...formData.student, lastName: e.target.value}})} />
+                          </div>
+                        </div>
+                      )}
+
                       <div className="space-y-6">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino</Label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -342,7 +357,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   )}
 
                   <div className="md:col-span-2 space-y-4 border-t pt-4">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables"}</Label>
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {formData.type === 'Movilidad Docente' ? "Beneficiario" : (isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables")}</Label>
                     <div className="space-y-3">
                       {formData.authors.map((member: PersonName, i: number) => (
                         <div key={i} className="grid grid-cols-2 gap-2 relative">
@@ -353,7 +368,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           </div>
                         </div>
                       ))}
-                      <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir responsable</Button>
+                      {formData.type !== 'Movilidad Docente' && (
+                        <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir responsable</Button>
+                      )}
                     </div>
                   </div>
 
