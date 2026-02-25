@@ -8,8 +8,8 @@ Este documento detalla los requisitos técnicos para migrar y alojar el sistema 
 - **Memoria Mínima**: 1GB RAM (2GB recomendados para compilación).
 - **Almacenamiento**: ~500MB para el código y dependencias.
 
-## 🔑 Variables de Entorno (.env)
-El equipo técnico deberá configurar las siguientes variables en el servidor de producción:
+## 🔑 Variables de Envío (.env)
+El equipo técnico deberá configurar las siguientes variables en el servidor de producción (estos valores son los actuales del proyecto):
 
 ```env
 # Clave de Inteligencia Artificial (Google AI Studio)
@@ -23,24 +23,22 @@ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="studio-1591734897-74b97.firebaseapp.com"
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="957661959248"
 ```
 
-## 🚀 Proceso de Construcción (Build)
-1. Clonar el repositorio en el servidor.
-2. Instalar dependencias: `npm install`.
-3. Generar la versión de producción: `npm run build`.
-4. Iniciar el servicio: `npm start`.
+## 🚀 Proceso de Construcción y Actualización
+Para mantener el sitio actualizado, se recomienda vincular el servidor al repositorio de GitHub:
 
-*Nota: Se recomienda utilizar un gestor de procesos como **PM2** o **Docker** para asegurar la disponibilidad 24/7.*
+1. **Clonación inicial**: `git clone https://github.com/USUARIO/redsev-fca.git`
+2. **Instalación**: `npm install`
+3. **Build**: `npm run build`
+4. **Ejecución**: `npm start` (se recomienda usar PM2: `pm2 start npm --name "redsev" -- start`)
 
-## 📱 Actualizaciones en Móviles (PWA)
-El sistema está configurado como una PWA. Esto significa que:
+**Para actualizar**:
+Cuando se realicen mejoras en el código, el equipo de sistemas solo debe ejecutar:
+`git pull origin main && npm install && npm run build && pm2 restart redsev`
+
+## 📱 Funcionamiento PWA (Instalable)
+El sistema ya está configurado como una PWA (Progressive Web App). 
 1. **Instalación**: Al navegar al sitio desde Chrome (Android) o Safari (iOS), el usuario verá la opción "Instalar aplicación" o "Agregar a inicio".
-2. **Actualización Automática**: Cuando el equipo técnico actualiza el código en el servidor (`git pull` + `npm run build`), los celulares de los usuarios detectarán la nueva versión automáticamente al abrir la app. **El usuario no necesita reinstalar nada.**
-
-## 🔒 Conectividad
-El servidor debe tener permisos de salida (egress) para conectar con los dominios de Google:
-- `firestore.googleapis.com`
-- `firebaseauth.googleapis.com`
-- `generativelanguage.googleapis.com`
+2. **Actualización Automática**: El usuario **no necesita reinstalar la app**. Cuando el servidor se actualiza, el navegador del celular detecta los cambios automáticamente y refresca la aplicación.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
