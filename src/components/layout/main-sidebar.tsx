@@ -71,14 +71,14 @@ export function MainSidebar() {
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="py-6 flex flex-row items-center gap-3 px-4">
         <div className="bg-primary text-primary-foreground w-11 h-11 rounded-none shrink-0 shadow-lg shadow-primary/20 flex items-center justify-center border border-white/10">
-          <span className="font-black text-xl tracking-tighter">RS</span>
+          <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
-          <span className="text-[13px] text-muted-foreground font-medium uppercase tracking-[0.1em] leading-tight">
-            REDSEV
+          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter leading-tight">
+            EXTENSIÓN Y VINCULACIÓN
           </span>
         </div>
       </SidebarHeader>
