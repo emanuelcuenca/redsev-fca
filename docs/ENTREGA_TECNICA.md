@@ -1,4 +1,4 @@
-# Guía de Despliegue Técnico - VínculoAgro FCA-UNCA
+# Guía de Despliegue Técnico - REDSEV FCA-UNCA
 
 Este documento detalla los requisitos técnicos para migrar y alojar el sistema en la infraestructura propia de la Universidad.
 
@@ -8,7 +8,7 @@ Este documento detalla los requisitos técnicos para migrar y alojar el sistema 
 - **Memoria Mínima**: 1GB RAM (2GB recomendados para compilación).
 - **Almacenamiento**: ~500MB para el código y dependencias.
 
-## 🔑 Variables de Envío (.env)
+## 🔑 Variables de Entorno (.env)
 El equipo técnico deberá configurar las siguientes variables en el servidor de producción:
 
 ```env
@@ -30,6 +30,11 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="957661959248"
 4. Iniciar el servicio: `npm start`.
 
 *Nota: Se recomienda utilizar un gestor de procesos como **PM2** o **Docker** para asegurar la disponibilidad 24/7.*
+
+## 📱 Actualizaciones en Móviles (PWA)
+El sistema está configurado como una PWA. Esto significa que:
+1. **Instalación**: Al navegar al sitio desde Chrome (Android) o Safari (iOS), el usuario verá la opción "Instalar aplicación" o "Agregar a inicio".
+2. **Actualización Automática**: Cuando el equipo técnico actualiza el código en el servidor (`git pull` + `npm run build`), los celulares de los usuarios detectarán la nueva versión automáticamente al abrir la app. **El usuario no necesita reinstalar nada.**
 
 ## 🔒 Conectividad
 El servidor debe tener permisos de salida (egress) para conectar con los dominios de Google:

@@ -1,4 +1,3 @@
-
 # REDSEV FCA - FCA UNCA
 
 Sistema de gestión de documentos para la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.
@@ -21,7 +20,7 @@ Para obtener todos los archivos de esta aplicación:
 4. Firebase te dará una URL pública (ej: `redsev-fca.web.app`) para compartir.
 
 ## 🏛 Migración a Servidores de la Universidad
-Esta aplicación es un proyecto estándar de **NextJS**. Si en el futuro deseas alojarla en servidores propios de la UNCA, entrega la carpeta completa al equipo de sistemas. Ellos podrán ejecutarla usando **Node.js** o **Docker** siguiendo la guía en `docs/ENTREGA_TECNICA.md`.
+Esta aplicación es un proyecto estándar de **NextJS**. Si en el futuro deseas alojarla en servidores propios de la UNCA, entrega la carpeta completa al equipo de sistemas. Ellos podrán ejecutarla usando **Node.js** o **Docker** siguiendo la guía en `docs/ENTREGA_TECNICA.md`. Las actualizaciones en los móviles de los usuarios se reflejarán automáticamente al actualizar el servidor.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
