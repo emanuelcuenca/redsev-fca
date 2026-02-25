@@ -246,7 +246,7 @@ export default function UploadPage() {
       return;
     }
     
-    const isLinkingRequired = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance";
+    const isLinkingRequired = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance" || extensionDocType === "Informe final";
     if (type === "Proyecto" && isLinkingRequired && !linkedProject) {
       toast({ variant: "destructive", title: "Debe vincular un proyecto primero" });
       return;
@@ -299,7 +299,7 @@ export default function UploadPage() {
         documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
       }
 
-      if (extensionDocType === "Informe de avance") {
+      if (extensionDocType === "Informe de avance" || extensionDocType === "Informe final") {
         const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
         const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
         documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
@@ -332,7 +332,7 @@ export default function UploadPage() {
     }
   };
 
-  const isLinkingType = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance";
+  const isLinkingType = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance" || extensionDocType === "Informe final";
 
   return (
     <SidebarProvider>
@@ -396,13 +396,6 @@ export default function UploadPage() {
                         onClick={() => {
                           setExtensionDocType(sub);
                           setLinkedProject(null);
-                          if (sub === "Resolución de aprobación" || sub === "Informe de avance") {
-                            setTitle("");
-                            setDirector({ firstName: "", lastName: "" });
-                          } else {
-                            setTitle("");
-                            setDirector({ firstName: "", lastName: "" });
-                          }
                         }}
                       >
                         {sub}
@@ -476,7 +469,7 @@ export default function UploadPage() {
                         <Input value={`${director.lastName}, ${director.firstName}`} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
                       </div>
 
-                      {extensionDocType === "Informe de avance" && (
+                      {(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
                         <div className="md:col-span-2 space-y-4 p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
                             <Clock className="w-4 h-4" /> Período Informado
@@ -509,7 +502,7 @@ export default function UploadPage() {
                   <div className="space-y-8 animate-in slide-in-from-top-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                      <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                      <Input placeholder="Título del proyecto" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
