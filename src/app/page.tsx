@@ -259,7 +259,7 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
       <CardContent className="px-6 py-4 flex flex-col gap-4">
         <div className="flex items-center gap-3 text-sm text-muted-foreground font-bold">
           <User className="w-4 h-4 text-primary" />
-          <span className="truncate">{document.authors?.join(', ') || 'Responsable SEyV'}</span>
+          <span className="truncate">{document.authors?.map(a => formatPersonName(a)).join(', ') || 'Responsable SEyV'}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {document.projectCode && (

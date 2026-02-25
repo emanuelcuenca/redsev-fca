@@ -15,7 +15,7 @@ export interface StaffMember extends PersonName {
 export interface AgriculturalDocument {
   id: string;
   title: string;
-  type: 'Convenio' | 'Proyecto' | 'Investigación' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
+  type: 'Convenio' | 'Proyecto' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
   projectCode?: string;
   director?: PersonName;
   student?: PersonName;

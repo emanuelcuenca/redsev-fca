@@ -14,8 +14,7 @@ import {
   Plane,
   GraduationCap,
   Contact,
-  User,
-  FlaskConical
+  User
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,7 +48,6 @@ export function MainSidebar() {
   const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
-    { icon: FlaskConical, label: "Investigación", href: "/documents?category=investigacion" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
     { icon: Plane, label: "Movilidad Estudiantil", href: "/documents?category=movilidad-estudiantil" },
     { icon: Plane, label: "Movilidad Docente", href: "/documents?category=movilidad-docente" },

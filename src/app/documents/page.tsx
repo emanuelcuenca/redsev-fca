@@ -18,8 +18,7 @@ import {
   Trash2,
   Plane,
   Fingerprint,
-  Pencil,
-  FlaskConical
+  Pencil
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -50,7 +49,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc, collection, query, orderBy } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { toast } from "@/hooks/use-toast";
 
@@ -80,43 +79,30 @@ export default function DocumentsListPage() {
 
   const docsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    // Se elimina el orderBy para asegurar que se muestren documentos que no tengan uploadDate (cargas manuales)
-    return collection(db, 'documents');
+    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
   }, [db, user]);
   const { data: rawDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
   const filteredDocs = useMemo(() => {
     if (!rawDocs) return [];
-    
-    // Ordenar por fecha de carga de forma manual para manejar nulos
-    const sortedDocs = [...rawDocs].sort((a, b) => {
-      const dateA = new Date(a.uploadDate || a.date || 0).getTime();
-      const dateB = new Date(b.uploadDate || b.date || 0).getTime();
-      return dateB - dateA;
-    });
-
-    return sortedDocs.filter(doc => {
-      // Filtrado por categoría
+    return rawDocs.filter(doc => {
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type !== 'Proyecto') return false;
-      if (category === 'investigacion' && doc.type !== 'Investigación') return false;
       if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
       if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
-      // Búsqueda de texto
       const searchableString = (
         (doc.title || "") + 
         (doc.projectCode || '') + 
-        (doc.counterpart || '') + 
-        (doc.authors?.map(a => a.lastName).join(' ') || '')
+        (doc.authors?.map(a => a.lastName).join(' ') || '') +
+        (doc.student?.lastName || '')
       ).toLowerCase();
       
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      // Filtros específicos de año y vigencia
-      if (category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'investigacion' || category === 'extension') {
+      if (category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'extension') {
         const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
         if (filterYear !== "all" && docYear !== filterYear) return false;
       }
@@ -144,7 +130,6 @@ export default function DocumentsListPage() {
     switch(category) {
       case 'convenios': return { title: 'Convenios', icon: Handshake };
       case 'extension': return { title: 'Extensión', icon: ArrowLeftRight };
-      case 'investigacion': return { title: 'Investigación', icon: FlaskConical };
       case 'resoluciones-reglamentos': return { title: 'Resoluciones y Reglamentos', icon: ScrollText };
       case 'pasantias': return { title: 'Prácticas y Pasantías', icon: GraduationCap };
       case 'movilidad-estudiantil': return { title: 'Movilidad Estudiantil', icon: Plane };
@@ -191,7 +176,7 @@ export default function DocumentsListPage() {
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
             </div>
-            {(category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'investigacion' || category === 'extension') && (
+            {(category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'extension') && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {category === 'convenios' && (
                   <Select value={filterVigente} onValueChange={setFilterVigente}>
@@ -237,7 +222,7 @@ export default function DocumentsListPage() {
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
-                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : (doc.type === 'Movilidad Estudiantil' || doc.type === 'Movilidad Docente') ? <Plane className="w-6 h-6" /> : doc.type === 'Investigación' ? <FlaskConical className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : (doc.type === 'Movilidad Estudiantil' || doc.type === 'Movilidad Docente') ? <Plane className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                         </div>
                         <div>
                           <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>

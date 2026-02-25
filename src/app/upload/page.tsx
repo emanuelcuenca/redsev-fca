@@ -23,8 +23,7 @@ import {
   Plane,
   GraduationCap,
   MapPin,
-  Calendar,
-  FlaskConical
+  Calendar
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -103,11 +102,6 @@ export default function UploadPage() {
   const [mobilityState, setMobilityState] = useState("");
   const [mobilityCountry, setMobilityCountry] = useState("");
 
-  const [searchProjectNumber, setSearchProjectNumber] = useState("");
-  const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
-  const [isSearchingProject, setIsSearchingProject] = useState(false);
-  const [foundProject, setFoundProject] = useState<any>(null);
-
   const staffQuery = useMemoFirebase(() => query(collection(db, 'staff')), [db]);
   const { data: staffList } = useCollection<StaffMember>(staffQuery);
 
@@ -140,12 +134,6 @@ export default function UploadPage() {
     }
   };
 
-  const handleObjectiveChange = (index: number, value: string) => {
-    const newObjectives = [...objetivosEspecificos];
-    newObjectives[index] = value;
-    setObjetivosEspecificos(newObjectives);
-  };
-
   const generateProjectCode = async (prefix: string) => {
     const year = new Date().getFullYear();
     const q = query(
@@ -158,42 +146,6 @@ export default function UploadPage() {
     const nextNumber = yearDocs.length + 1;
     const paddedNumber = nextNumber.toString().padStart(3, '0');
     return `FCA-${prefix}-${paddedNumber}-${year}`;
-  };
-
-  const handleSearchProject = async () => {
-    if (!searchProjectNumber) return;
-    setIsSearchingProject(true);
-    const paddedNumber = searchProjectNumber.padStart(3, '0');
-    const targetCode = `FCA-EXT-${paddedNumber}-${searchProjectYear}`;
-    try {
-      const q = query(
-        collection(db, 'documents'), 
-        where('projectCode', '==', targetCode),
-        where('extensionDocType', '==', 'Proyecto de Extensión'),
-        limit(1)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const project = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
-        setFoundProject(project);
-        setTitle(project.title);
-        setDescription(project.description || "");
-        setObjetivoGeneral(project.objetivoGeneral || "");
-        setObjetivosEspecificos(project.objetivosEspecificos || []);
-        setDirector(project.director || { firstName: "", lastName: "" });
-        setTechnicalTeam(project.authors || []);
-        setProjectCode(project.projectCode || "");
-        setExecutionPeriod(project.executionPeriod || "");
-        toast({ title: "Proyecto encontrado" });
-      } else {
-        setFoundProject(null);
-        toast({ variant: "destructive", title: "Proyecto no encontrado" });
-      }
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error en la búsqueda" });
-    } finally {
-      setIsSearchingProject(false);
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,10 +189,8 @@ export default function UploadPage() {
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
     let finalProjectCode = projectCode;
-    if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión" && !projectCode) {
+    if (type === "Proyecto" && !projectCode) {
       finalProjectCode = await generateProjectCode("EXT");
-    } else if (type === "Investigación" && !projectCode) {
-      finalProjectCode = await generateProjectCode("INV");
     }
 
     const filteredTeam = technicalTeam.filter(member => member.firstName.trim() !== "" || member.lastName.trim() !== "");
@@ -253,7 +203,7 @@ export default function UploadPage() {
     const documentData: any = {
       title: formatText(title),
       type,
-      date: (type === "Proyecto" || type === "Investigación") ? new Date().toISOString() : finalDate,
+      date: (type === "Proyecto") ? (new Date().toISOString()) : finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       description,
@@ -266,7 +216,7 @@ export default function UploadPage() {
       documentData.hasAutomaticRenewal = hasAutomaticRenewal;
       documentData.counterparts = counterparts.filter(c => c.trim() !== "");
       documentData.authors = hasInstitutionalResponsible ? filteredTeam : [];
-    } else if (type === "Proyecto" || type === "Investigación") {
+    } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
       documentData.executionPeriod = executionPeriod;
@@ -315,10 +265,9 @@ export default function UploadPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <section className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
               <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Categoría Institucional</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                 {[
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
-                  { id: "Investigación", label: "Investigación", icon: FlaskConical },
                   { id: "Convenio", label: "Convenio", icon: Handshake },
                   { id: "Movilidad Estudiantil", label: "Mov. Estudiantil", icon: Plane },
                   { id: "Movilidad Docente", label: "Mov. Docente", icon: Plane },
@@ -331,7 +280,6 @@ export default function UploadPage() {
                     onClick={() => {
                       setType(item.id);
                       setExtensionDocType("");
-                      setFoundProject(null);
                       setTitle("");
                       setTechnicalTeam([{ firstName: "", lastName: "" }]);
                       setDirector({ firstName: "", lastName: "" });
@@ -355,15 +303,13 @@ export default function UploadPage() {
                   <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
 
-                {(type === "Proyecto" || type === "Investigación") && (
+                {type === "Proyecto" && (
                   <div className="space-y-8">
-                    {type === "Proyecto" && (
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                        {["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"].map((sub) => (
-                          <Button key={sub} type="button" variant={extensionDocType === sub ? "default" : "outline"} className="text-[9px] h-10 uppercase font-black" onClick={() => setExtensionDocType(sub)}>{sub}</Button>
-                        ))}
-                      </div>
-                    )}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                      {["Proyecto de Extensión", "Resolución de aprobación", "Informe de avance", "Informe final"].map((sub) => (
+                        <Button key={sub} type="button" variant={extensionDocType === sub ? "default" : "outline"} className="text-[9px] h-10 uppercase font-black" onClick={() => setExtensionDocType(sub)}>{sub}</Button>
+                      ))}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-4">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Director</Label>
@@ -412,7 +358,7 @@ export default function UploadPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Input placeholder="Institución" value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" />
+                      <Input placeholder={type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'} value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" />
                       <Input placeholder="Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" />
                       <Input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="h-11 rounded-xl font-bold" />
                     </div>
@@ -432,6 +378,33 @@ export default function UploadPage() {
                     <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label><Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} /></div>
                   </div>
                 )}
+
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> 
+                    {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
+                  </Label>
+                  <div className="space-y-3">
+                    {technicalTeam.map((member, i) => (
+                      <div key={i} className="flex gap-2">
+                        <Input placeholder="Apellido" className="h-11 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                        <div className="flex gap-2 flex-1">
+                          <Input placeholder="Nombre" className="h-11 rounded-lg font-bold flex-1" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                          {technicalTeam.length > 1 && type !== 'Movilidad Docente' && (
+                            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {type !== 'Movilidad Docente' && (
+                      <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
+                  <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label><Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" /></div>
+                </div>
               </section>
             )}
 
