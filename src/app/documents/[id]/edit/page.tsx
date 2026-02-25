@@ -286,6 +286,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const isMobilityLike = isMobilityEstudiantil || isMobilityDocente || isPasantia;
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
   const isResolucionAprobacion = isProyecto && formData.extensionDocType === "Resolución de aprobación";
+  const isInformeAvance = isProyecto && formData.extensionDocType === "Informe de avance";
+  const isInformeFinal = isProyecto && formData.extensionDocType === "Informe final";
+  const isLinkingType = isResolucionAprobacion || isInformeAvance || isInformeFinal;
 
   return (
     <SidebarProvider>
@@ -424,7 +427,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {!isMobilityLike && !isProyecto && !isConvenio && (
+                  {!isMobilityLike && !isProyecto && !isConvenio && !isPasantia && (
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
                       <div className="grid grid-cols-3 gap-1">
@@ -527,6 +530,28 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   </Tabs>
                   
                   <div className="pt-6 border-t border-primary/10">
+                    {isResolucionAprobacion && (
+                      <div className="space-y-4 mb-6 animate-in slide-in-from-top-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Calendar className="w-4 h-4" /> Fecha de la Resolución
+                        </Label>
+                        <div className="grid grid-cols-3 gap-1 max-w-sm">
+                          <Select value={signingDay} onValueChange={setSigningDay}>
+                            <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger>
+                            <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                          </Select>
+                          <Select value={signingMonth} onValueChange={setSigningMonth}>
+                            <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger>
+                            <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                          </Select>
+                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}>
+                            <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger>
+                            <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
                         {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}

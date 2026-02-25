@@ -175,7 +175,6 @@ export default function UploadPage() {
         setDirector(proj.director || { firstName: "", lastName: "" });
         setProjectCode(proj.projectCode || "");
         
-        // Heredar equipo técnico y otros datos para facilitar carga unificada
         if (proj.authors) setTechnicalTeam(proj.authors.length > 0 ? proj.authors : [{ firstName: "", lastName: "" }]);
         if (proj.description) setDescription(proj.description);
         if (proj.objetivoGeneral) setObjetivoGeneral(proj.objetivoGeneral);
@@ -480,15 +479,6 @@ export default function UploadPage() {
                       <div className="md:col-span-2 space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director</Label>
                         <input value={`${director.lastName}, ${director.firstName}`} readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted/50 px-3 py-2 text-sm font-bold" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha del Documento (Firma/Aprobación)</Label>
-                        <div className="grid grid-cols-3 gap-1">
-                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
-                        </div>
                       </div>
 
                       {(extensionDocType === "Informe de avance") && (
@@ -838,6 +828,28 @@ export default function UploadPage() {
                 </Tabs>
 
                 <div className="pt-6 border-t border-primary/10">
+                  {extensionDocType === "Resolución de aprobación" && (
+                    <div className="space-y-4 mb-6 animate-in slide-in-from-top-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" /> Fecha de la Resolución
+                      </Label>
+                      <div className="grid grid-cols-3 gap-1 max-w-sm">
+                        <Select value={signingDay} onValueChange={setSigningDay}>
+                          <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger>
+                          <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <Select value={signingMonth} onValueChange={setSigningMonth}>
+                          <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger>
+                          <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}>
+                          <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger>
+                          <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
                       {extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
