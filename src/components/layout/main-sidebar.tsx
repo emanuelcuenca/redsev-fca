@@ -37,12 +37,12 @@ export function MainSidebar() {
   const db = useFirestore();
   const { setOpenMobile, isMobile } = useSidebar();
 
-  const adminRef = useMemoFirebase(() => 
+  const adminCheckRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
   );
   
-  const { data: adminDoc } = useDoc(adminRef);
+  const { data: adminDoc } = useDoc(adminCheckRef);
   const isAdmin = !!adminDoc;
 
   const NAV_ITEMS = [
@@ -77,7 +77,7 @@ export function MainSidebar() {
           <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
-          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter leading-tight">
+          <span className="text-[14px] text-muted-foreground font-black uppercase tracking-tighter leading-tight">
             EXTENSIÓN Y VINCULACIÓN
           </span>
         </div>
