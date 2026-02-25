@@ -284,7 +284,7 @@ export default function UploadPage() {
       documentData.durationYears = parseInt(durationYears);
       documentData.hasAutomaticRenewal = hasAutomaticRenewal;
       documentData.counterparts = counterparts.filter(c => c.trim() !== "");
-      documentData.authors = hasInstitutionalResponsible ? filteredTeam : [];
+      documentData.authors = filteredTeam;
     } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
@@ -366,11 +366,8 @@ export default function UploadPage() {
                       setExtensionDocType("");
                       setTitle("");
                       setLinkedProject(null);
-                      setTechnicalTeam([
-                        { firstName: "", lastName: "" },
-                        { firstName: "", lastName: "" },
-                        { firstName: "", lastName: "" }
-                      ]);
+                      const defaultCount = item.id === "Proyecto" ? 3 : 1;
+                      setTechnicalTeam(Array(defaultCount).fill({ firstName: "", lastName: "" }));
                       setDirector({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
@@ -400,7 +397,6 @@ export default function UploadPage() {
                           setExtensionDocType(sub);
                           setLinkedProject(null);
                           if (sub === "Resolución de aprobación" || sub === "Informe de avance") {
-                            // Reset title/director to be filled by link
                             setTitle("");
                             setDirector({ firstName: "", lastName: "" });
                           } else {
@@ -708,30 +704,51 @@ export default function UploadPage() {
                     <Users className="w-4 h-4" /> 
                     {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
                   </Label>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {technicalTeam.map((member, i) => (
-                      <div key={i} className="flex gap-2">
-                        <Input placeholder="Apellido" className="h-11 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                        <div className="flex gap-2 flex-1">
-                          <Input placeholder="Nombre" className="h-11 rounded-lg font-bold flex-1" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                          {technicalTeam.length > 1 && type !== 'Movilidad Docente' && (
-                            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
-                          )}
+                      <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
+                        {technicalTeam.length > 1 && type !== 'Movilidad Docente' && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute top-2 right-2 h-8 w-8 text-destructive" 
+                            onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <StaffAutocomplete 
+                          onSelect={(s) => {
+                            const newTeam = [...technicalTeam];
+                            newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                            setTechnicalTeam(newTeam);
+                          }} 
+                          label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
+                          placeholder="Buscar por apellido..."
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                          <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                         </div>
                       </div>
                     ))}
                     {type !== 'Movilidad Docente' && (
-                      <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
+                      <Button type="button" variant="outline" className="w-full h-11 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>
+                        <Plus className="w-4 h-4 mr-2" /> Añadir responsable
+                      </Button>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
-                  <div className="space-y-2">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>
-                    <Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" />
+                {type !== "Convenio" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
+                    <div className="space-y-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>
+                      <Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" />
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
             )}
 
