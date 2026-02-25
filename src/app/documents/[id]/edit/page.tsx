@@ -374,7 +374,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {(isExtensionProyecto || isResolucionAprobacion) && (
+                  {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
@@ -552,20 +552,66 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
-                        {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
-                      </Label>
-                    </div>
-                    {formData.extensionDocType === "Resolución de aprobación" ? (
-                      <Input 
-                        placeholder="Ej: RES-FCA-001/2026" 
-                        className="h-14 rounded-xl font-bold bg-white border-primary/20" 
-                        value={formData.resolutionNumber} 
-                        onChange={(e) => setFormData({...formData, resolutionNumber: e.target.value})} 
-                      />
+                    {isInformeAvance ? (
+                      <div className="space-y-4 animate-in slide-in-from-top-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                          <Clock className="w-4 h-4" /> Período Informado
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white border border-primary/10 rounded-2xl">
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
+                            <div className="grid grid-cols-3 gap-1">
+                              <Select value={execStartDay} onValueChange={setExecStartDay}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger>
+                                <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                              </Select>
+                              <Select value={execStartMonth} onValueChange={setExecStartMonth}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger>
+                                <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                              </Select>
+                              <Select value={execStartYear} onValueChange={setExecStartYear}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger>
+                                <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
+                            <div className="grid grid-cols-3 gap-1">
+                              <Select value={execEndDay} onValueChange={setExecEndDay}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger>
+                                <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                              </Select>
+                              <Select value={execEndMonth} onValueChange={setExecEndMonth}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger>
+                                <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                              </Select>
+                              <Select value={execEndYear} onValueChange={setExecEndYear}>
+                                <SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger>
+                                <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                      <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
+                      <>
+                        <div className="flex items-center justify-between gap-4 mb-4">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
+                            {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
+                          </Label>
+                        </div>
+                        {formData.extensionDocType === "Resolución de aprobación" ? (
+                          <Input 
+                            placeholder="Ej: RES-FCA-001/2026" 
+                            className="h-14 rounded-xl font-bold bg-white border-primary/20" 
+                            value={formData.resolutionNumber} 
+                            onChange={(e) => setFormData({...formData, resolutionNumber: e.target.value})} 
+                          />
+                        ) : (
+                          <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

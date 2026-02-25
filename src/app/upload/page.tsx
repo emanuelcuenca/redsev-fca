@@ -480,32 +480,6 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director</Label>
                         <input value={`${director.lastName}, ${director.firstName}`} readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted/50 px-3 py-2 text-sm font-bold" />
                       </div>
-
-                      {(extensionDocType === "Informe de avance") && (
-                        <div className="md:col-span-2 space-y-4 p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
-                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
-                            <Clock className="w-4 h-4" /> Período Informado
-                          </Label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
-                              <div className="grid grid-cols-3 gap-1">
-                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
-                              <div className="grid grid-cols-3 gap-1">
-                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -776,9 +750,18 @@ export default function UploadPage() {
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><input placeholder="Título de la resolución" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Aprobación</Label>
                   <div className="grid grid-cols-3 gap-1 max-w-sm">
-                    <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                    <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                    <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingDay} onValueChange={setSigningDay}>
+                      <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger>
+                      <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Select value={signingMonth} onValueChange={setSigningMonth}>
+                      <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger>
+                      <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Select value={signingYearSelect} onValueChange={setSigningYearSelect}>
+                      <SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger>
+                      <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                    </Select>
                   </div>
                 </div>
               </section>
@@ -850,20 +833,66 @@ export default function UploadPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-4 mb-4">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
-                      {extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
-                    </Label>
-                  </div>
-                  {extensionDocType === "Resolución de aprobación" ? (
-                    <Input 
-                      placeholder="Ej: RES-FCA-001/2026" 
-                      className="h-14 rounded-xl font-bold bg-white border-primary/20" 
-                      value={resolutionNumber} 
-                      onChange={(e) => setResolutionNumber(e.target.value)} 
-                    />
+                  {extensionDocType === "Informe de avance" ? (
+                    <div className="space-y-4 animate-in slide-in-from-top-2">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <Clock className="w-4 h-4" /> Período Informado
+                      </Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white border border-primary/10 rounded-2xl">
+                        <div className="space-y-2">
+                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            <Select value={execStartDay} onValueChange={setExecStartDay}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger>
+                              <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                            </Select>
+                            <Select value={execStartMonth} onValueChange={setExecStartMonth}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger>
+                              <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                            </Select>
+                            <Select value={execStartYear} onValueChange={setExecStartYear}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger>
+                              <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            <Select value={execEndDay} onValueChange={setExecEndDay}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger>
+                              <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                            </Select>
+                            <Select value={execEndMonth} onValueChange={setExecEndMonth}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger>
+                              <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                            </Select>
+                            <Select value={execEndYear} onValueChange={setExecEndYear}>
+                              <SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger>
+                              <SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
+                    <>
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
+                          {extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
+                        </Label>
+                      </div>
+                      {extensionDocType === "Resolución de aprobación" ? (
+                        <Input 
+                          placeholder="Ej: RES-FCA-001/2026" 
+                          className="h-14 rounded-xl font-bold bg-white border-primary/20" 
+                          value={resolutionNumber} 
+                          onChange={(e) => setResolutionNumber(e.target.value)} 
+                        />
+                      ) : (
+                        <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
+                      )}
+                    </>
                   )}
                 </div>
                 
