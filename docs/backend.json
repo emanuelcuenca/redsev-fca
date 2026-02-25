@@ -90,35 +90,21 @@
     "providers": ["password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "schema": { "$ref": "#/backend/entities/User" },
-          "description": "Perfiles de usuario de la facultad."
-        }
-      },
-      {
-        "path": "/staff/{staffId}",
-        "definition": {
-          "schema": { "$ref": "#/backend/entities/Staff" },
-          "description": "Padrón docente institucional."
-        }
-      },
-      {
-        "path": "/documents/{documentId}",
-        "definition": {
-          "schema": { "$ref": "#/backend/entities/Document" },
-          "description": "Repositorio central de documentos de extensión y vinculación."
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
-          "description": "Registro de usuarios con permisos de administración."
-        }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/User" },
+      "description": "Perfiles de usuario de la facultad."
+    },
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/backend/entities/Staff" },
+      "description": "Padrón docente institucional."
+    },
+    "/documents/{documentId}": {
+      "schema": { "$ref": "#/backend/entities/Document" },
+      "description": "Repositorio central de documentos de extensión y vinculación."
+    },
+    "/roles_admin/{userId}": {
+      "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
+      "description": "Registro de usuarios con permisos de administración."
+    }
   }
 }

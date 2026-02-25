@@ -28,20 +28,19 @@ service cloud.firestore {
     }
 
     // Regla para el padrón docente (Staff)
-    match /staff/{dni} {
+    match /staff/{staffId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     // Regla para el repositorio de documentos (REDSEV)
-    // Se permite la lectura (get/list) a cualquier usuario autenticado
-    // Se restringe la escritura (create/update/delete) solo a administradores de la Secretaría
+    // allow read permite tanto get como list
     match /documents/{documentId} {
-      allow get, list: if isSignedIn();
+      allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
     
     // Forzado de despliegue para corregir error de permisos persistente
-    // Última actualización: 2024-05-21 11:30 UTC
+    // Última actualización: 2024-05-21 12:05 UTC
   }
 }
