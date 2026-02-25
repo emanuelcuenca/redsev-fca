@@ -287,6 +287,8 @@ export default function UploadPage() {
       if (type === "Movilidad Estudiantil") {
         documentData.student = { firstName: formatText(student.firstName), lastName: formatText(student.lastName) };
       }
+    } else if (type === "Resolución") {
+      documentData.date = finalDate;
     } else {
       documentData.authors = filteredTeam;
       documentData.projectCode = projectCode;
@@ -645,7 +647,24 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && type !== "Proyecto" && type !== "Convenio" && !isMobilityLike && (
+            {type === "Resolución" && (
+              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
+                <div className="space-y-2">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título de la Resolución</Label>
+                  <Input placeholder="Título" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
+                <div className="space-y-2 max-w-md">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Aprobación</Label>
+                  <div className="grid grid-cols-3 gap-1">
+                    <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {type && type !== "Proyecto" && type !== "Convenio" && !isMobilityLike && type !== "Resolución" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label><Input placeholder="Título" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
