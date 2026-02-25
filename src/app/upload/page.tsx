@@ -21,7 +21,9 @@ import {
   Users,
   Fingerprint,
   Plane,
-  GraduationCap
+  GraduationCap,
+  MapPin,
+  Calendar
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -90,6 +92,17 @@ export default function UploadPage() {
   const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
+
+  // Estados específicos para Movilidad
+  const [mobilityStartDay, setMobilityStartDay] = useState(new Date().getDate().toString());
+  const [mobilityStartMonth, setMobilityStartMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [mobilityStartYear, setMobilityStartYear] = useState(new Date().getFullYear().toString());
+  const [mobilityEndDay, setMobilityEndDay] = useState(new Date().getDate().toString());
+  const [mobilityEndMonth, setMobilityEndMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [mobilityEndYear, setMobilityEndYear] = useState(new Date().getFullYear().toString());
+  const [mobilityInstitution, setMobilityInstitution] = useState("");
+  const [mobilityState, setMobilityState] = useState("");
+  const [mobilityCountry, setMobilityCountry] = useState("");
 
   const [searchProjectNumber, setSearchProjectNumber] = useState("");
   const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
@@ -264,6 +277,16 @@ export default function UploadPage() {
         documentData.objetivoGeneral = objetivoGeneral;
         documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
       }
+    } else if (type === "Movilidad") {
+      const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
+      const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
+      documentData.mobilityStartDate = `${mobilityStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${mobilityStartDay.padStart(2, '0')}`;
+      documentData.mobilityEndDate = `${mobilityEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${mobilityEndDay.padStart(2, '0')}`;
+      documentData.mobilityInstitution = formatText(mobilityInstitution);
+      documentData.mobilityState = formatText(mobilityState);
+      documentData.mobilityCountry = formatText(mobilityCountry);
+      documentData.projectCode = projectCode; // Resolución
+      documentData.authors = filteredTeam;
     } else {
       documentData.authors = filteredTeam;
       documentData.projectCode = projectCode;
@@ -314,7 +337,12 @@ export default function UploadPage() {
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
                       setTitle("");
-                      setTechnicalTeam([{ firstName: "", lastName: "" }, { firstName: "", lastName: "" }, { firstName: "", lastName: "" }]);
+                      // En movilidad por defecto solo un responsable
+                      if (item.id === "Movilidad") {
+                        setTechnicalTeam([{ firstName: "", lastName: "" }]);
+                      } else {
+                        setTechnicalTeam([{ firstName: "", lastName: "" }, { firstName: "", lastName: "" }, { firstName: "", lastName: "" }]);
+                      }
                       setDirector({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
@@ -519,7 +547,70 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && type !== "Proyecto" && type !== "Convenio" && (
+            {type === "Movilidad" && (
+              <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
+                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título de la Movilidad</Label><Input placeholder="Ej: Pasantía de Investigación en INTA" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
+                  <div className="space-y-4">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Desde</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <Select value={mobilityStartDay} onValueChange={setMobilityStartDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                      <Select value={mobilityStartMonth} onValueChange={setMobilityStartMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                      <Select value={mobilityStartYear} onValueChange={setMobilityStartYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Hasta</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <Select value={mobilityEndDay} onValueChange={setMobilityEndDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                      <Select value={mobilityEndMonth} onValueChange={setMobilityEndMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                      <Select value={mobilityEndYear} onValueChange={setMobilityEndYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino de la Movilidad</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Institución/Universidad</Label><Input placeholder="Nombre" value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
+                    <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
+                    <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:col-span-2 border-t pt-6">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Users className="w-4 h-4" /> Responsables Institucionales</Label>
+                  {technicalTeam.map((member, i) => (
+                    <div key={i} className="space-y-2 p-3 bg-muted/10 rounded-xl relative">
+                      <StaffAutocomplete 
+                        label={`Buscar Responsable ${i + 1}`} 
+                        defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
+                        onSelect={(s) => {
+                          const newTeam = [...technicalTeam];
+                          newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                          setTechnicalTeam(newTeam);
+                        }}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <Input placeholder="Apellido" className="h-10 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                        <div className="flex gap-2">
+                          <Input placeholder="Nombre" className="h-10 rounded-lg text-xs flex-1" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                          {technicalTeam.length > 1 && (
+                            <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" className="w-full h-9 rounded-lg border-dashed text-[9px] uppercase font-black" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>Añadir responsable</Button>
+                </div>
+
+                <div className="space-y-2 border-t pt-6"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución</Label><Input placeholder="Ej: Resol. 123/24" className="h-12 rounded-xl font-bold" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} /></div>
+              </section>
+            )}
+
+            {type && type !== "Proyecto" && type !== "Convenio" && type !== "Movilidad" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label><Input placeholder="Título" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

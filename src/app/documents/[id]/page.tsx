@@ -97,6 +97,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
+  const isMovilidad = documentData.type === 'Movilidad';
   const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
   const vigente = isDocumentVigente(documentData);
   const counterparts = documentData.counterparts || (documentData.counterpart ? [documentData.counterpart] : []);
@@ -110,6 +111,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       case 'Resolución': return <ScrollText className="w-5 h-5 text-primary" />;
       default: return <FileText className="w-5 h-5 text-primary" />;
     }
+  };
+
+  const formatDateString = (dateStr?: string) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   return (
@@ -152,13 +158,25 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-8">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Datos Principales</h3>
                   <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-primary/60" />
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isConvenio ? "Fecha de Firma" : "Fecha de Registro"}</p>
-                        <p className="font-bold text-sm">{mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</p>
+                    {isMovilidad ? (
+                      <div className="flex items-start gap-3">
+                        <Timer className="w-5 h-5 text-primary/60 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de Movilidad</p>
+                          <p className="font-bold text-sm">Desde: {formatDateString(documentData.mobilityStartDate)}</p>
+                          <p className="font-bold text-sm">Hasta: {formatDateString(documentData.mobilityEndDate)}</p>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-5 h-5 text-primary/60" />
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isConvenio ? "Fecha de Firma" : "Fecha de Registro"}</p>
+                          <p className="font-bold text-sm">{mounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</p>
+                        </div>
+                      </div>
+                    )}
+
                     {isExtensionProyecto && documentData.director && (
                       <div className="flex items-center gap-3">
                         <User className="w-5 h-5 text-primary/60" />
@@ -172,7 +190,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <div className="flex items-start gap-3">
                         <Users className="w-5 h-5 text-primary/60 mt-0.5" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isExtensionProyecto ? "Equipo Técnico" : (isConvenio ? "Responsable Institucional" : "Responsables")}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                            {isExtensionProyecto ? "Equipo Técnico" : (isMovilidad || isConvenio ? "Responsables Institucionales" : "Responsables")}
+                          </p>
                           <div className="mt-1 space-y-1">
                             {documentData.authors.map((a, i) => (
                               <p key={i} className="font-bold text-sm">{formatPersonName(a)}</p>
@@ -185,20 +205,42 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <div className="flex items-center gap-3">
                         <Fingerprint className="w-5 h-5 text-primary/60" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Código Institucional</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isMovilidad ? "Resolución" : "Código Institucional"}</p>
                           <p className="font-bold text-sm text-primary">{documentData.projectCode}</p>
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
+
                 <div className="space-y-8">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Instituciones</h3>
-                  <div className="space-y-4">
-                    {counterparts.length > 0 ? counterparts.map((cp, idx) => (
-                      <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted"><Building2 className="w-5 h-5 text-primary/60" /><p className="font-bold text-sm">{cp}</p></div>
-                    )) : <p className="text-xs font-bold text-muted-foreground italic">Sin instituciones registradas</p>}
-                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">
+                    {isMovilidad ? "Información de Destino" : "Instituciones"}
+                  </h3>
+                  {isMovilidad ? (
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-3 bg-muted/20 p-4 rounded-xl border border-muted">
+                        <Building2 className="w-5 h-5 text-primary/60 mt-0.5" />
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Institución</p>
+                          <p className="font-bold text-sm">{documentData.mobilityInstitution || 'No especificada'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 bg-muted/20 p-4 rounded-xl border border-muted">
+                        <MapPin className="w-5 h-5 text-primary/60 mt-0.5" />
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Ubicación</p>
+                          <p className="font-bold text-sm">{documentData.mobilityState}, {documentData.mobilityCountry}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {counterparts.length > 0 ? counterparts.map((cp, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted"><Building2 className="w-5 h-5 text-primary/60" /><p className="font-bold text-sm">{cp}</p></div>
+                      )) : <p className="text-xs font-bold text-muted-foreground italic">Sin instituciones registradas</p>}
+                    </div>
+                  )}
                 </div>
               </div>
 

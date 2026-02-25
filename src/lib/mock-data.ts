@@ -32,6 +32,12 @@ export interface AgriculturalDocument {
   hasInstitutionalResponsible?: boolean;
   extensionDocType?: 'Proyecto de Extensión' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
   executionPeriod?: string;
+  // Campos específicos para Movilidad
+  mobilityStartDate?: string;
+  mobilityEndDate?: string;
+  mobilityInstitution?: string;
+  mobilityState?: string;
+  mobilityCountry?: string;
 }
 
 export function isDocumentVigente(doc: AgriculturalDocument): boolean {
