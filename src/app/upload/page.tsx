@@ -72,8 +72,6 @@ export default function UploadPage() {
   const [director, setDirector] = useState<PersonName>({ firstName: "", lastName: "" });
   const [student, setStudent] = useState<PersonName>({ firstName: "", lastName: "" });
   const [technicalTeam, setTechnicalTeam] = useState<PersonName[]>([
-    { firstName: "", lastName: "" },
-    { firstName: "", lastName: "" },
     { firstName: "", lastName: "" }
   ]);
 
@@ -334,7 +332,6 @@ export default function UploadPage() {
 
   const isLinkingType = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance" || extensionDocType === "Informe final";
   
-  // Determina si se debe mostrar el apartado de subida de archivos y el botón de guardar
   const shouldShowFileSection = type && (
     (type !== "Proyecto") || 
     (extensionDocType === "Proyecto de Extensión") || 
@@ -372,7 +369,8 @@ export default function UploadPage() {
                       setExtensionDocType("");
                       setTitle("");
                       setLinkedProject(null);
-                      const defaultCount = (item.id === "Proyecto" || item.id === "Convenio") ? 3 : 1;
+                      // Convenio ahora inicia con 1 responsable por defecto
+                      const defaultCount = (item.id === "Proyecto") ? 3 : 1;
                       setTechnicalTeam(Array(defaultCount).fill({ firstName: "", lastName: "" }));
                       setDirector({ firstName: "", lastName: "" });
                       setStudent({ firstName: "", lastName: "" });
