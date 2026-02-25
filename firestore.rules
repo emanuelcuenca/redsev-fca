@@ -3,36 +3,31 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // REPOSITORIO DE DOCUMENTOS REDSEV
-    // El acceso de lectura está permitido a cualquier usuario registrado (autenticado).
-    // Las operaciones de escritura (crear, actualizar, eliminar) son exclusivas de administradores.
+    // Permitir lectura total (get y list) a cualquier usuario autenticado.
+    // Escritura restringida solo a administradores.
     match /documents/{documentId} {
-      allow get, list: if request.auth != null;
-      allow create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // PERFILES DE USUARIO (CUENTAS REGISTRADAS)
-    // Los usuarios registrados pueden leer cualquier perfil y editar el propio.
+    // PERFILES DE USUARIO
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)));
     }
 
     // ROLES ADMINISTRATIVOS
-    // Los administradores registrados controlan el acceso de nivel superior.
     match /roles_admin/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // PADRÓN DOCENTE (REFERENCIA INSTITUCIONAL)
-    // El padrón es solo de lectura para usuarios registrados para funciones de autocompletado.
-    // La edición está limitada exclusivamente a la administración.
+    // PADRÓN DOCENTE
     match /staff/{staffId} {
-      allow get, list: if request.auth != null;
+      allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
     
-    // Identificador de Despliegue de Seguridad: REDSEV-AUTH-REGISTERED-V4
-    // Esta marca asegura que Firestore actualice la caché de reglas para permitir el listado a usuarios registrados.
+    // Identificador de Despliegue de Seguridad: REDSEV-FINAL-ACCESS-FIX-V1
   }
 }

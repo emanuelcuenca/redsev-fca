@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -42,7 +41,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, collection, query, orderBy } from "firebase/firestore";
+import { collection, query } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +78,7 @@ export default function Dashboard() {
   // Consultar todos los documentos para calcular estadísticas
   const allDocsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
+    return collection(db, 'documents');
   }, [db, user]);
   
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
@@ -95,8 +94,13 @@ export default function Dashboard() {
     };
   }, [allDocuments]);
 
-  // Tomar los últimos 6 para la lista visual
-  const recentDocuments = allDocuments?.slice(0, 6) || [];
+  // Tomar los últimos 6 basándonos en la fecha de subida
+  const recentDocuments = useMemo(() => {
+    if (!allDocuments) return [];
+    return [...allDocuments]
+      .sort((a, b) => new Date(b.uploadDate || 0).getTime() - new Date(a.uploadDate || 0).getTime())
+      .slice(0, 6);
+  }, [allDocuments]);
 
   const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0].toUpperCase() || '');
   const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
@@ -171,7 +175,6 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Sección de Estadísticas Institucionales */}
           <section className="mb-12 md:mb-20">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard 
@@ -332,11 +335,13 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
         </div>
       </CardContent>
       <CardFooter className="p-6 mt-auto border-t border-dashed">
-        <Button asChild variant="link" className="p-0 text-primary hover:text-primary/80 group/btn font-black h-auto text-sm md:text-base hover:no-underline w-full justify-between">
-          <Link href={`/documents/${document.id}`} className="flex items-center gap-2 w-full justify-between">
-            ACCEDER AL REGISTRO <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
-          </Link>
-        </Button>
+        <Link 
+          href={`/documents/${document.id}`} 
+          className="flex items-center gap-2 w-full justify-between text-primary hover:text-primary/80 font-black text-sm md:text-base transition-colors group/link"
+        >
+          ACCEDER AL REGISTRO 
+          <ArrowRight className="w-5 h-5 group-hover/link:translate-x-2 transition-transform" />
+        </Link>
       </CardFooter>
     </Card>
   );

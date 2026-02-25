@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect, useMemo } from "react";
@@ -40,7 +39,8 @@ import {
   Users,
   Link as LinkIcon,
   ChevronRight,
-  History
+  History,
+  AlertTriangle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -50,7 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from "@/firebase";
-import { doc, collection, query, where, orderBy } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -70,25 +70,28 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
   // Consulta del documento principal
   const docRef = useMemoFirebase(() => (resolvedParams.id && user) ? doc(db, 'documents', resolvedParams.id) : null, [db, resolvedParams.id, user]);
-  const { data: documentData, isLoading } = useDoc<AgriculturalDocument>(docRef);
+  const { data: documentData, isLoading, error: docError } = useDoc<AgriculturalDocument>(docRef);
 
-  // Consulta de documentos relacionados por el mismo código de proyecto
+  // Consulta de documentos relacionados
   const relatedDocsQuery = useMemoFirebase(() => {
     if (!documentData?.projectCode || !user) return null;
     return query(
       collection(db, 'documents'),
-      where('projectCode', '==', documentData.projectCode),
-      orderBy('uploadDate', 'asc')
+      where('projectCode', '==', documentData.projectCode)
     );
   }, [db, documentData?.projectCode, user]);
 
-  const { data: relatedDocs, isLoading: isLoadingRelated } = useCollection<AgriculturalDocument>(relatedDocsQuery);
+  const { data: rawRelatedDocs, isLoading: isLoadingRelated, error: relatedError } = useCollection<AgriculturalDocument>(relatedDocsQuery);
+
+  const relatedDocs = useMemo(() => {
+    if (!rawRelatedDocs) return null;
+    return [...rawRelatedDocs].sort((a, b) => new Date(a.uploadDate || 0).getTime() - new Date(b.uploadDate || 0).getTime());
+  }, [rawRelatedDocs]);
 
   const adminRef = useMemoFirebase(() => user ? doc(db, 'roles_admin', user.uid) : null, [db, user]);
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
 
-  // Identificar el "Proyecto Maestro" dentro de los relacionados para extraer contexto adicional
   const masterProject = useMemo(() => {
     if (!relatedDocs) return null;
     return relatedDocs.find(d => d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión') || null;
@@ -105,13 +108,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  if (!documentData) {
+  // Manejo de error de permisos o documento inexistente
+  if (docError || (!isLoading && !documentData)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="max-w-md w-full p-8 text-center rounded-[2rem]">
-          <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-          <h2 className="text-xl font-headline font-bold uppercase mb-2">Archivo no encontrado</h2>
-          <Button asChild className="w-full rounded-xl mt-6"><Link href="/documents">Volver</Link></Button>
+        <Card className="max-w-md w-full p-8 text-center rounded-[2rem] border-destructive/20 bg-destructive/5 shadow-2xl">
+          <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-headline font-bold uppercase mb-2 text-destructive">Acceso Denegado</h2>
+          <p className="text-sm text-muted-foreground mb-6 font-medium">No tiene permisos suficientes para ver este registro o el mismo ha sido removido del sistema.</p>
+          <Button asChild className="w-full h-12 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-[10px] tracking-widest">
+            <Link href="/documents">Volver al Repositorio</Link>
+          </Button>
         </Card>
       </div>
     );
@@ -126,7 +133,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const isMobilityLike = isMobilityEstudiantil || isMobilityDocente || isPasantia;
   const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
   
-  // Datos unificados: si es un informe, intentamos usar los objetivos y director del proyecto maestro
   const objectiveContext = isExtensionProyecto ? documentData.objetivoGeneral : masterProject?.objetivoGeneral;
   const specificObjectivesContext = isExtensionProyecto ? documentData.objetivosEspecificos : masterProject?.objetivosEspecificos;
   const directorContext = isExtensionProyecto ? documentData.director : masterProject?.director;
@@ -302,44 +308,57 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               </div>
 
-              {/* Sección Unificada de Documentos Relacionados */}
-              {documentData.projectCode && relatedDocs && relatedDocs.length > 1 && (
+              {documentData.projectCode && (
                 <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/20 space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                     <History className="w-4 h-4" /> Cronología y Vinculaciones del Proyecto
                   </h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {relatedDocs.map((rel) => {
-                      const isCurrent = rel.id === documentData.id;
-                      return (
-                        <Link 
-                          key={rel.id} 
-                          href={`/documents/${rel.id}`}
-                          className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                            isCurrent 
-                            ? 'bg-primary text-primary-foreground border-primary shadow-md' 
-                            : 'bg-white hover:bg-muted/50 border-muted group'
-                          }`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`p-2 rounded-lg ${isCurrent ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
-                              {getDocIcon(rel.type)}
+                  
+                  {isLoadingRelated ? (
+                    <div className="py-10 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary/40" />
+                    </div>
+                  ) : relatedError ? (
+                    <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
+                      <AlertTriangle className="w-5 h-5 text-red-400" />
+                      <p className="text-xs font-bold text-red-600 uppercase tracking-tight">Error al cargar vinculaciones.</p>
+                    </div>
+                  ) : relatedDocs && relatedDocs.length > 1 ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {relatedDocs.map((rel) => {
+                        const isCurrent = rel.id === documentData.id;
+                        return (
+                          <Link 
+                            key={rel.id} 
+                            href={`/documents/${rel.id}`}
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                              isCurrent 
+                              ? 'bg-primary text-primary-foreground border-primary shadow-md' 
+                              : 'bg-white hover:bg-muted/50 border-muted group'
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`p-2 rounded-lg ${isCurrent ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
+                                {getDocIcon(rel.type)}
+                              </div>
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-wider leading-none mb-1">
+                                  {rel.extensionDocType || rel.type}
+                                </p>
+                                <p className={`text-[11px] font-bold ${isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                                  {formatDateString(rel.date || rel.uploadDate)}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-xs font-black uppercase tracking-wider leading-none mb-1">
-                                {rel.extensionDocType || rel.type}
-                              </p>
-                              <p className={`text-[11px] font-bold ${isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                                {formatDateString(rel.date || rel.uploadDate)}
-                              </p>
-                            </div>
-                          </div>
-                          {!isCurrent && <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />}
-                          {isCurrent && <Badge variant="secondary" className="bg-white/20 border-none text-[8px] uppercase">Viendo ahora</Badge>}
-                        </Link>
-                      );
-                    })}
-                  </div>
+                            {!isCurrent && <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />}
+                            {isCurrent && <Badge variant="secondary" className="bg-white/20 border-none text-[8px] uppercase">Viendo ahora</Badge>}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic pl-2">Sin otros documentos vinculados.</p>
+                  )}
                 </div>
               )}
 
