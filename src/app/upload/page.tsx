@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -45,7 +46,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, getDocs, limit, addDoc, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { PersonName, StaffMember, AgriculturalDocument } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
@@ -131,14 +132,14 @@ export default function UploadPage() {
       .join(' ');
   };
 
-  const upsertStaff = async (person: PersonName) => {
+  const upsertStaff = (person: PersonName) => {
     if (!person.firstName || !person.lastName) return;
     const exists = staffList?.some(s => 
       s.firstName.toLowerCase() === person.firstName.toLowerCase() && 
       s.lastName.toLowerCase() === person.lastName.toLowerCase()
     );
     if (!exists) {
-      addDoc(collection(db, 'staff'), {
+      addDocumentNonBlocking(collection(db, 'staff'), {
         firstName: formatText(person.firstName),
         lastName: formatText(person.lastName),
         category: "Docente", 
@@ -173,7 +174,6 @@ export default function UploadPage() {
         setDirector(proj.director || { firstName: "", lastName: "" });
         setProjectCode(proj.projectCode || "");
         
-        // Copiar equipo técnico y otros datos del proyecto original para consistencia
         if (proj.authors) setTechnicalTeam(proj.authors.length > 0 ? proj.authors : [{ firstName: "", lastName: "" }]);
         if (proj.description) setDescription(proj.description);
         if (proj.objetivoGeneral) setObjetivoGeneral(proj.objetivoGeneral);
@@ -199,7 +199,7 @@ export default function UploadPage() {
     }
   };
 
-  const generateProjectCode = async (prefix: string) => {
+  const generateProjectCode = async () => {
     const year = new Date().getFullYear();
     const q = query(
       collection(db, 'documents'), 
@@ -260,23 +260,19 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    // Generar fechas
     const monthIdx = MONTHS.indexOf(signingMonth) + 1;
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
     let finalProjectCode = projectCode;
     if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión") {
-      finalProjectCode = await generateProjectCode("EXT");
+      finalProjectCode = await generateProjectCode();
     }
 
     const filteredTeam = technicalTeam.filter(member => member.firstName.trim() !== "" || member.lastName.trim() !== "");
 
-    if (director.lastName) await upsertStaff(director);
-    for (const member of filteredTeam) {
-      await upsertStaff(member);
-    }
+    if (director.lastName) upsertStaff(director);
+    filteredTeam.forEach(upsertStaff);
 
-    // Construcción robusta de datos para evitar undefined
     const documentData: any = {
       title: formatText(title),
       type,
@@ -285,7 +281,7 @@ export default function UploadPage() {
       uploadedByUserId: user.uid,
       description: description || "",
       fileUrl: fileDataUri || "#",
-      fileType: fileName ? fileName.split('.').pop() : "application/pdf",
+      fileType: fileName ? fileName.split('.').pop() : "pdf",
       projectCode: finalProjectCode || ""
     };
 
@@ -310,7 +306,6 @@ export default function UploadPage() {
         documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
         documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
       } else {
-        // Para Resoluciones e Informes, mantenemos el equipo original si no se cambia
         documentData.authors = filteredTeam;
         if (extensionDocType === "Informe de avance") {
           const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
@@ -336,15 +331,9 @@ export default function UploadPage() {
       }
     }
 
-    try {
-      await addDocumentNonBlocking(collection(db, 'documents'), documentData);
-      toast({ title: "Registro almacenado" });
-      router.push("/documents");
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      setIsSaving(false);
-      toast({ variant: "destructive", title: "Error crítico al guardar", description: "Verifique que todos los campos obligatorios estén completos." });
-    }
+    addDocumentNonBlocking(collection(db, 'documents'), documentData);
+    toast({ title: "Registro almacenado" });
+    router.push("/documents");
   };
 
   const isLinkingType = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance" || extensionDocType === "Informe final";

@@ -1,24 +1,25 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // REPOSITORIO DE DOCUMENTOS REDSEV
     // Se permite lectura y escritura a cualquier usuario registrado (autenticado).
-    // Esto cumple con la instrucción de otorgar permisos a usuarios registrados.
+    // Esto incluye personal de la Secretaría y docentes con cuenta institucional.
     match /documents/{documentId} {
       allow read, write: if request.auth != null;
     }
 
     // PERFILES DE USUARIO
     // Un usuario puede leer cualquier perfil pero solo escribir en el suyo.
-    // Los administradores también tienen permiso de escritura sobre perfiles.
+    // Los administradores también tienen permiso de escritura sobre perfiles para gestión.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)));
     }
 
     // ROLES ADMINISTRATIVOS
-    // Se permite lectura a usuarios registrados. La escritura queda limitada a administradores existentes.
+    // Lectura para todos los registrados. Escritura limitada a administradores.
     match /roles_admin/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
@@ -31,7 +32,7 @@ service cloud.firestore {
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
     
-    // Identificador de Despliegue de Seguridad: REDSEV-FIX-WRITE-ACCESS-V15
+    // Identificador de Despliegue de Seguridad: REDSEV-FIX-AUTH-WRITE-V16
     // Este comentario fuerza la actualización de las reglas en el servidor de Firebase.
   }
 }

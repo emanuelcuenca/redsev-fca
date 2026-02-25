@@ -75,12 +75,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   );
   const { data: docData, isLoading: isDocLoading } = useDoc<AgriculturalDocument>(docRef);
 
-  const adminRef = useMemoFirebase(() => 
-    user ? doc(db, 'roles_admin', user.uid) : null, 
-    [db, user]
-  );
-  const { data: adminDoc, isLoading: isAdminLoading } = useDoc(adminRef);
-
   const [formData, setFormData] = useState<any>({
     title: "",
     type: "",
@@ -178,15 +172,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       if (docData.fileUrl && docData.fileUrl !== "#") setFileName("Documento actual");
     }
   }, [docData]);
-
-  useEffect(() => {
-    if (mounted && !isUserLoading && !isAdminLoading) {
-      if (!user || !adminDoc) {
-        router.push('/');
-        toast({ variant: "destructive", title: "Acceso denegado" });
-      }
-    }
-  }, [user, adminDoc, isUserLoading, isAdminLoading, mounted, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -292,10 +277,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
     updateDocumentNonBlocking(docRef, updateData);
     toast({ title: "Registro actualizado" });
-    setTimeout(() => router.push(`/documents/${resolvedParams.id}`), 1000);
+    setTimeout(() => router.push(`/documents/${resolvedParams.id}`), 500);
   };
 
-  if (!mounted || isUserLoading || isDocLoading || isAdminLoading) {
+  if (!mounted || isUserLoading || isDocLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -479,7 +464,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                 <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl text-destructive" onClick={() => setFormData({...formData, objetivosEspecificos: formData.objetivosEspecificos.filter((_: any, idx: number) => idx !== i)})}><X className="w-5 h-5" /></Button>
                               </div>
                             ))}
-                            <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setObjetivosEspecificos([...formData.objetivosEspecificos, ""])}><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
+                            <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setFormData({...formData, objetivosEspecificos: [...formData.objetivosEspecificos, ""]})}><Plus className="w-4 h-4 mr-2" /> Añadir objetivo</Button>
                           </div>
                         )}
                       </div>
