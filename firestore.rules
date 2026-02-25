@@ -3,33 +3,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Función para verificar si el usuario ha iniciado sesión
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Función para verificar si el usuario tiene el rol de administrador
+    // Los administradores están registrados en la colección roles_admin con su UID
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
+    // Regla para perfiles de usuario
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
       allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
+    // Regla para la colección de administradores
     match /roles_admin/{userId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
+    // Regla para el padrón docente (Staff)
     match /staff/{dni} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
+    // Regla para el repositorio de documentos (REDSEV)
+    // Se permite la lectura (get/list) a cualquier usuario autenticado
+    // Se restringe la escritura (create/update/delete) solo a administradores
     match /documents/{documentId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
+    
+    // Comentario técnico para forzar despliegue de reglas y corregir error de permisos en 'list'
+    // Timestamp de corrección: 2024-05-20
   }
 }

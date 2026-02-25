@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the VínculoAgro application, with distinct roles and institutional data.",
+      "description": "Represents a user of the REDSEV FCA application, with distinct roles and institutional data.",
       "properties": {
         "id": { "type": "string" },
         "email": { "type": "string", "format": "email" },
@@ -41,7 +41,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Document",
       "type": "object",
-      "description": "Represents a document stored in the VínculoAgro repository.",
+      "description": "Represents a document stored in the REDSEV FCA repository.",
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
@@ -95,21 +95,28 @@
         "path": "/users/{userId}",
         "definition": {
           "schema": { "$ref": "#/backend/entities/User" },
-          "description": "Perfiles de usuario."
+          "description": "Perfiles de usuario de la facultad."
         }
       },
       {
         "path": "/staff/{staffId}",
         "definition": {
           "schema": { "$ref": "#/backend/entities/Staff" },
-          "description": "Padrón docente."
+          "description": "Padrón docente institucional."
         }
       },
       {
         "path": "/documents/{documentId}",
         "definition": {
           "schema": { "$ref": "#/backend/entities/Document" },
-          "description": "Repositorio central de documentos."
+          "description": "Repositorio central de documentos de extensión y vinculación."
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
+          "description": "Registro de usuarios con permisos de administración."
         }
       }
     ]
