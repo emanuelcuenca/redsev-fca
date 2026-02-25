@@ -10,8 +10,6 @@ import {
   ArrowLeft,
   Loader2,
   ScrollText,
-  GraduationCap,
-  Plane,
   Handshake,
   ArrowLeftRight,
   Target,
@@ -21,8 +19,7 @@ import {
   FileCheck,
   User,
   Users,
-  Fingerprint,
-  SearchIcon
+  Fingerprint
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -40,10 +37,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, query, where, getDocs, limit, doc, getDoc } from "firebase/firestore";
+import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where, getDocs, limit, doc, getDoc, addDoc } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { AgriculturalDocument, PersonName, formatPersonName, StaffMember } from "@/lib/mock-data";
+import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -63,11 +61,11 @@ export default function UploadPage() {
   const [extensionDocType, setExtensionDocType] = useState<string>("");
   const [title, setTitle] = useState("");
   
-  const [director, setDirector] = useState<PersonName>({ dni: "", firstName: "", lastName: "" });
+  const [director, setDirector] = useState<PersonName>({ firstName: "", lastName: "" });
   const [technicalTeam, setTechnicalTeam] = useState<PersonName[]>([
-    { dni: "", firstName: "", lastName: "" },
-    { dni: "", firstName: "", lastName: "" },
-    { dni: "", firstName: "", lastName: "" }
+    { firstName: "", lastName: "" },
+    { firstName: "", lastName: "" },
+    { firstName: "", lastName: "" }
   ]);
 
   const [description, setDescription] = useState("");
@@ -96,40 +94,22 @@ export default function UploadPage() {
   const [isSearchingProject, setIsSearchingProject] = useState(false);
   const [foundProject, setFoundProject] = useState<AgriculturalDocument | null>(null);
 
-  const lookupStaff = async (dni: string) => {
-    if (!dni || dni.length < 6) return null;
-    try {
-      const staffRef = doc(db, 'staff', dni);
-      const snap = await getDoc(staffRef);
-      if (snap.exists()) {
-        return snap.data() as StaffMember;
-      }
-    } catch (e) {
-      console.error("Error buscando en padrón:", e);
-    }
-    return null;
-  };
+  const staffQuery = useMemoFirebase(() => query(collection(db, 'staff')), [db]);
+  const { data: staffList } = useCollection<StaffMember>(staffQuery);
 
-  const handleDirectorDniBlur = async () => {
-    if (director.dni) {
-      const person = await lookupStaff(director.dni);
-      if (person) {
-        setDirector(prev => ({ ...prev, firstName: person.firstName, lastName: person.lastName }));
-        toast({ title: "Persona identificada", description: `Se cargó a ${person.lastName} desde el padrón.` });
-      }
-    }
-  };
-
-  const handleTeamDniBlur = async (index: number) => {
-    const dni = technicalTeam[index].dni;
-    if (dni) {
-      const person = await lookupStaff(dni);
-      if (person) {
-        const newTeam = [...technicalTeam];
-        newTeam[index] = { ...newTeam[index], firstName: person.firstName, lastName: person.lastName };
-        setTechnicalTeam(newTeam);
-        toast({ title: "Persona identificada", description: "Se autocompletaron los datos." });
-      }
+  const upsertStaff = async (person: PersonName) => {
+    if (!person.firstName || !person.lastName) return;
+    const exists = staffList?.some(s => 
+      s.firstName.toLowerCase() === person.firstName.toLowerCase() && 
+      s.lastName.toLowerCase() === person.lastName.toLowerCase()
+    );
+    if (!exists) {
+      addDoc(collection(db, 'staff'), {
+        firstName: formatText(person.firstName),
+        lastName: formatText(person.lastName),
+        category: "Docente", // Default category
+        updatedAt: new Date().toISOString()
+      });
     }
   };
 
@@ -187,7 +167,7 @@ export default function UploadPage() {
         setDescription(project.description || "");
         setObjetivoGeneral(project.objetivoGeneral || "");
         setObjetivosEspecificos(project.objetivosEspecificos || []);
-        setDirector(project.director || { dni: "", firstName: "", lastName: "" });
+        setDirector(project.director || { firstName: "", lastName: "" });
         setTechnicalTeam(project.authors || []);
         setProjectCode(project.projectCode || "");
         setExecutionPeriod(project.executionPeriod || "");
@@ -231,7 +211,7 @@ export default function UploadPage() {
 
   const handleTechnicalTeamChange = (index: number, field: keyof PersonName, value: string) => {
     const newTeam = [...technicalTeam];
-    newTeam[index] = { ...newTeam[index], [field]: field === 'dni' ? value : formatText(value) };
+    newTeam[index] = { ...newTeam[index], [field]: formatText(value) };
     setTechnicalTeam(newTeam);
   };
 
@@ -249,6 +229,12 @@ export default function UploadPage() {
     }
 
     const filteredTeam = technicalTeam.filter(member => member.firstName.trim() !== "" || member.lastName.trim() !== "");
+
+    // Upsert people to staff database
+    if (director.lastName) await upsertStaff(director);
+    for (const member of filteredTeam) {
+      await upsertStaff(member);
+    }
 
     const documentData: any = {
       title: formatText(title),
@@ -271,7 +257,7 @@ export default function UploadPage() {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
       documentData.executionPeriod = executionPeriod;
-      documentData.director = { dni: director.dni, firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
+      documentData.director = { firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
       documentData.authors = filteredTeam;
       if (extensionDocType === "Proyecto de Extensión" || foundProject) {
         documentData.objetivoGeneral = objetivoGeneral;
@@ -327,8 +313,8 @@ export default function UploadPage() {
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
                       setTitle("");
-                      setTechnicalTeam([{ dni: "", firstName: "", lastName: "" }, { dni: "", firstName: "", lastName: "" }, { dni: "", firstName: "", lastName: "" }]);
-                      setDirector({ dni: "", firstName: "", lastName: "" });
+                      setTechnicalTeam([{ firstName: "", lastName: "" }, { firstName: "", lastName: "" }, { firstName: "", lastName: "" }]);
+                      setDirector({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
                     className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
@@ -386,13 +372,16 @@ export default function UploadPage() {
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-4 border-b pb-6">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="relative">
-                            <Input placeholder="DNI" className="h-12 rounded-xl font-mono" value={director.dni} onChange={(e) => setDirector({...director, dni: e.target.value})} onBlur={handleDirectorDniBlur} />
-                            <SearchIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/30" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <StaffAutocomplete 
+                            label="Director" 
+                            defaultValue={director.lastName ? `${director.lastName}, ${director.firstName}` : ""}
+                            onSelect={(s) => setDirector({ firstName: s.firstName, lastName: s.lastName })}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={director.lastName} onChange={(e) => setDirector({ ...director, lastName: e.target.value })} />
+                            <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={director.firstName} onChange={(e) => setDirector({ ...director, firstName: e.target.value })} />
                           </div>
-                          <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={director.firstName} onChange={(e) => setDirector({ ...director, firstName: e.target.value })} />
-                          <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={director.lastName} onChange={(e) => setDirector({ ...director, lastName: e.target.value })} />
                         </div>
                       </div>
 
@@ -400,21 +389,24 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> Equipo Técnico</Label>
                         <div className="space-y-4">
                           {technicalTeam.map((member, i) => (
-                            <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-2 relative">
-                              <div className="relative">
-                                <Input placeholder="DNI" className="h-11 rounded-lg font-mono" value={member.dni} onChange={(e) => handleTechnicalTeamChange(i, 'dni', e.target.value)} onBlur={() => handleTeamDniBlur(i)} />
-                                <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/30" />
-                              </div>
-                              <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                              <div className="flex gap-2">
-                                <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                                {technicalTeam.length > 3 && (
-                                  <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
-                                )}
+                            <div key={i} className="space-y-2 p-4 bg-muted/20 rounded-2xl">
+                              <StaffAutocomplete 
+                                label={`Integrante ${i + 1}`} 
+                                defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
+                                onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                              />
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 relative">
+                                <Input placeholder="Apellido" className="h-11 rounded-lg font-medium" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                                <div className="flex gap-2">
+                                  <Input placeholder="Nombre" className="h-11 rounded-lg font-medium flex-1" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                                  {technicalTeam.length > 3 && (
+                                    <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
-                          <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { dni: "", firstName: "", lastName: "" }])}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
+                          <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
                         </div>
                       </div>
                     </div>
@@ -456,7 +448,7 @@ export default function UploadPage() {
                       <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Director:</p>
                         <p className="text-sm font-bold text-primary">
-                          {foundProject.director ? formatPersonName(foundProject.director) : 'Sin director asignado'}
+                          {foundProject.director ? `${foundProject.director.lastName}, ${foundProject.director.firstName}` : 'Sin director asignado'}
                         </p>
                       </div>
                     </div>
@@ -499,9 +491,16 @@ export default function UploadPage() {
                       <div className="animate-in slide-in-from-top-2 duration-300 space-y-4">
                         <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground mb-1 block">Equipo Responsable</Label>
                         {technicalTeam.map((member, i) => (
-                          <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <Input placeholder="Nombre" className="h-9 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                            <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                          <div key={i} className="space-y-2 p-3 bg-white/50 rounded-xl">
+                            <StaffAutocomplete 
+                              label={`Responsable ${i + 1}`} 
+                              defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
+                              onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <Input placeholder="Nombre" className="h-9 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -526,12 +525,19 @@ export default function UploadPage() {
                   <div className="space-y-4 md:col-span-2 border-t pt-4">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables</Label>
                     {technicalTeam.map((member, i) => (
-                      <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <Input placeholder="Nombre" className="h-10 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                        <Input placeholder="Apellido" className="h-10 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                      <div key={i} className="space-y-2 p-3 bg-muted/10 rounded-xl">
+                        <StaffAutocomplete 
+                          label={`Responsable ${i + 1}`} 
+                          defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
+                          onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <Input placeholder="Apellido" className="h-10 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                          <Input placeholder="Nombre" className="h-10 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                        </div>
                       </div>
                     ))}
-                    <Button type="button" variant="outline" className="w-full h-9 rounded-lg border-dashed text-[9px] uppercase font-black" onClick={() => setTechnicalTeam([...technicalTeam, { dni: "", firstName: "", lastName: "" }])}>Añadir responsable</Button>
+                    <Button type="button" variant="outline" className="w-full h-9 rounded-lg border-dashed text-[9px] uppercase font-black" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>Añadir responsable</Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

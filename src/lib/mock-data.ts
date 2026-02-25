@@ -1,11 +1,11 @@
 
 export interface PersonName {
-  dni?: string;
   firstName: string;
   lastName: string;
 }
 
 export interface StaffMember extends PersonName {
+  id: string;
   category: 'Docente' | 'Estudiante' | 'No Docente' | 'Externo';
   email?: string;
   updatedAt?: string;
@@ -48,5 +48,6 @@ export function isDocumentVigente(doc: AgriculturalDocument): boolean {
 
 export function formatPersonName(person?: PersonName): string {
   if (!person || (!person.firstName && !person.lastName)) return 'Sin asignar';
+  // Formato: Apellido, Nombre
   return `${person.lastName}, ${person.firstName}`;
 }

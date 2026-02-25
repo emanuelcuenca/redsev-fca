@@ -27,14 +27,14 @@
       "type": "object",
       "description": "Padrón central de personas vinculadas a la facultad (Docentes, Alumnos, etc).",
       "properties": {
-        "dni": { "type": "string", "description": "ID único y DNI de la persona." },
+        "id": { "type": "string", "description": "ID generado automáticamente." },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
         "category": { "type": "string", "enum": ["Docente", "Estudiante", "No Docente", "Externo"] },
         "email": { "type": "string", "format": "email" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["dni", "firstName", "lastName", "category"]
+      "required": ["firstName", "lastName", "category"]
     },
     "Document": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -50,7 +50,6 @@
         "director": {
           "type": "object",
           "properties": {
-            "dni": { "type": "string" },
             "firstName": { "type": "string" },
             "lastName": { "type": "string" }
           }
@@ -60,7 +59,6 @@
           "items": {
             "type": "object",
             "properties": {
-              "dni": { "type": "string" },
               "firstName": { "type": "string" },
               "lastName": { "type": "string" }
             }
@@ -88,7 +86,7 @@
         }
       },
       {
-        "path": "/staff/{dni}",
+        "path": "/staff/{staffId}",
         "definition": {
           "schema": { "$ref": "#/backend/entities/Staff" },
           "description": "Padrón de personas (Docentes, Estudiantes)."

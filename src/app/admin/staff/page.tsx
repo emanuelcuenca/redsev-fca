@@ -5,21 +5,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Contact, 
-  Plus, 
   Search, 
   Loader2, 
   Trash2, 
   UserPlus, 
-  ArrowLeft,
   GraduationCap,
   Briefcase,
   Users,
-  Fingerprint
+  X
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +45,7 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
 import { collection, doc, query, orderBy } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { StaffMember } from "@/lib/mock-data";
@@ -62,7 +60,6 @@ export default function StaffAdminPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    dni: "",
     firstName: "",
     lastName: "",
     category: "Docente",
@@ -88,7 +85,6 @@ export default function StaffAdminPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
-  // Solo realizar la consulta si estamos seguros de que es administrador
   const staffQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? query(collection(db, 'staff'), orderBy('lastName', 'asc')) : null,
     [db, user, currentAdminDoc]
@@ -96,35 +92,32 @@ export default function StaffAdminPage() {
   const { data: staffList, isLoading: isStaffLoading } = useCollection<StaffMember>(staffQuery);
 
   const filteredStaff = staffList?.filter(s => 
-    s.dni.includes(searchQuery) || 
     s.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
     s.lastName.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.dni || !formData.firstName || !formData.lastName) {
+    if (!formData.firstName || !formData.lastName) {
       toast({ variant: "destructive", title: "Campos incompletos" });
       return;
     }
 
     setIsSaving(true);
-    const staffRef = doc(db, 'staff', formData.dni);
-    
-    setDocumentNonBlocking(staffRef, {
+    addDocumentNonBlocking(collection(db, 'staff'), {
       ...formData,
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    });
 
     toast({ title: "Registro guardado", description: "El padrón ha sido actualizado." });
     setIsSaving(false);
     setIsDialogOpen(false);
-    setFormData({ dni: "", firstName: "", lastName: "", category: "Docente", email: "" });
+    setFormData({ firstName: "", lastName: "", category: "Docente", email: "" });
   };
 
-  const handleDelete = (dni: string) => {
+  const handleDelete = (id: string) => {
     if (confirm("¿Está seguro de eliminar a esta persona del padrón?")) {
-      deleteDocumentNonBlocking(doc(db, 'staff', dni));
+      deleteDocumentNonBlocking(doc(db, 'staff', id));
       toast({ title: "Registro eliminado" });
     }
   };
@@ -168,23 +161,19 @@ export default function StaffAdminPage() {
                   <DialogTitle className="font-headline font-bold uppercase text-primary">Nueva Persona</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest">DNI / ID</Label>
-                    <Input value={formData.dni} onChange={(e) => setFormData({...formData, dni: e.target.value})} placeholder="Sin puntos" className="h-12 rounded-xl" />
-                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest">Nombre</Label>
-                      <Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="h-12 rounded-xl" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest">Apellido</Label>
+                      <Input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="h-12 rounded-xl" required />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest">Apellido</Label>
-                      <Input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="h-12 rounded-xl" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest">Nombre</Label>
+                      <Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="h-12 rounded-xl" required />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest">Categoría</Label>
-                    <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
+                    <Select value={formData.category} onValueChange={(v: any) => setFormData({...formData, category: v})}>
                       <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Docente">Docente</SelectItem>
@@ -213,7 +202,7 @@ export default function StaffAdminPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Buscar por DNI, Nombre o Apellido..." 
+                  placeholder="Buscar por Apellido o Nombre..." 
                   className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -229,17 +218,15 @@ export default function StaffAdminPage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">DNI</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Nombre y Apellido</TableHead>
+                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Apellido y Nombre</TableHead>
                       <TableHead className="font-black text-[10px] uppercase tracking-widest">Categoría</TableHead>
                       <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredStaff.map((person) => (
-                      <TableRow key={person.dni} className="group hover:bg-primary/[0.02]">
-                        <TableCell className="py-5 pl-8 font-mono font-bold text-primary/70">{person.dni}</TableCell>
-                        <TableCell className="font-bold">{person.lastName}, {person.firstName}</TableCell>
+                      <TableRow key={person.id} className="group hover:bg-primary/[0.02]">
+                        <TableCell className="py-5 pl-8 font-bold">{person.lastName}, {person.firstName}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5">
                             {person.category === "Docente" && <Briefcase className="w-3 h-3 mr-1.5" />}
@@ -249,7 +236,7 @@ export default function StaffAdminPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="pr-8 text-right">
-                          <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.dni)}>
+                          <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TableCell>
