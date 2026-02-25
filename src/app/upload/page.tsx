@@ -114,7 +114,6 @@ export default function UploadPage() {
   const [mobilityState, setMobilityState] = useState("");
   const [mobilityCountry, setMobilityCountry] = useState("");
 
-  // Estados para búsqueda de proyecto
   const [searchProjectNumber, setSearchProjectNumber] = useState("");
   const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
   const [isSearchingProject, setIsSearchingProject] = useState(false);
@@ -366,9 +365,10 @@ export default function UploadPage() {
                       setExtensionDocType("");
                       setTitle("");
                       setLinkedProject(null);
-                      const defaultCount = item.id === "Proyecto" ? 3 : 1;
+                      const defaultCount = (item.id === "Proyecto" || item.id === "Convenio") ? 3 : 1;
                       setTechnicalTeam(Array(defaultCount).fill({ firstName: "", lastName: "" }));
                       setDirector({ firstName: "", lastName: "" });
+                      setStudent({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
                     className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${
@@ -648,6 +648,28 @@ export default function UploadPage() {
                   <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
 
+                {type === "Movilidad Docente" && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                      <User className="w-4 h-4" /> Beneficiario
+                    </Label>
+                    <div className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
+                      <StaffAutocomplete 
+                        onSelect={(s) => {
+                          const newTeam = [{ firstName: s.firstName, lastName: s.lastName }];
+                          setTechnicalTeam(newTeam);
+                        }} 
+                        label="Beneficiario" 
+                        placeholder="Buscar por apellido..."
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={technicalTeam[0]?.lastName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'lastName', e.target.value)} />
+                        <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={technicalTeam[0]?.firstName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'firstName', e.target.value)} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {(type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") && (
                   <div className="space-y-8">
                     {(type === "Movilidad Estudiantil" || type === "Pasantía") && (
@@ -699,49 +721,49 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                <div className="space-y-4 pt-4 border-t">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                    <Users className="w-4 h-4" /> 
-                    {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
-                  </Label>
-                  <div className="space-y-4">
-                    {technicalTeam.map((member, i) => (
-                      <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
-                        {technicalTeam.length > 1 && type !== 'Movilidad Docente' && (
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="icon" 
-                            className="absolute top-2 right-2 h-8 w-8 text-destructive" 
-                            onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <StaffAutocomplete 
-                          onSelect={(s) => {
-                            const newTeam = [...technicalTeam];
-                            newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
-                            setTechnicalTeam(newTeam);
-                          }} 
-                          label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
-                          placeholder="Buscar por apellido..."
-                        />
-                        <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                          <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                {type !== "Movilidad Docente" && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                      <Users className="w-4 h-4" /> 
+                      {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
+                    </Label>
+                    <div className="space-y-4">
+                      {technicalTeam.map((member, i) => (
+                        <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
+                          {technicalTeam.length > 1 && (
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 h-8 w-8 text-destructive" 
+                              onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <StaffAutocomplete 
+                            onSelect={(s) => {
+                              const newTeam = [...technicalTeam];
+                              newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                              setTechnicalTeam(newTeam);
+                            }} 
+                            label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
+                            placeholder="Buscar por apellido..."
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                            <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {type !== 'Movilidad Docente' && (
+                      ))}
                       <Button type="button" variant="outline" className="w-full h-11 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>
                         <Plus className="w-4 h-4 mr-2" /> Añadir responsable
                       </Button>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {type !== "Convenio" && type !== "Movilidad Estudiantil" && (
+                {type !== "Convenio" && type !== "Movilidad Estudiantil" && type !== "Movilidad Docente" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>

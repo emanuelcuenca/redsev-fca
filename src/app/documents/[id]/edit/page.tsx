@@ -306,8 +306,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
   const isMobilityEstudiantil = formData.type === 'Movilidad Estudiantil';
+  const isMobilityDocente = formData.type === 'Movilidad Docente';
   const isPasantia = formData.type === 'Pasantía';
-  const isMobilityLike = isMobilityEstudiantil || formData.type === 'Movilidad Docente' || isPasantia;
+  const isMobilityLike = isMobilityEstudiantil || isMobilityDocente || isPasantia;
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
@@ -332,6 +333,22 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
                     <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="h-12 rounded-xl font-bold" />
                   </div>
+
+                  {isMobilityDocente && (
+                    <div className="md:col-span-2 space-y-4 pt-4 border-t">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Beneficiario</Label>
+                      <div className="space-y-3">
+                        {formData.authors.map((member: PersonName, i: number) => (
+                          <div key={i} className="grid grid-cols-2 gap-2 relative">
+                            <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            <div className="flex gap-2">
+                              <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {isMobilityLike && (
                     <div className="md:col-span-2 space-y-8">
@@ -417,23 +434,23 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  <div className="md:col-span-2 space-y-4 border-t pt-4">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {formData.type === 'Movilidad Docente' ? "Beneficiario" : (isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables")}</Label>
-                    <div className="space-y-3">
-                      {formData.authors.map((member: PersonName, i: number) => (
-                        <div key={i} className="grid grid-cols-2 gap-2 relative">
-                          <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                          <div className="flex gap-2">
-                            <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
+                  {!isMobilityDocente && (
+                    <div className="md:col-span-2 space-y-4 border-t pt-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables"}</Label>
+                      <div className="space-y-3">
+                        {formData.authors.map((member: PersonName, i: number) => (
+                          <div key={i} className="grid grid-cols-2 gap-2 relative">
+                            <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            <div className="flex gap-2">
+                              <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      {formData.type !== 'Movilidad Docente' && (
+                        ))}
                         <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir responsable</Button>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {!isMobilityLike && !isProyecto && !isConvenio && (
                     <div className="space-y-2">
@@ -489,12 +506,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {(isMobilityLike || !isProyecto) && (
+                  {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Mostrar resolución/código solo si no es Movilidad Estudiantil */}
-                      {!isMobilityEstudiantil && (
-                        <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                      )}
+                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                     </div>
                   )}
                 </div>
