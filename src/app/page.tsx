@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,11 @@ import {
   ShieldCheck,
   AlertTriangle,
   ArrowLeftRight,
-  Fingerprint
+  Fingerprint,
+  Plane,
+  GraduationCap,
+  TrendingUp,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -38,8 +42,8 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, collection, query, orderBy, limit } from "firebase/firestore";
-import { AgriculturalDocument } from "@/lib/mock-data";
+import { doc, collection, query, orderBy } from "firebase/firestore";
+import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 
 export default function Dashboard() {
   const { user, isUserLoading } = useUser();
@@ -71,12 +75,28 @@ export default function Dashboard() {
   );
   const { data: userProfile } = useDoc(userProfileRef);
 
-  const docsQuery = useMemoFirebase(() => {
+  // Consultar todos los documentos para calcular estadísticas
+  const allDocsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'), limit(6));
+    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
   }, [db, user]);
   
-  const { data: recentDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(docsQuery);
+  const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    if (!allDocuments) return null;
+    return {
+      conveniosVigentes: allDocuments.filter(d => d.type === 'Convenio' && isDocumentVigente(d)).length,
+      proyectosExtension: allDocuments.filter(d => d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión').length,
+      movEstudiantil: allDocuments.filter(d => d.type === 'Movilidad Estudiantil').length,
+      movDocente: allDocuments.filter(d => d.type === 'Movilidad Docente').length,
+      pasantias: allDocuments.filter(d => d.type === 'Pasantía').length,
+    };
+  }, [allDocuments]);
+
+  // Tomar los últimos 6 para la lista visual
+  const recentDocuments = allDocuments?.slice(0, 6) || [];
 
   const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0].toUpperCase() || '');
   const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
@@ -132,7 +152,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="mb-10 md:mb-16">
+          <div className="mb-8 md:mb-12">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="bg-primary/10 p-2.5 rounded-xl">
                 <LayoutDashboard className="w-6 h-6 text-primary" />
@@ -150,6 +170,47 @@ export default function Dashboard() {
               Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
             </p>
           </div>
+
+          {/* Sección de Estadísticas Institucionales */}
+          <section className="mb-12">
+            <div className="flex items-center gap-2 mb-6">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-headline font-bold uppercase tracking-tight text-primary">Indicadores de Impacto</h3>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <StatCard 
+                label="Convenios Vigentes" 
+                value={stats?.conveniosVigentes || 0} 
+                icon={Handshake} 
+                color="bg-blue-500/10 text-blue-600 border-blue-200"
+              />
+              <StatCard 
+                label="Proyectos Extensión" 
+                value={stats?.proyectosExtension || 0} 
+                icon={ArrowLeftRight} 
+                color="bg-emerald-500/10 text-emerald-600 border-emerald-200"
+              />
+              <StatCard 
+                label="Mov. Estudiantil" 
+                value={stats?.movEstudiantil || 0} 
+                icon={Plane} 
+                color="bg-purple-500/10 text-purple-600 border-purple-200"
+              />
+              <StatCard 
+                label="Mov. Docente" 
+                value={stats?.movDocente || 0} 
+                icon={Plane} 
+                color="bg-orange-500/10 text-orange-600 border-orange-200"
+              />
+              <StatCard 
+                label="Pasantías Concretadas" 
+                value={stats?.pasantias || 0} 
+                icon={GraduationCap} 
+                color="bg-indigo-500/10 text-indigo-600 border-indigo-200"
+              />
+            </div>
+          </section>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
             <div className="max-w-4xl">
@@ -218,7 +279,7 @@ export default function Dashboard() {
                 <p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
               </div>
             ) : (
-              recentDocuments && recentDocuments.length > 0 ? (
+              recentDocuments.length > 0 ? (
                 recentDocuments.map((doc) => (
                   <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
                 ))
@@ -233,6 +294,20 @@ export default function Dashboard() {
         </main>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+function StatCard({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
+  return (
+    <Card className={`border-2 ${color} border-current/10 shadow-sm rounded-3xl overflow-hidden transition-transform hover:scale-[1.02] duration-300`}>
+      <CardContent className="p-5 flex flex-col items-center text-center gap-2">
+        <div className={`p-2 rounded-xl bg-white/50 mb-1`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="text-2xl font-black font-headline tracking-tighter leading-none">{value}</div>
+        <div className="text-[9px] font-black uppercase tracking-widest leading-tight opacity-80">{label}</div>
+      </CardContent>
+    </Card>
   );
 }
 
