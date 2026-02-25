@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,10 +8,7 @@ import {
   Loader2, 
   Trash2, 
   UserPlus, 
-  GraduationCap,
-  Briefcase,
-  Users,
-  X
+  Briefcase
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -30,13 +26,6 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { 
   Dialog, 
   DialogContent, 
@@ -106,17 +95,18 @@ export default function StaffAdminPage() {
     setIsSaving(true);
     addDocumentNonBlocking(collection(db, 'staff'), {
       ...formData,
+      category: "Docente",
       updatedAt: new Date().toISOString()
     });
 
-    toast({ title: "Registro guardado", description: "El padrón ha sido actualizado." });
+    toast({ title: "Docente guardado", description: "El padrón docente ha sido actualizado." });
     setIsSaving(false);
     setIsDialogOpen(false);
     setFormData({ firstName: "", lastName: "", category: "Docente", email: "" });
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("¿Está seguro de eliminar a esta persona del padrón?")) {
+    if (confirm("¿Está seguro de eliminar a este docente del padrón?")) {
       deleteDocumentNonBlocking(doc(db, 'staff', id));
       toast({ title: "Registro eliminado" });
     }
@@ -136,7 +126,7 @@ export default function StaffAdminPage() {
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 text-center font-headline font-bold text-primary uppercase">Padrón de Personas</div>
+          <div className="flex-1 text-center font-headline font-bold text-primary uppercase">Padrón Docente</div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
@@ -145,20 +135,20 @@ export default function StaffAdminPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Administración de Personas</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Docentes, Estudiantes y Externos</p>
+                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Administración de Docentes</h2>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos de docentes FCA</p>
               </div>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl bg-primary h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
-                  <UserPlus className="w-4 h-4 mr-2" /> Agregar al Padrón
+                  <UserPlus className="w-4 h-4 mr-2" /> Agregar Docente
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-3xl sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle className="font-headline font-bold uppercase text-primary">Nueva Persona</DialogTitle>
+                  <DialogTitle className="font-headline font-bold uppercase text-primary">Nuevo Docente</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -172,24 +162,12 @@ export default function StaffAdminPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest">Categoría</Label>
-                    <Select value={formData.category} onValueChange={(v: any) => setFormData({...formData, category: v})}>
-                      <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Docente">Docente</SelectItem>
-                        <SelectItem value="Estudiante">Estudiante</SelectItem>
-                        <SelectItem value="No Docente">No Docente</SelectItem>
-                        <SelectItem value="Externo">Externo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest">Email (Opcional)</Label>
                     <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 rounded-xl" />
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isSaving} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest">
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar Registro"}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar Docente"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -202,7 +180,7 @@ export default function StaffAdminPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Buscar por Apellido o Nombre..." 
+                  placeholder="Buscar docente por Apellido o Nombre..." 
                   className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -229,10 +207,8 @@ export default function StaffAdminPage() {
                         <TableCell className="py-5 pl-8 font-bold">{person.lastName}, {person.firstName}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5">
-                            {person.category === "Docente" && <Briefcase className="w-3 h-3 mr-1.5" />}
-                            {person.category === "Estudiante" && <GraduationCap className="w-3 h-3 mr-1.5" />}
-                            {person.category === "Externo" && <Users className="w-3 h-3 mr-1.5" />}
-                            {person.category}
+                            <Briefcase className="w-3 h-3 mr-1.5" />
+                            DOCENTE
                           </Badge>
                         </TableCell>
                         <TableCell className="pr-8 text-right">

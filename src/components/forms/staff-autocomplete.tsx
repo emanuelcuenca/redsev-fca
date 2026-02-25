@@ -1,10 +1,8 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
-import { Input } from "@/components/ui/input";
 import { StaffMember } from "@/lib/mock-data";
 import { Command, CommandGroup, CommandItem, CommandList, CommandInput, CommandEmpty } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -42,7 +40,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
             aria-expanded={open}
             className="w-full justify-between h-12 rounded-xl font-bold bg-white text-left overflow-hidden"
           >
-            {value ? value : placeholder || "Buscar por apellido..."}
+            {value ? value : placeholder || "Buscar docente por apellido..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -53,7 +51,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
               className="h-11 border-none focus:ring-0"
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No se encontraron coincidencias.</CommandEmpty>
+              <CommandEmpty>No se encontraron docentes en el padrón.</CommandEmpty>
               <CommandGroup>
                 {staffList?.map((person) => (
                   <CommandItem
@@ -74,9 +72,6 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
                       )}
                     />
                     {person.lastName}, {person.firstName}
-                    <span className="ml-auto text-[10px] uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {person.category}
-                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>

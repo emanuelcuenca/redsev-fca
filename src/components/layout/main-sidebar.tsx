@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -55,7 +54,7 @@ export function MainSidebar() {
 
   const ADMIN_ITEMS = [
     { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
-    { icon: Contact, label: "Padrón de Personas", href: "/admin/staff" },
+    { icon: Contact, label: "Padrón Docente", href: "/admin/staff" },
     { icon: Users, label: "Gestión de Usuarios", href: "/admin" },
   ];
 

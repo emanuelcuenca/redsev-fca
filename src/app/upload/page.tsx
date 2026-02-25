@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -93,7 +92,6 @@ export default function UploadPage() {
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
 
-  // Estados específicos para Movilidad
   const [mobilityStartDay, setMobilityStartDay] = useState(new Date().getDate().toString());
   const [mobilityStartMonth, setMobilityStartMonth] = useState(MONTHS[new Date().getMonth()]);
   const [mobilityStartYear, setMobilityStartYear] = useState(new Date().getFullYear().toString());
@@ -337,7 +335,6 @@ export default function UploadPage() {
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
                       setTitle("");
-                      // En movilidad por defecto solo un responsable
                       if (item.id === "Movilidad") {
                         setTechnicalTeam([{ firstName: "", lastName: "" }]);
                       } else {
@@ -420,7 +417,7 @@ export default function UploadPage() {
                           {technicalTeam.map((member, i) => (
                             <div key={i} className="space-y-2 p-4 bg-muted/20 rounded-2xl">
                               <StaffAutocomplete 
-                                label={`Buscar Integrante ${i + 1}`} 
+                                label={`Buscar Docente ${i + 1}`} 
                                 defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
                                 onSelect={(s) => {
                                   const newTeam = [...technicalTeam];
@@ -526,7 +523,7 @@ export default function UploadPage() {
                         {technicalTeam.map((member, i) => (
                           <div key={i} className="space-y-2 p-3 bg-white/50 rounded-xl">
                             <StaffAutocomplete 
-                              label={`Buscar Responsable ${i + 1}`} 
+                              label={`Buscar Docente ${i + 1}`} 
                               defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
                               onSelect={(s) => {
                                 const newTeam = [...technicalTeam];
@@ -584,7 +581,7 @@ export default function UploadPage() {
                   {technicalTeam.map((member, i) => (
                     <div key={i} className="space-y-2 p-3 bg-muted/10 rounded-xl relative">
                       <StaffAutocomplete 
-                        label={`Buscar Responsable ${i + 1}`} 
+                        label={`Buscar Docente ${i + 1}`} 
                         defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
                         onSelect={(s) => {
                           const newTeam = [...technicalTeam];
@@ -627,7 +624,7 @@ export default function UploadPage() {
                     {technicalTeam.map((member, i) => (
                       <div key={i} className="space-y-2 p-3 bg-muted/10 rounded-xl">
                         <StaffAutocomplete 
-                          label={`Buscar Responsable ${i + 1}`} 
+                          label={`Buscar Docente ${i + 1}`} 
                           defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
                           onSelect={(s) => {
                             const newTeam = [...technicalTeam];
