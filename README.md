@@ -10,7 +10,11 @@ Este proyecto está vinculado directamente con GitHub. Sigue este ciclo para man
    - Ve a la pestaña de **Git** en el menú izquierdo de Firebase Studio.
    - Escribe un mensaje breve sobre los cambios realizados (ej: "Mejora en formulario de extensión").
    - Presiona `Sync Changes` (o `Ctrl + Enter`). Esto subirá el código automáticamente a tu repositorio en GitHub.
-3. **Actualizar el Servidor de Producción**: Una vez el código esté en GitHub, el sitio web "vivo" en la Universidad NO se actualiza solo. El equipo técnico debe entrar al servidor y ejecutar:
+3. **Visualización de Avances (Para Jefes/Autoridades)**:
+   - Al sincronizar con GitHub, Firebase App Hosting generará una versión en vivo. 
+   - Puedes encontrar la URL de previsualización en el **Firebase Console > App Hosting**.
+   - Comparte esa URL con tu jefe para que pruebe el sistema antes de pasarlo al servidor definitivo.
+4. **Actualizar el Servidor de Producción**: Una vez el código esté aprobado en la versión de prueba:
    ```bash
    git pull origin main
    npm run build
