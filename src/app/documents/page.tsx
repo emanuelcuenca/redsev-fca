@@ -9,22 +9,17 @@ import {
   Search, 
   User, 
   MoreVertical,
-  Download,
   Eye,
-  Calendar,
   Handshake,
-  Building2,
   Loader2,
   ArrowLeftRight,
   ScrollText,
   GraduationCap,
   Trash2,
   Plane,
-  CheckCircle2,
-  XCircle,
   Fingerprint,
   Pencil,
-  Users
+  FlaskConical
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -54,9 +49,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
-import { doc, collection, query, orderBy } from "firebase/firestore";
+import { doc, collection } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { toast } from "@/hooks/use-toast";
 
@@ -86,24 +80,43 @@ export default function DocumentsListPage() {
 
   const docsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(db, 'documents'), orderBy('uploadDate', 'desc'));
+    // Se elimina el orderBy para asegurar que se muestren documentos que no tengan uploadDate (cargas manuales)
+    return collection(db, 'documents');
   }, [db, user]);
-  const { data: allDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
+  const { data: rawDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
   const filteredDocs = useMemo(() => {
-    if (!allDocs) return [];
-    return allDocs.filter(doc => {
+    if (!rawDocs) return [];
+    
+    // Ordenar por fecha de carga de forma manual para manejar nulos
+    const sortedDocs = [...rawDocs].sort((a, b) => {
+      const dateA = new Date(a.uploadDate || a.date || 0).getTime();
+      const dateB = new Date(b.uploadDate || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+
+    return sortedDocs.filter(doc => {
+      // Filtrado por categoría
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type !== 'Proyecto') return false;
+      if (category === 'investigacion' && doc.type !== 'Investigación') return false;
       if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
       if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
-      const searchableString = (doc.title + (doc.projectCode || '') + (doc.counterpart || '') + (doc.authors?.map(a => a.lastName).join(' ') || '')).toLowerCase();
+      // Búsqueda de texto
+      const searchableString = (
+        (doc.title || "") + 
+        (doc.projectCode || '') + 
+        (doc.counterpart || '') + 
+        (doc.authors?.map(a => a.lastName).join(' ') || '')
+      ).toLowerCase();
+      
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      if (category === 'convenios' || category === 'resoluciones-reglamentos') {
+      // Filtros específicos de año y vigencia
+      if (category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'investigacion' || category === 'extension') {
         const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
         if (filterYear !== "all" && docYear !== filterYear) return false;
       }
@@ -113,24 +126,25 @@ export default function DocumentsListPage() {
       }
       return true;
     });
-  }, [allDocs, searchQuery, category, filterVigente, filterYear]);
+  }, [rawDocs, searchQuery, category, filterVigente, filterYear]);
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
     deleteDocumentNonBlocking(doc(db, 'documents', docId));
-    toast({ title: "Documento eliminado", description: `El registro ha sido removido del sistema.` });
+    toast({ title: "Documento eliminado" });
   };
 
   const years = useMemo(() => {
-    if (!allDocs) return [];
-    const allYears = allDocs.map(d => (d.date ? new Date(d.date).getFullYear() : null)).filter(Boolean);
+    if (!rawDocs) return [];
+    const allYears = rawDocs.map(d => (d.date ? new Date(d.date).getFullYear() : null)).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
-  }, [allDocs]);
+  }, [rawDocs]);
 
   const getPageInfo = () => {
     switch(category) {
       case 'convenios': return { title: 'Convenios', icon: Handshake };
       case 'extension': return { title: 'Extensión', icon: ArrowLeftRight };
+      case 'investigacion': return { title: 'Investigación', icon: FlaskConical };
       case 'resoluciones-reglamentos': return { title: 'Resoluciones y Reglamentos', icon: ScrollText };
       case 'pasantias': return { title: 'Prácticas y Pasantías', icon: GraduationCap };
       case 'movilidad-estudiantil': return { title: 'Movilidad Estudiantil', icon: Plane };
@@ -166,18 +180,46 @@ export default function DocumentsListPage() {
 
         <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6 md:mb-8"><div className="bg-primary/10 p-2.5 rounded-xl"><PageIcon className="w-6 h-6 text-primary" /></div><h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2></div>
+          
           <div className="space-y-4 mb-8">
-            <div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" /><Input placeholder="Buscar por título, código o responsable..." className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
-            {(category === 'convenios' || category === 'resoluciones-reglamentos') && (
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input 
+                placeholder="Buscar por título, código o responsable..." 
+                className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+              />
+            </div>
+            {(category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'investigacion' || category === 'extension') && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {category === 'convenios' && (<Select value={filterVigente} onValueChange={setFilterVigente}><SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Estado" /></SelectTrigger><SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="vigente">Vigente</SelectItem><SelectItem value="vencido">Vencido</SelectItem></SelectContent></Select>)}
-                <Select value={filterYear} onValueChange={setFilterYear}><SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent><SelectItem value="all">Cualquier Año</SelectItem>{years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                {category === 'convenios' && (
+                  <Select value={filterVigente} onValueChange={setFilterVigente}>
+                    <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="vigente">Vigente</SelectItem>
+                      <SelectItem value="vencido">Vencido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select value={filterYear} onValueChange={setFilterYear}>
+                  <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Año" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Cualquier Año</SelectItem>
+                    {years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
                 <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground">Limpiar</Button>
               </div>
             )}
           </div>
 
-          <div className="hidden md:block bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent border-none">
@@ -188,12 +230,14 @@ export default function DocumentsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocs.map((doc) => (
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={4} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
+                ) : filteredDocs.map((doc) => (
                   <TableRow key={doc.id} className="hover:bg-primary/[0.03] group transition-all duration-300">
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
-                        <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : doc.type === 'Movilidad Estudiantil' ? <Plane className="w-6 h-6" /> : doc.type === 'Movilidad Docente' ? <User className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                        <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
+                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : (doc.type === 'Movilidad Estudiantil' || doc.type === 'Movilidad Docente') ? <Plane className="w-6 h-6" /> : doc.type === 'Investigación' ? <FlaskConical className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                         </div>
                         <div>
                           <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>
@@ -209,7 +253,7 @@ export default function DocumentsListPage() {
                         {doc.projectCode && (<span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1"><Fingerprint className="w-3 h-3" /> {doc.projectCode}</span>)}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-bold">{new Date(doc.date || doc.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell className="text-muted-foreground font-bold">{new Date(doc.date || doc.uploadDate || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-right pr-12">
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10"><Link href={`/documents/${doc.id}`}><Eye className="w-5 h-5" /></Link></Button>
@@ -227,6 +271,9 @@ export default function DocumentsListPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {!isLoading && filteredDocs.length === 0 && (
+                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros en esta categoría</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

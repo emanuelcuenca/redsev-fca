@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -13,7 +14,8 @@ import {
   Plane,
   GraduationCap,
   Contact,
-  User
+  User,
+  FlaskConical
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +49,7 @@ export function MainSidebar() {
   const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
+    { icon: FlaskConical, label: "Investigación", href: "/documents?category=investigacion" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
     { icon: Plane, label: "Movilidad Estudiantil", href: "/documents?category=movilidad-estudiantil" },
     { icon: Plane, label: "Movilidad Docente", href: "/documents?category=movilidad-docente" },
@@ -132,13 +135,6 @@ export function MainSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border bg-sidebar-accent/30">
         <SidebarMenu className="gap-1">
-          {isAdmin && (
-            <SidebarMenuItem>
-              <div className="flex items-center gap-2 px-3 py-2 text-[10px] text-primary font-black bg-primary/10 rounded-xl group-data-[collapsible=icon]:hidden uppercase tracking-widest border border-primary/20 mb-2">
-                <ShieldCheck className="w-3.5 h-3.5" /> Secretaría
-              </div>
-            </SidebarMenuItem>
-          )}
           <SidebarMenuItem>
             <div className="px-4 py-2 text-[10px] text-muted-foreground font-bold italic group-data-[collapsible=icon]:hidden">
               VínculoAgro v1.0

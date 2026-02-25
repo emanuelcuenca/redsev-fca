@@ -1,3 +1,4 @@
+
 export interface PersonName {
   firstName: string;
   lastName: string;
@@ -14,10 +15,10 @@ export interface StaffMember extends PersonName {
 export interface AgriculturalDocument {
   id: string;
   title: string;
-  type: 'Convenio' | 'Proyecto' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
+  type: 'Convenio' | 'Proyecto' | 'Investigación' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
   projectCode?: string;
   director?: PersonName;
-  student?: PersonName; // Agregado para Movilidad Estudiantil
+  student?: PersonName;
   date: string;
   uploadDate: string;
   uploadedByUserId: string;
@@ -33,7 +34,6 @@ export interface AgriculturalDocument {
   hasInstitutionalResponsible?: boolean;
   extensionDocType?: 'Proyecto de Extensión' | 'Resolución de aprobación' | 'Informe de avance' | 'Informe final';
   executionPeriod?: string;
-  // Campos específicos para Movilidad y Pasantía
   mobilityStartDate?: string;
   mobilityEndDate?: string;
   mobilityInstitution?: string;
@@ -55,6 +55,5 @@ export function isDocumentVigente(doc: AgriculturalDocument): boolean {
 
 export function formatPersonName(person?: PersonName): string {
   if (!person || (!person.firstName && !person.lastName)) return 'Sin asignar';
-  // Formato: Apellido, Nombre
   return `${person.lastName}, ${person.firstName}`;
 }
