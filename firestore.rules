@@ -34,14 +34,14 @@ service cloud.firestore {
     }
 
     // Regla para el repositorio de documentos (REDSEV)
-    // Se permite la lectura (get/list) a cualquier usuario autenticado de la facultad
+    // Se permite la lectura (get/list) a cualquier usuario autenticado
     // Se restringe la escritura (create/update/delete) solo a administradores de la Secretaría
     match /documents/{documentId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
     
-    // Forzado de despliegue para corregir error de permisos en vista de repositorio
-    // Última actualización: 2024-05-21 10:45 UTC
+    // Forzado de despliegue para corregir error de permisos persistente
+    // Última actualización: 2024-05-21 11:30 UTC
   }
 }
