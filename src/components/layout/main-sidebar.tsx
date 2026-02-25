@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -12,7 +13,8 @@ import {
   ScrollText,
   Plane,
   GraduationCap,
-  Contact
+  Contact,
+  User
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,7 +49,8 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
-    { icon: Plane, label: "Movilidad", href: "/documents?category=movilidad" },
+    { icon: Plane, label: "Mov. Estudiantil", href: "/documents?category=movilidad-estudiantil" },
+    { icon: User, label: "Mov. Docente", href: "/documents?category=movilidad-docente" },
     { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
     { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones-reglamentos" },
   ];

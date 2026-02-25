@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -66,8 +67,6 @@ export default function UploadPage() {
   
   const [director, setDirector] = useState<PersonName>({ firstName: "", lastName: "" });
   const [technicalTeam, setTechnicalTeam] = useState<PersonName[]>([
-    { firstName: "", lastName: "" },
-    { firstName: "", lastName: "" },
     { firstName: "", lastName: "" }
   ]);
 
@@ -275,7 +274,7 @@ export default function UploadPage() {
         documentData.objetivoGeneral = objetivoGeneral;
         documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
       }
-    } else if (type === "Movilidad" || type === "Pasantía") {
+    } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
       documentData.mobilityStartDate = `${mobilityStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${mobilityStartDay.padStart(2, '0')}`;
@@ -304,7 +303,7 @@ export default function UploadPage() {
 
   const isExtensionProyectoSubtype = type === "Proyecto" && extensionDocType === "Proyecto de Extensión";
   const isExtensionLinkedSubtype = type === "Proyecto" && ["Resolución de aprobación", "Informe de avance", "Informe final"].includes(extensionDocType);
-  const isMobilityLike = type === "Movilidad" || type === "Pasantía";
+  const isMobilityLike = type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía";
 
   return (
     <SidebarProvider>
@@ -320,11 +319,12 @@ export default function UploadPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <section className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
               <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Categoría Institucional</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                 {[
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
                   { id: "Convenio", label: "Convenio", icon: Handshake },
-                  { id: "Movilidad", label: "Movilidad", icon: Plane },
+                  { id: "Movilidad Estudiantil", label: "Mov. Estudiantil", icon: Plane },
+                  { id: "Movilidad Docente", label: "Mov. Docente", icon: User },
                   { id: "Pasantía", label: "Práctica/Pasantía", icon: GraduationCap },
                   { id: "Resolución", label: "Resolución", icon: ScrollText }
                 ].map((item) => (
@@ -336,7 +336,7 @@ export default function UploadPage() {
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
                       setTitle("");
-                      if (item.id === "Movilidad" || item.id === "Pasantía") {
+                      if (item.id === "Movilidad Estudiantil" || item.id === "Movilidad Docente" || item.id === "Pasantía") {
                         setTechnicalTeam([{ firstName: "", lastName: "" }]);
                       } else {
                         setTechnicalTeam([{ firstName: "", lastName: "" }, { firstName: "", lastName: "" }, { firstName: "", lastName: "" }]);
@@ -344,12 +344,12 @@ export default function UploadPage() {
                       setDirector({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
-                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${
                       type === item.id ? 'border-primary bg-primary/10 text-primary shadow-md' : 'border-muted-foreground/10 bg-white'
                     }`}
                   >
-                    <item.icon className="w-6 h-6" />
-                    <span className="font-bold uppercase tracking-widest text-[9px] text-center">{item.label}</span>
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-bold uppercase tracking-widest text-[8px] text-center">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -547,7 +547,12 @@ export default function UploadPage() {
 
             {isMobilityLike && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título {type === "Movilidad" ? "de la Movilidad" : "de la Práctica/Pasantía"}</Label><Input placeholder={`Ej: ${type === "Movilidad" ? "Intercambio en Universidad Nacional de Chile" : "Pasantía de Investigación en INTA"}`} className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                <div className="space-y-2">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
+                    Título de {type === "Pasantía" ? "la Práctica/Pasantía" : "la Movilidad"}
+                  </Label>
+                  <Input placeholder={`Ej: ${type === "Pasantía" ? "Pasantía de Investigación en INTA" : "Intercambio en Universidad Nacional de Chile"}`} className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
                   <div className="space-y-4">
@@ -569,9 +574,14 @@ export default function UploadPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino {type === "Movilidad" ? "de la Movilidad" : "de la Práctica/Pasantía"}</Label>
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Institución/Universidad</Label><Input placeholder="Nombre" value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black uppercase text-muted-foreground">
+                        {type === "Pasantía" ? "Institución/Empresa" : "Institución/Universidad"}
+                      </Label>
+                      <Input placeholder="Nombre" value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" required />
+                    </div>
                     <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
                     <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
                   </div>

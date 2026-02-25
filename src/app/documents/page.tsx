@@ -97,13 +97,14 @@ export default function DocumentsListPage() {
       if (category === 'extension' && doc.type !== 'Proyecto') return false;
       if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'movilidad' && doc.type !== 'Movilidad') return false;
+      if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
+      if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
       const searchableString = (doc.title + (doc.projectCode || '') + (doc.counterpart || '') + (doc.authors?.map(a => a.lastName).join(' ') || '')).toLowerCase();
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
       if (category === 'convenios' || category === 'resoluciones-reglamentos') {
-        const docYear = (doc.signingYear || doc.resolutionYear || (doc.date ? new Date(doc.date).getFullYear() : null))?.toString();
+        const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
         if (filterYear !== "all" && docYear !== filterYear) return false;
       }
       if (category === 'convenios' && filterVigente !== "all") {
@@ -122,12 +123,23 @@ export default function DocumentsListPage() {
 
   const years = useMemo(() => {
     if (!allDocs) return [];
-    const allYears = allDocs.map(d => d.signingYear || d.resolutionYear || (d.date ? new Date(d.date).getFullYear() : null)).filter(Boolean);
+    const allYears = allDocs.map(d => (d.date ? new Date(d.date).getFullYear() : null)).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
   }, [allDocs]);
 
-  const pageTitle = category === 'convenios' ? 'Convenios' : category === 'extension' ? 'Extensión' : category === 'resoluciones-reglamentos' ? 'Resoluciones y Reglamentos' : category === 'pasantias' ? 'Prácticas y Pasantías' : category === 'movilidad' ? 'Movilidad' : 'Repositorio de Documentos';
-  const PageIcon = category === 'convenios' ? Handshake : category === 'extension' ? ArrowLeftRight : category === 'resoluciones-reglamentos' ? ScrollText : category === 'pasantias' ? GraduationCap : category === 'movilidad' ? Plane : FileText;
+  const getPageInfo = () => {
+    switch(category) {
+      case 'convenios': return { title: 'Convenios', icon: Handshake };
+      case 'extension': return { title: 'Extensión', icon: ArrowLeftRight };
+      case 'resoluciones-reglamentos': return { title: 'Resoluciones y Reglamentos', icon: ScrollText };
+      case 'pasantias': return { title: 'Prácticas y Pasantías', icon: GraduationCap };
+      case 'movilidad-estudiantil': return { title: 'Movilidad Estudiantil', icon: Plane };
+      case 'movilidad-docente': return { title: 'Movilidad Docente', icon: User };
+      default: return { title: 'Repositorio de Documentos', icon: FileText };
+    }
+  };
+
+  const { title: pageTitle, icon: PageIcon } = getPageInfo();
 
   if (isUserLoading || !mounted) {
     return (
@@ -181,7 +193,7 @@ export default function DocumentsListPage() {
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : doc.type === 'Movilidad Estudiantil' ? <Plane className="w-6 h-6" /> : doc.type === 'Movilidad Docente' ? <User className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                         </div>
                         <div>
                           <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>

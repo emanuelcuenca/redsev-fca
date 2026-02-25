@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -265,7 +266,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
-  const isMobilityLike = formData.type === "Movilidad" || formData.type === "Pasantía";
+  const isMobilityLike = formData.type === 'Movilidad Estudiantil' || formData.type === 'Movilidad Docente' || formData.type === 'Pasantía';
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
@@ -315,7 +316,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       <div className="space-y-6">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino</Label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Institución/Universidad</Label><Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-black uppercase text-muted-foreground">
+                              {formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}
+                            </Label>
+                            <Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" />
+                          </div>
                           <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
                           <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
                         </div>

@@ -45,7 +45,7 @@
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
-        "type": { "type": "string", "enum": ["Convenio", "Proyecto", "Movilidad", "Pasantía", "Resolución"] },
+        "type": { "type": "string", "enum": ["Convenio", "Proyecto", "Movilidad Estudiantil", "Movilidad Docente", "Pasantía", "Resolución"] },
         "extensionDocType": { "type": "string" },
         "projectCode": { "type": "string" },
         "director": {
