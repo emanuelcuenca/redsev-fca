@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -24,7 +25,9 @@ import {
   MapPin,
   Calendar,
   ListTodo,
-  Clock
+  Clock,
+  SearchCode,
+  Link as LinkIcon
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -45,7 +48,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, getDocs, limit, addDoc, orderBy } from "firebase/firestore";
 import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
-import { PersonName, StaffMember } from "@/lib/mock-data";
+import { PersonName, StaffMember, AgriculturalDocument } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
 
 const MONTHS = [
@@ -94,7 +97,6 @@ export default function UploadPage() {
   const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
   const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
 
-  // Período de ejecución para Proyectos de Extensión
   const [execStartDay, setExecStartDay] = useState(new Date().getDate().toString());
   const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
   const [execStartYear, setExecStartYear] = useState(new Date().getFullYear().toString());
@@ -111,6 +113,12 @@ export default function UploadPage() {
   const [mobilityInstitution, setMobilityInstitution] = useState("");
   const [mobilityState, setMobilityState] = useState("");
   const [mobilityCountry, setMobilityCountry] = useState("");
+
+  // Estados para búsqueda de proyecto (Resolución de aprobación)
+  const [searchProjectNumber, setSearchProjectNumber] = useState("");
+  const [searchProjectYear, setSearchProjectYear] = useState(new Date().getFullYear().toString());
+  const [isSearchingProject, setIsSearchingProject] = useState(false);
+  const [linkedProject, setLinkedProject] = useState<AgriculturalDocument | null>(null);
 
   const staffQuery = useMemoFirebase(() => query(collection(db, 'staff')), [db]);
   const { data: staffList } = useCollection<StaffMember>(staffQuery);
@@ -144,6 +152,48 @@ export default function UploadPage() {
     }
   };
 
+  const findProjectByCode = async () => {
+    if (!searchProjectNumber || !searchProjectYear) {
+      toast({ variant: "destructive", title: "Ingrese número y año" });
+      return;
+    }
+    
+    setIsSearchingProject(true);
+    const paddedNumber = searchProjectNumber.padStart(3, '0');
+    const targetCode = `FCA-EXT-${paddedNumber}-${searchProjectYear}`;
+    
+    try {
+      const q = query(
+        collection(db, 'documents'), 
+        where('projectCode', '==', targetCode),
+        where('extensionDocType', '==', 'Proyecto de Extensión'),
+        limit(1)
+      );
+      const snapshot = await getDocs(q);
+      
+      if (!snapshot.empty) {
+        const proj = { ...snapshot.docs[0].data(), id: snapshot.docs[0].id } as AgriculturalDocument;
+        setLinkedProject(proj);
+        setTitle(proj.title);
+        setDirector(proj.director || { firstName: "", lastName: "" });
+        setProjectCode(proj.projectCode || "");
+        toast({ title: "Proyecto vinculado correctamente" });
+      } else {
+        setLinkedProject(null);
+        toast({ 
+          variant: "destructive", 
+          title: "Proyecto no encontrado", 
+          description: `No existe un proyecto con código ${targetCode}` 
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Error en la búsqueda" });
+    } finally {
+      setIsSearchingProject(false);
+    }
+  };
+
   const generateProjectCode = async (prefix: string) => {
     const year = new Date().getFullYear();
     const q = query(
@@ -154,7 +204,7 @@ export default function UploadPage() {
     const snapshot = await getDocs(q);
     const nextNumber = snapshot.docs.length + 1;
     const paddedNumber = nextNumber.toString().padStart(3, '0');
-    return `FCA-${prefix}-${paddedNumber}-${year}`;
+    return `FCA-EXT-${paddedNumber}-${year}`;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,6 +246,11 @@ export default function UploadPage() {
       toast({ variant: "destructive", title: "Seleccione tipo de extensión" });
       return;
     }
+    
+    if (type === "Proyecto" && extensionDocType === "Resolución de aprobación" && !linkedProject) {
+      toast({ variant: "destructive", title: "Debe vincular un proyecto primero" });
+      return;
+    }
 
     setIsSaving(true);
     const monthIdx = MONTHS.indexOf(signingMonth) + 1;
@@ -233,11 +288,11 @@ export default function UploadPage() {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
       documentData.director = { firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
-      documentData.authors = filteredTeam;
-      documentData.objetivoGeneral = objetivoGeneral;
-      documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
       
       if (extensionDocType === "Proyecto de Extensión") {
+        documentData.authors = filteredTeam;
+        documentData.objetivoGeneral = objetivoGeneral;
+        documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
         const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
         const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
         documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
@@ -300,6 +355,7 @@ export default function UploadPage() {
                       setType(item.id);
                       setExtensionDocType("");
                       setTitle("");
+                      setLinkedProject(null);
                       setTechnicalTeam([
                         { firstName: "", lastName: "" },
                         { firstName: "", lastName: "" },
@@ -330,7 +386,14 @@ export default function UploadPage() {
                         type="button" 
                         variant={extensionDocType === sub ? "default" : "outline"} 
                         className="text-[9px] h-10 uppercase font-black" 
-                        onClick={() => setExtensionDocType(sub)}
+                        onClick={() => {
+                          setExtensionDocType(sub);
+                          setLinkedProject(null);
+                          if (sub !== "Resolución de aprobación") {
+                            setTitle("");
+                            setDirector({ firstName: "", lastName: "" });
+                          }
+                        }}
                       >
                         {sub}
                       </Button>
@@ -338,7 +401,75 @@ export default function UploadPage() {
                   </div>
                 </div>
 
-                {extensionDocType && (
+                {extensionDocType === "Resolución de aprobación" && !linkedProject && (
+                  <div className="p-8 bg-muted/20 border-2 border-dashed border-primary/20 rounded-[2rem] space-y-6 animate-in zoom-in-95">
+                    <div className="text-center space-y-2">
+                      <SearchCode className="w-12 h-12 text-primary/40 mx-auto" />
+                      <h3 className="font-headline font-bold text-primary uppercase">Vincular Proyecto de Extensión</h3>
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Ingrese el código institucional para continuar</p>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-3 max-w-lg mx-auto">
+                      <div className="flex-1 space-y-1.5">
+                        <Label className="text-[9px] font-black uppercase ml-1">Número (***)</Label>
+                        <Input 
+                          placeholder="001" 
+                          className="h-12 rounded-xl text-center font-bold" 
+                          value={searchProjectNumber}
+                          onChange={(e) => setSearchProjectNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="w-full md:w-32 space-y-1.5">
+                        <Label className="text-[9px] font-black uppercase ml-1">Año</Label>
+                        <Select value={searchProjectYear} onValueChange={setSearchProjectYear}>
+                          <SelectTrigger className="h-12 rounded-xl">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <Button 
+                          type="button" 
+                          onClick={findProjectByCode} 
+                          disabled={isSearchingProject}
+                          className="h-12 w-full md:w-auto px-6 rounded-xl bg-primary shadow-lg shadow-primary/20"
+                        >
+                          {isSearchingProject ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {extensionDocType === "Resolución de aprobación" && linkedProject && (
+                  <div className="space-y-6 animate-in slide-in-from-top-4">
+                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-3 rounded-2xl"><LinkIcon className="w-6 h-6 text-primary" /></div>
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-primary tracking-widest">Proyecto Vinculado</p>
+                          <h4 className="font-headline font-bold text-lg">{linkedProject.projectCode}</h4>
+                        </div>
+                      </div>
+                      <Button variant="ghost" className="text-destructive font-bold text-[10px] uppercase h-9" onClick={() => setLinkedProject(null)}>Cambiar</Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
+                        <Input value={title} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director</Label>
+                        <Input value={`${director.lastName}, ${director.firstName}`} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {extensionDocType && extensionDocType !== "Resolución de aprobación" && (
                   <div className="space-y-8 animate-in slide-in-from-top-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
@@ -393,7 +524,11 @@ export default function UploadPage() {
                               <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
                             )}
                             <StaffAutocomplete 
-                              onSelect={(s) => handleTechnicalTeamChange(i, 'lastName', s.lastName) || handleTechnicalTeamChange(i, 'firstName', s.firstName)} 
+                              onSelect={(s) => {
+                                const newTeam = [...technicalTeam];
+                                newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                                setTechnicalTeam(newTeam);
+                              }} 
                               label={`Integrante ${i + 1}`} 
                               placeholder="Buscar por apellido..."
                             />
@@ -595,7 +730,11 @@ export default function UploadPage() {
                 </div>
                 <div className="flex justify-end gap-4 mt-8">
                   <Button type="button" variant="ghost" className="h-12 font-black uppercase text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Salir</Button>
-                  <Button type="submit" className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" disabled={isSaving}>
+                  <Button 
+                    type="submit" 
+                    className="h-14 px-12 rounded-xl font-black bg-primary text-white uppercase text-[11px] shadow-lg shadow-primary/20" 
+                    disabled={isSaving || (type === "Proyecto" && extensionDocType === "Resolución de aprobación" && !linkedProject)}
+                  >
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar Registro</span>}
                   </Button>
                 </div>
