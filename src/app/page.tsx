@@ -90,8 +90,7 @@ export default function Dashboard() {
     return {
       conveniosVigentes: allDocuments.filter(d => d.type === 'Convenio' && isDocumentVigente(d)).length,
       proyectosExtension: allDocuments.filter(d => d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión').length,
-      movEstudiantil: allDocuments.filter(d => d.type === 'Movilidad Estudiantil').length,
-      movDocente: allDocuments.filter(d => d.type === 'Movilidad Docente').length,
+      totalMovilidades: allDocuments.filter(d => d.type === 'Movilidad Estudiantil' || d.type === 'Movilidad Docente').length,
       pasantias: allDocuments.filter(d => d.type === 'Pasantía').length,
     };
   }, [allDocuments]);
@@ -174,7 +173,7 @@ export default function Dashboard() {
 
           {/* Sección de Estadísticas Institucionales */}
           <section className="mb-12 md:mb-20">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard 
                 label="Convenios Vigentes" 
                 value={stats?.conveniosVigentes || 0} 
@@ -188,19 +187,13 @@ export default function Dashboard() {
                 color="text-emerald-600"
               />
               <StatCard 
-                label="Mov. Estudiantil" 
-                value={stats?.movEstudiantil || 0} 
+                label="Movilidades" 
+                value={stats?.totalMovilidades || 0} 
                 icon={Plane} 
                 color="text-purple-600"
               />
               <StatCard 
-                label="Mov. Docente" 
-                value={stats?.movDocente || 0} 
-                icon={Plane} 
-                color="text-orange-600"
-              />
-              <StatCard 
-                label="Pasantías Concretadas" 
+                label="Prácticas/Pasantías" 
                 value={stats?.pasantias || 0} 
                 icon={GraduationCap} 
                 color="text-indigo-600"
