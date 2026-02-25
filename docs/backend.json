@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -29,6 +30,7 @@
         "id": { "type": "string", "description": "ID generado automáticamente." },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
+        "academicRank": { "type": "string", "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"] },
         "category": { "type": "string", "enum": ["Docente"] },
         "email": { "type": "string", "format": "email" },
         "updatedAt": { "type": "string", "format": "date-time" }

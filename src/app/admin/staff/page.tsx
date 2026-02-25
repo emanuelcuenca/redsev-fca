@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,7 +9,9 @@ import {
   Loader2, 
   Trash2, 
   UserPlus, 
-  Briefcase
+  Briefcase,
+  Pencil,
+  GraduationCap
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -34,10 +37,28 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  useUser, 
+  useFirestore, 
+  useCollection, 
+  useDoc, 
+  useMemoFirebase, 
+  addDocumentNonBlocking, 
+  updateDocumentNonBlocking,
+  deleteDocumentNonBlocking 
+} from "@/firebase";
 import { collection, doc, query, orderBy } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { StaffMember } from "@/lib/mock-data";
+
+const ACADEMIC_RANKS = ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"];
 
 export default function StaffAdminPage() {
   const router = useRouter();
@@ -47,11 +68,12 @@ export default function StaffAdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    category: "Docente",
+    academicRank: "Auxiliar",
     email: ""
   });
 
@@ -85,6 +107,17 @@ export default function StaffAdminPage() {
     s.lastName.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
+  const handleEdit = (member: StaffMember) => {
+    setEditingId(member.id);
+    setFormData({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      academicRank: member.academicRank || "Auxiliar",
+      email: member.email || ""
+    });
+    setIsDialogOpen(true);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName) {
@@ -93,16 +126,24 @@ export default function StaffAdminPage() {
     }
 
     setIsSaving(true);
-    addDocumentNonBlocking(collection(db, 'staff'), {
+    const data = {
       ...formData,
       category: "Docente",
       updatedAt: new Date().toISOString()
-    });
+    };
 
-    toast({ title: "Docente guardado", description: "El padrón docente ha sido actualizado." });
+    if (editingId) {
+      updateDocumentNonBlocking(doc(db, 'staff', editingId), data);
+      toast({ title: "Docente actualizado", description: "Los cambios han sido guardados." });
+    } else {
+      addDocumentNonBlocking(collection(db, 'staff'), data);
+      toast({ title: "Docente guardado", description: "El padrón docente ha sido actualizado." });
+    }
+
     setIsSaving(false);
     setIsDialogOpen(false);
-    setFormData({ firstName: "", lastName: "", category: "Docente", email: "" });
+    setEditingId(null);
+    setFormData({ firstName: "", lastName: "", academicRank: "Auxiliar", email: "" });
   };
 
   const handleDelete = (id: string) => {
@@ -135,12 +176,18 @@ export default function StaffAdminPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Administración de Docentes</h2>
+                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Gestión de Docentes</h2>
                 <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos de docentes FCA</p>
               </div>
             </div>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) {
+                setEditingId(null);
+                setFormData({ firstName: "", lastName: "", academicRank: "Auxiliar", email: "" });
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl bg-primary h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
                   <UserPlus className="w-4 h-4 mr-2" /> Agregar Docente
@@ -148,7 +195,9 @@ export default function StaffAdminPage() {
               </DialogTrigger>
               <DialogContent className="rounded-3xl sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle className="font-headline font-bold uppercase text-primary">Nuevo Docente</DialogTitle>
+                  <DialogTitle className="font-headline font-bold uppercase text-primary">
+                    {editingId ? "Editar Docente" : "Nuevo Docente"}
+                  </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -162,12 +211,25 @@ export default function StaffAdminPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest">Cargo (Escalafón)</Label>
+                    <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
+                      <SelectTrigger className="h-12 rounded-xl">
+                        <SelectValue placeholder="Seleccione cargo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACADEMIC_RANKS.map(rank => (
+                          <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest">Email (Opcional)</Label>
                     <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 rounded-xl" />
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isSaving} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest">
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar Docente"}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Docente")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -196,8 +258,8 @@ export default function StaffAdminPage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Apellido y Nombre</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Categoría</TableHead>
+                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Docente (Apellido y Nombre)</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Cargo / Escalafón</TableHead>
                       <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -207,14 +269,19 @@ export default function StaffAdminPage() {
                         <TableCell className="py-5 pl-8 font-bold">{person.lastName}, {person.firstName}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5">
-                            <Briefcase className="w-3 h-3 mr-1.5" />
-                            DOCENTE
+                            <GraduationCap className="w-3 h-3 mr-1.5" />
+                            {person.academicRank || "Auxiliar"}
                           </Badge>
                         </TableCell>
                         <TableCell className="pr-8 text-right">
-                          <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" className="rounded-xl text-primary hover:bg-primary/10" onClick={() => handleEdit(person)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

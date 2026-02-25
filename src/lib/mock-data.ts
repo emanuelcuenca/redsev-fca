@@ -7,6 +7,7 @@ export interface PersonName {
 export interface StaffMember extends PersonName {
   id: string;
   category: 'Docente' | 'Estudiante' | 'No Docente' | 'Externo';
+  academicRank?: string;
   email?: string;
   updatedAt?: string;
 }
