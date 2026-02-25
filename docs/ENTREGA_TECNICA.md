@@ -1,14 +1,25 @@
 # Guía de Despliegue Técnico - REDSEV FCA-UNCA
 
-Este documento detalla los requisitos técnicos para migrar y alojar el sistema en la infraestructura propia de la Universidad.
+Este documento detalla los requisitos técnicos para migrar, alojar y desarrollar el sistema en entornos locales o infraestructura propia de la Universidad.
 
-## 🛠 Requisitos del Servidor
+## 💻 Desarrollo Local (Visual Studio Code)
+Si deseas trabajar en el código o visualizar el sitio localmente:
+
+1. **Requisitos**: Instalar [Node.js v20+](https://nodejs.org/).
+2. **Instalación**:
+   - Abre la carpeta del proyecto en VS Code.
+   - Abre una terminal y ejecuta: `npm install`
+3. **Ejecución**:
+   - Ejecuta: `npm run dev`
+   - El sitio estará disponible en: `http://localhost:9002`
+
+## 🛠 Requisitos del Servidor de Producción
 - **Entorno**: Node.js v20.x o superior.
 - **Gestor de paquetes**: NPM o Yarn.
 - **Memoria Mínima**: 1GB RAM (2GB recomendados para compilación).
 - **Almacenamiento**: ~500MB para el código y dependencias.
 
-## 🔑 Variables de Entorno (.env)
+## 🔑 Variables de Envono (.env)
 El equipo técnico deberá configurar las siguientes variables en el servidor de producción (estos valores son los actuales del proyecto):
 
 ```env
