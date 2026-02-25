@@ -41,7 +41,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { collection, query } from "firebase/firestore";
+import { doc, collection, query } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +76,7 @@ export default function Dashboard() {
   const { data: userProfile } = useDoc(userProfileRef);
 
   // Consultar todos los documentos para calcular estadísticas
+  // Simplificamos la consulta eliminando el orderBy temporalmente para evitar errores de índice o permisos
   const allDocsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return collection(db, 'documents');

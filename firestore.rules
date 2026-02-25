@@ -3,8 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // REPOSITORIO DE DOCUMENTOS REDSEV
-    // Permitir lectura total (get y list) a cualquier usuario autenticado.
-    // Escritura restringida solo a administradores.
+    // Permitir lectura (get y list) a cualquier usuario autenticado (Usuario Registrado).
     match /documents/{documentId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
@@ -22,12 +21,12 @@ service cloud.firestore {
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // PADRÓN DOCENTE
+    // PADRÓN DOCENTE (Solo para referencia y autocompletado)
     match /staff/{staffId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
     
-    // Identificador de Despliegue de Seguridad: REDSEV-FINAL-ACCESS-FIX-V1
+    // Identificador de Despliegue de Seguridad: REDSEV-FIX-DOC-UNDEF-V1
   }
 }
