@@ -679,7 +679,7 @@ export default function UploadPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Input placeholder={type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'} value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" />
-                      <Input placeholder="Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" />
+                      <Input placeholder="Estado/Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" />
                       <Input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="h-11 rounded-xl font-bold" />
                     </div>
                   </div>
@@ -741,7 +741,7 @@ export default function UploadPage() {
                   </div>
                 </div>
 
-                {type !== "Convenio" && (
+                {type !== "Convenio" && type !== "Movilidad Estudiantil" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>

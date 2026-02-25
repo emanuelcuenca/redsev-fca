@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -372,7 +373,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                             </Label>
                             <Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" />
                           </div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
                           <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
                         </div>
                       </div>
@@ -490,7 +491,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
                   {(isMobilityLike || !isProyecto) && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      {/* Mostrar resolución/código solo si no es Movilidad Estudiantil */}
+                      {!isMobilityEstudiantil && (
+                        <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      )}
                     </div>
                   )}
                 </div>
