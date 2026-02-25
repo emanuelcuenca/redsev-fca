@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -88,7 +87,6 @@ export default function UploadPage() {
   const [durationYears, setDurationYears] = useState("1");
   const [hasAutomaticRenewal, setHasAutomaticRenewal] = useState(false);
   const [counterparts, setCounterparts] = useState([""]);
-  const [hasInstitutionalResponsible, setHasInstitutionalResponsible] = useState(false);
   const [projectCode, setProjectCode] = useState("");
   
   const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
@@ -174,6 +172,16 @@ export default function UploadPage() {
         setTitle(proj.title);
         setDirector(proj.director || { firstName: "", lastName: "" });
         setProjectCode(proj.projectCode || "");
+        
+        // Copiar equipo técnico y otros datos del proyecto original para consistencia
+        if (proj.authors) setTechnicalTeam(proj.authors.length > 0 ? proj.authors : [{ firstName: "", lastName: "" }]);
+        if (proj.description) setDescription(proj.description);
+        if (proj.objetivoGeneral) setObjetivoGeneral(proj.objetivoGeneral);
+        if (proj.objetivosEspecificos) {
+          setObjetivosEspecificos(proj.objetivosEspecificos);
+          setHasSpecificObjectives(proj.objetivosEspecificos.length > 0);
+        }
+
         toast({ title: "Proyecto vinculado correctamente" });
       } else {
         setLinkedProject(null);
@@ -251,6 +259,8 @@ export default function UploadPage() {
     }
 
     setIsSaving(true);
+    
+    // Generar fechas
     const monthIdx = MONTHS.indexOf(signingMonth) + 1;
     const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
 
@@ -266,58 +276,64 @@ export default function UploadPage() {
       await upsertStaff(member);
     }
 
+    // Construcción robusta de datos para evitar undefined
     const documentData: any = {
       title: formatText(title),
       type,
-      date: (type === "Proyecto") ? (new Date().toISOString()) : finalDate,
+      date: (type === "Proyecto" && extensionDocType === "Proyecto de Extensión") ? (new Date().toISOString()) : finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
-      description,
+      description: description || "",
       fileUrl: fileDataUri || "#",
-      fileType: fileName ? fileName.split('.').pop() : "application/pdf"
+      fileType: fileName ? fileName.split('.').pop() : "application/pdf",
+      projectCode: finalProjectCode || ""
     };
 
     if (type === "Convenio") {
-      documentData.durationYears = parseInt(durationYears);
-      documentData.hasAutomaticRenewal = hasAutomaticRenewal;
+      documentData.durationYears = parseInt(durationYears) || 1;
+      documentData.hasAutomaticRenewal = !!hasAutomaticRenewal;
       documentData.counterparts = counterparts.filter(c => c.trim() !== "");
       documentData.authors = filteredTeam;
     } else if (type === "Proyecto") {
       documentData.extensionDocType = extensionDocType;
-      documentData.projectCode = finalProjectCode;
-      documentData.director = { firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
+      documentData.director = { 
+        firstName: formatText(director.firstName || ""), 
+        lastName: formatText(director.lastName || "") 
+      };
       
       if (extensionDocType === "Proyecto de Extensión") {
         documentData.authors = filteredTeam;
-        documentData.objetivoGeneral = objetivoGeneral;
+        documentData.objetivoGeneral = objetivoGeneral || "";
         documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
         const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
         const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
         documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
         documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
-      }
-
-      if (extensionDocType === "Informe de avance") {
-        const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
-        const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
-        documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
-        documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+      } else {
+        // Para Resoluciones e Informes, mantenemos el equipo original si no se cambia
+        documentData.authors = filteredTeam;
+        if (extensionDocType === "Informe de avance") {
+          const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
+          const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
+          documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
+          documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+        }
       }
     } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
       documentData.mobilityStartDate = `${mobilityStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${mobilityStartDay.padStart(2, '0')}`;
       documentData.mobilityEndDate = `${mobilityEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${mobilityEndDay.padStart(2, '0')}`;
-      documentData.mobilityInstitution = formatText(mobilityInstitution);
-      documentData.mobilityState = formatText(mobilityState);
-      documentData.mobilityCountry = formatText(mobilityCountry);
-      documentData.projectCode = projectCode;
+      documentData.mobilityInstitution = formatText(mobilityInstitution || "");
+      documentData.mobilityState = formatText(mobilityState || "");
+      documentData.mobilityCountry = formatText(mobilityCountry || "");
       documentData.authors = filteredTeam;
       if (type === "Movilidad Estudiantil" || type === "Pasantía") {
-        documentData.student = { firstName: formatText(student.firstName), lastName: formatText(student.lastName) };
+        documentData.student = { 
+          firstName: formatText(student.firstName || ""), 
+          lastName: formatText(student.lastName || "") 
+        };
       }
-    } else if (type === "Resolución") {
-      documentData.date = finalDate;
     }
 
     try {
@@ -325,8 +341,9 @@ export default function UploadPage() {
       toast({ title: "Registro almacenado" });
       router.push("/documents");
     } catch (error) {
+      console.error("Error al guardar:", error);
       setIsSaving(false);
-      toast({ variant: "destructive", title: "Error al guardar" });
+      toast({ variant: "destructive", title: "Error crítico al guardar", description: "Verifique que todos los campos obligatorios estén completos." });
     }
   };
 
@@ -369,7 +386,6 @@ export default function UploadPage() {
                       setExtensionDocType("");
                       setTitle("");
                       setLinkedProject(null);
-                      // Convenio ahora inicia con 1 responsable por defecto
                       const defaultCount = (item.id === "Proyecto") ? 3 : 1;
                       setTechnicalTeam(Array(defaultCount).fill({ firstName: "", lastName: "" }));
                       setDirector({ firstName: "", lastName: "" });
@@ -472,6 +488,15 @@ export default function UploadPage() {
                       <div className="md:col-span-2 space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director</Label>
                         <Input value={`${director.lastName}, ${director.firstName}`} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha del Documento (Firma/Aprobación)</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                        </div>
                       </div>
 
                       {(extensionDocType === "Informe de avance") && (
@@ -719,47 +744,45 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {type !== "Movilidad Docente" && (
-                  <div className="space-y-4 pt-4 border-t">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                      <Users className="w-4 h-4" /> 
-                      {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
-                    </Label>
-                    <div className="space-y-4">
-                      {technicalTeam.map((member, i) => (
-                        <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
-                          {technicalTeam.length > 1 && (
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="icon" 
-                              className="absolute top-2 right-2 h-8 w-8 text-destructive" 
-                              onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          )}
-                          <StaffAutocomplete 
-                            onSelect={(s) => {
-                              const newTeam = [...technicalTeam];
-                              newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
-                              setTechnicalTeam(newTeam);
-                            }} 
-                            label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
-                            placeholder="Buscar por apellido..."
-                          />
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                            <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                          </div>
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> 
+                    {type === 'Movilidad Docente' ? 'Beneficiario' : 'Responsables Institucionales'}
+                  </Label>
+                  <div className="space-y-4">
+                    {technicalTeam.map((member, i) => (
+                      <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
+                        {technicalTeam.length > 1 && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute top-2 right-2 h-8 w-8 text-destructive" 
+                            onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <StaffAutocomplete 
+                          onSelect={(s) => {
+                            const newTeam = [...technicalTeam];
+                            newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                            setTechnicalTeam(newTeam);
+                          }} 
+                          label={type === 'Movilidad Docente' ? "Beneficiario" : `Responsable ${i + 1}`} 
+                          placeholder="Buscar por apellido..."
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                          <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                         </div>
-                      ))}
-                      <Button type="button" variant="outline" className="w-full h-11 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>
-                        <Plus className="w-4 h-4 mr-2" /> Añadir responsable
-                      </Button>
-                    </div>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" className="w-full h-11 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}>
+                      <Plus className="w-4 h-4 mr-2" /> Añadir responsable
+                    </Button>
                   </div>
-                )}
+                </div>
 
                 {type !== "Convenio" && type !== "Movilidad Estudiantil" && type !== "Movilidad Docente" && type !== "Pasantía" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
