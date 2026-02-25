@@ -44,6 +44,7 @@ import { UserMenu } from "@/components/layout/user-menu";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const { user, isUserLoading } = useUser();
@@ -172,42 +173,37 @@ export default function Dashboard() {
           </div>
 
           {/* Sección de Estadísticas Institucionales */}
-          <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-headline font-bold uppercase tracking-tight text-primary">Indicadores de Impacto</h3>
-            </div>
-            
+          <section className="mb-12 md:mb-20">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard 
                 label="Convenios Vigentes" 
                 value={stats?.conveniosVigentes || 0} 
                 icon={Handshake} 
-                color="bg-blue-500/10 text-blue-600 border-blue-200"
+                color="text-blue-600"
               />
               <StatCard 
                 label="Proyectos Extensión" 
                 value={stats?.proyectosExtension || 0} 
                 icon={ArrowLeftRight} 
-                color="bg-emerald-500/10 text-emerald-600 border-emerald-200"
+                color="text-emerald-600"
               />
               <StatCard 
                 label="Mov. Estudiantil" 
                 value={stats?.movEstudiantil || 0} 
                 icon={Plane} 
-                color="bg-purple-500/10 text-purple-600 border-purple-200"
+                color="text-purple-600"
               />
               <StatCard 
                 label="Mov. Docente" 
                 value={stats?.movDocente || 0} 
                 icon={Plane} 
-                color="bg-orange-500/10 text-orange-600 border-orange-200"
+                color="text-orange-600"
               />
               <StatCard 
                 label="Pasantías Concretadas" 
                 value={stats?.pasantias || 0} 
                 icon={GraduationCap} 
-                color="bg-indigo-500/10 text-indigo-600 border-indigo-200"
+                color="text-indigo-600"
               />
             </div>
           </section>
@@ -299,15 +295,13 @@ export default function Dashboard() {
 
 function StatCard({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
-    <Card className={`border-2 ${color} border-current/10 shadow-sm rounded-3xl overflow-hidden transition-transform hover:scale-[1.02] duration-300`}>
-      <CardContent className="p-5 flex flex-col items-center text-center gap-2">
-        <div className={`p-2 rounded-xl bg-white/50 mb-1`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="text-2xl font-black font-headline tracking-tighter leading-none">{value}</div>
-        <div className="text-[9px] font-black uppercase tracking-widest leading-tight opacity-80">{label}</div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center text-center p-4 transition-transform hover:scale-105 duration-300">
+      <div className={cn("mb-3", color)}>
+        <Icon className="w-12 h-12" />
+      </div>
+      <div className="text-4xl font-black font-headline tracking-tighter leading-none mb-1 text-primary">{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest leading-tight text-muted-foreground max-w-[120px]">{label}</div>
+    </div>
   );
 }
 
