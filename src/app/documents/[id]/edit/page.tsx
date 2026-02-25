@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -16,7 +15,10 @@ import {
   Users,
   ScrollText,
   Target,
-  FileText
+  FileText,
+  Calendar,
+  MapPin,
+  Building2
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -92,13 +94,25 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     projectCode: "",
     objetivoGeneral: "",
     objetivosEspecificos: [],
-    executionPeriod: ""
+    executionPeriod: "",
+    mobilityStartDate: "",
+    mobilityEndDate: "",
+    mobilityInstitution: "",
+    mobilityState: "",
+    mobilityCountry: ""
   });
 
   const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
   const [signingDay, setSigningDay] = useState("");
   const [signingMonth, setSigningMonth] = useState("");
   const [signingYearSelect, setSigningYearSelect] = useState("");
+
+  const [mobilityStartDay, setMobilityStartDay] = useState("");
+  const [mobilityStartMonth, setMobilityStartMonth] = useState("");
+  const [mobilityStartYear, setMobilityStartYear] = useState("");
+  const [mobilityEndDay, setMobilityEndDay] = useState("");
+  const [mobilityEndMonth, setMobilityEndMonth] = useState("");
+  const [mobilityEndYear, setMobilityEndYear] = useState("");
 
   useEffect(() => {
     if (docData) {
@@ -121,6 +135,20 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         setSigningMonth(MONTHS[d.getMonth()]);
         setSigningYearSelect(d.getFullYear().toString());
       }
+
+      if (docData.mobilityStartDate) {
+        const d = new Date(docData.mobilityStartDate);
+        setMobilityStartDay(d.getDate().toString());
+        setMobilityStartMonth(MONTHS[d.getMonth()]);
+        setMobilityStartYear(d.getFullYear().toString());
+      }
+      if (docData.mobilityEndDate) {
+        const d = new Date(docData.mobilityEndDate);
+        setMobilityEndDay(d.getDate().toString());
+        setMobilityEndMonth(MONTHS[d.getMonth()]);
+        setMobilityEndYear(d.getFullYear().toString());
+      }
+
       if (docData.fileUrl && docData.fileUrl !== "#") setFileName("Documento actual");
     }
   }, [docData]);
@@ -186,10 +214,23 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     e.preventDefault();
     if (!docRef) return;
     setIsSaving(true);
+    
     let finalDate = formData.date;
     if (signingDay && signingMonth && signingYearSelect) {
       const monthIdx = MONTHS.indexOf(signingMonth) + 1;
       finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
+    }
+
+    let finalMobilityStart = formData.mobilityStartDate;
+    if (mobilityStartDay && mobilityStartMonth && mobilityStartYear) {
+      const monthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
+      finalMobilityStart = `${mobilityStartYear}-${monthIdx.toString().padStart(2, '0')}-${mobilityStartDay.padStart(2, '0')}`;
+    }
+
+    let finalMobilityEnd = formData.mobilityEndDate;
+    if (mobilityEndDay && mobilityEndMonth && mobilityEndYear) {
+      const monthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
+      finalMobilityEnd = `${mobilityEndYear}-${monthIdx.toString().padStart(2, '0')}-${mobilityEndDay.padStart(2, '0')}`;
     }
 
     const filteredAuthors = formData.authors.filter((a: PersonName) => a.firstName.trim() !== "" || a.lastName.trim() !== "");
@@ -200,6 +241,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       authors: filteredAuthors,
       director: { firstName: formatText(formData.director.firstName), lastName: formatText(formData.director.lastName) },
       date: (formData.type === "Proyecto" && formData.extensionDocType === "Proyecto de Extensión") ? (formData.date || new Date().toISOString()) : finalDate,
+      mobilityStartDate: finalMobilityStart,
+      mobilityEndDate: finalMobilityEnd,
       updatedAt: new Date().toISOString(),
       counterparts: Array.isArray(formData.counterparts) ? formData.counterparts.filter((c: string) => c.trim() !== "") : [],
       objetivosEspecificos: hasSpecificObjectives ? formData.objetivosEspecificos.filter((obj: string) => obj.trim() !== "") : [],
@@ -222,6 +265,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const isConvenio = formData.type === "Convenio";
   const isProyecto = formData.type === "Proyecto";
+  const isMobilityLike = formData.type === "Movilidad" || formData.type === "Pasantía";
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
 
   return (
@@ -247,6 +291,38 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="h-12 rounded-xl font-bold" />
                   </div>
 
+                  {isMobilityLike && (
+                    <div className="md:col-span-2 space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
+                        <div className="space-y-4">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Desde</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            <Select value={mobilityStartDay} onValueChange={setMobilityStartDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityStartMonth} onValueChange={setMobilityStartMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityStartYear} onValueChange={setMobilityStartYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Hasta</Label>
+                          <div className="grid grid-cols-3 gap-1">
+                            <Select value={mobilityEndDay} onValueChange={setMobilityEndDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityEndMonth} onValueChange={setMobilityEndMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityEndYear} onValueChange={setMobilityEndYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Institución/Universidad</Label><Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-4">
@@ -256,43 +332,28 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
                         </div>
                       </div>
-                      <div className="space-y-4 border-t pt-4">
-                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> Equipo Técnico</Label>
-                        <div className="space-y-3">
-                          {formData.authors.map((member: PersonName, i: number) => (
-                            <div key={i} className="grid grid-cols-2 gap-2 relative">
-                              <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                              <div className="flex gap-2">
-                                <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                                <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
-                              </div>
-                            </div>
-                          ))}
-                          <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir integrante</Button>
-                        </div>
-                      </div>
                     </div>
                   )}
 
-                  {!isConvenio && !isExtensionProyecto && (
-                    <div className="md:col-span-2 space-y-4">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables</Label>
+                  <div className="md:col-span-2 space-y-4 border-t pt-4">
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables"}</Label>
+                    <div className="space-y-3">
                       {formData.authors.map((member: PersonName, i: number) => (
-                        <div key={i} className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Nombre" className="h-10 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                        <div key={i} className="grid grid-cols-2 gap-2 relative">
+                          <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                           <div className="flex gap-2">
-                            <Input placeholder="Apellido" className="h-10 rounded-lg text-xs flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                            <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-3.5 h-3.5" /></Button>
+                            <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
                           </div>
                         </div>
                       ))}
-                      <Button type="button" variant="outline" className="w-full h-9 rounded-lg border-dashed text-[9px] uppercase font-black" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}>Añadir responsable</Button>
+                      <Button type="button" variant="outline" className="w-full h-10 border-dashed rounded-lg font-black text-[9px] uppercase" onClick={() => setFormData({...formData, authors: [...formData.authors, { firstName: "", lastName: "" }]})}><Plus className="w-3.5 h-3.5 mr-2" /> Añadir responsable</Button>
                     </div>
-                  )}
+                  </div>
 
-                  {!isExtensionProyecto && (
+                  {!isMobilityLike && !isExtensionProyecto && !isConvenio && (
                     <div className="space-y-2">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isConvenio ? "Fecha de Firma" : "Fecha"}</Label>
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
                       <div className="grid grid-cols-3 gap-1">
                         <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
                         <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
@@ -340,28 +401,16 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10"><span className="font-black uppercase text-[10px] text-primary tracking-widest">Renovación Automática</span><Switch checked={formData.hasAutomaticRenewal} onCheckedChange={(v) => setFormData({...formData, hasAutomaticRenewal: v})} /></div>
-                        <div className="flex flex-col gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                          <div className="flex items-center justify-between"><span className="font-black uppercase text-[10px] text-primary tracking-widest">Responsable Institucional</span><Switch checked={formData.hasInstitutionalResponsible} onCheckedChange={(v) => setFormData({...formData, hasInstitutionalResponsible: v})} /></div>
-                          {formData.hasInstitutionalResponsible && (
-                            <div className="animate-in slide-in-from-top-2 space-y-3">
-                              <Label className="font-black uppercase text-[9px] text-muted-foreground mb-1 block">Nombres de Responsables</Label>
-                              {formData.authors.map((member: PersonName, i: number) => (
-                                <div key={i} className="grid grid-cols-2 gap-2">
-                                  <Input placeholder="Nombre" className="h-9 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
-                                  <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
                   )}
 
-                  {!isConvenio && (
+                  {(isMobilityLike || !isProyecto) && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Código</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
-                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label><Input value={formData.executionPeriod || ""} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      {!isMobilityLike && (
+                        <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Período</Label><Input value={formData.executionPeriod || ""} onChange={(e) => setFormData({...formData, executionPeriod: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      )}
                     </div>
                   )}
                 </div>

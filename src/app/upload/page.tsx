@@ -275,7 +275,7 @@ export default function UploadPage() {
         documentData.objetivoGeneral = objetivoGeneral;
         documentData.objetivosEspecificos = objetivosEspecificos.filter(obj => obj.trim() !== "");
       }
-    } else if (type === "Movilidad") {
+    } else if (type === "Movilidad" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
       documentData.mobilityStartDate = `${mobilityStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${mobilityStartDay.padStart(2, '0')}`;
@@ -304,6 +304,7 @@ export default function UploadPage() {
 
   const isExtensionProyectoSubtype = type === "Proyecto" && extensionDocType === "Proyecto de Extensión";
   const isExtensionLinkedSubtype = type === "Proyecto" && ["Resolución de aprobación", "Informe de avance", "Informe final"].includes(extensionDocType);
+  const isMobilityLike = type === "Movilidad" || type === "Pasantía";
 
   return (
     <SidebarProvider>
@@ -324,7 +325,7 @@ export default function UploadPage() {
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
                   { id: "Convenio", label: "Convenio", icon: Handshake },
                   { id: "Movilidad", label: "Movilidad", icon: Plane },
-                  { id: "Pasantía", label: "Práctica", icon: GraduationCap },
+                  { id: "Pasantía", label: "Práctica/Pasantía", icon: GraduationCap },
                   { id: "Resolución", label: "Resolución", icon: ScrollText }
                 ].map((item) => (
                   <button
@@ -335,7 +336,7 @@ export default function UploadPage() {
                       if (item.id !== "Proyecto") setExtensionDocType("");
                       setFoundProject(null);
                       setTitle("");
-                      if (item.id === "Movilidad") {
+                      if (item.id === "Movilidad" || item.id === "Pasantía") {
                         setTechnicalTeam([{ firstName: "", lastName: "" }]);
                       } else {
                         setTechnicalTeam([{ firstName: "", lastName: "" }, { firstName: "", lastName: "" }, { firstName: "", lastName: "" }]);
@@ -348,7 +349,7 @@ export default function UploadPage() {
                     }`}
                   >
                     <item.icon className="w-6 h-6" />
-                    <span className="font-bold uppercase tracking-widest text-[9px]">{item.label}</span>
+                    <span className="font-bold uppercase tracking-widest text-[9px] text-center">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -544,9 +545,9 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type === "Movilidad" && (
+            {isMobilityLike && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título de la Movilidad</Label><Input placeholder="Ej: Pasantía de Investigación en INTA" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título {type === "Movilidad" ? "de la Movilidad" : "de la Práctica/Pasantía"}</Label><Input placeholder={`Ej: ${type === "Movilidad" ? "Intercambio en Universidad Nacional de Chile" : "Pasantía de Investigación en INTA"}`} className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
                   <div className="space-y-4">
@@ -568,7 +569,7 @@ export default function UploadPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino de la Movilidad</Label>
+                  <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Destino {type === "Movilidad" ? "de la Movilidad" : "de la Práctica/Pasantía"}</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Institución/Universidad</Label><Input placeholder="Nombre" value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
                     <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Provincia/Estado</Label><Input placeholder="Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" required /></div>
@@ -607,7 +608,7 @@ export default function UploadPage() {
               </section>
             )}
 
-            {type && type !== "Proyecto" && type !== "Convenio" && type !== "Movilidad" && (
+            {type && type !== "Proyecto" && type !== "Convenio" && !isMobilityLike && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título del Documento</Label><Input placeholder="Título" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

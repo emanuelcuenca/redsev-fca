@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect } from "react";
@@ -97,7 +96,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
-  const isMovilidad = documentData.type === 'Movilidad';
+  const isMobilityLike = documentData.type === 'Movilidad' || documentData.type === 'Pasantía';
   const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
   const vigente = isDocumentVigente(documentData);
   const counterparts = documentData.counterparts || (documentData.counterpart ? [documentData.counterpart] : []);
@@ -143,7 +142,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div>
                   <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">{documentData.title}</h1>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">{documentData.extensionDocType || documentData.type}</Badge>
+                    <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
+                      {documentData.type === 'Pasantía' ? 'Práctica/Pasantía' : (documentData.extensionDocType || documentData.type)}
+                    </Badge>
                     {isConvenio && <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{vigente ? 'Vigente' : 'Vencido'}</Badge>}
                   </div>
                 </div>
@@ -158,11 +159,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-8">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">Datos Principales</h3>
                   <div className="space-y-6">
-                    {isMovilidad ? (
+                    {isMobilityLike ? (
                       <div className="flex items-start gap-3">
                         <Timer className="w-5 h-5 text-primary/60 mt-0.5" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de Movilidad</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de {documentData.type === 'Movilidad' ? 'Movilidad' : 'Práctica'}</p>
                           <p className="font-bold text-sm">Desde: {formatDateString(documentData.mobilityStartDate)}</p>
                           <p className="font-bold text-sm">Hasta: {formatDateString(documentData.mobilityEndDate)}</p>
                         </div>
@@ -191,7 +192,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <Users className="w-5 h-5 text-primary/60 mt-0.5" />
                         <div>
                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                            {isExtensionProyecto ? "Equipo Técnico" : (isMovilidad || isConvenio ? "Responsables Institucionales" : "Responsables")}
+                            {isExtensionProyecto ? "Equipo Técnico" : (isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables")}
                           </p>
                           <div className="mt-1 space-y-1">
                             {documentData.authors.map((a, i) => (
@@ -205,7 +206,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       <div className="flex items-center gap-3">
                         <Fingerprint className="w-5 h-5 text-primary/60" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isMovilidad ? "Resolución" : "Código Institucional"}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isMobilityLike ? "Resolución" : "Código Institucional"}</p>
                           <p className="font-bold text-sm text-primary">{documentData.projectCode}</p>
                         </div>
                       </div>
@@ -215,9 +216,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
                 <div className="space-y-8">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary border-b pb-2">
-                    {isMovilidad ? "Información de Destino" : "Instituciones"}
+                    {isMobilityLike ? "Información de Destino" : "Instituciones"}
                   </h3>
-                  {isMovilidad ? (
+                  {isMobilityLike ? (
                     <div className="space-y-6">
                       <div className="flex items-start gap-3 bg-muted/20 p-4 rounded-xl border border-muted">
                         <Building2 className="w-5 h-5 text-primary/60 mt-0.5" />
