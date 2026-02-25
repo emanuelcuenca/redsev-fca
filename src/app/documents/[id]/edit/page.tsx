@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -11,11 +10,9 @@ import {
   X,
   Plus,
   FileUp,
-  Sparkles,
   User,
   Users,
   ScrollText,
-  Target,
   FileText,
   Calendar,
   MapPin,
@@ -27,7 +24,6 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -43,7 +39,6 @@ import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { AgriculturalDocument, PersonName } from "@/lib/mock-data";
-import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MONTHS = [
@@ -63,7 +58,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
 
   const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [fileDataUri, setFileDataUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
@@ -195,26 +189,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const handleSummarize = async () => {
-    const finalFileUrl = fileSourceMode === "upload" ? (fileDataUri || docData?.fileUrl) : externalUrl;
-    if (!finalFileUrl) return toast({ variant: "destructive", title: "Archivo o Enlace requerido" });
-    setIsSummarizing(true);
-    try {
-      const result = await summarizeDocument({
-        documentMediaUri: finalFileUrl,
-        documentContent: formData.title
-      });
-      if (result?.summary) {
-        setFormData((prev: any) => ({ ...prev, description: result.summary }));
-        toast({ title: "Resumen generado" });
-      }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error de IA", description: error.message });
-    } finally {
-      setIsSummarizing(false);
-    }
-  };
-
   const formatText = (text: string) => {
     if (!text) return "";
     return text
@@ -326,23 +300,21 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                 <CardTitle className="text-xl font-headline font-bold uppercase text-primary flex items-center gap-3"><Pencil className="w-5 h-5" /> Información General</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
-                {/* ... (All common form fields title, director, etc.) ... */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                    <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="h-12 rounded-xl font-bold" />
+                    <input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                   </div>
 
-                  {/* Movilidad Docente specific */}
                   {isMobilityDocente && (
                     <div className="md:col-span-2 space-y-4 pt-4 border-t">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Beneficiario</Label>
                       <div className="space-y-3">
                         {formData.authors.map((member: PersonName, i: number) => (
                           <div key={i} className="grid grid-cols-2 gap-2 relative">
-                            <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            <input placeholder="Nombre" className="flex h-11 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                             <div className="flex gap-2">
-                              <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <input placeholder="Apellido" className="flex h-11 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
                             </div>
                           </div>
                         ))}
@@ -350,7 +322,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Mobility generic logic */}
                   {isMobilityLike && (
                     <div className="md:col-span-2 space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b pb-8">
@@ -376,8 +347,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="space-y-4 border-b pb-8">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Datos del Estudiante</Label>
                           <div className="grid grid-cols-2 gap-4">
-                            <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.student.firstName} onChange={(e) => setFormData({...formData, student: {...formData.student, firstName: e.target.value}})} />
-                            <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.student.lastName} onChange={(e) => setFormData({...formData, student: {...formData.student, lastName: e.target.value}})} />
+                            <input placeholder="Nombre" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={formData.student.firstName} onChange={(e) => setFormData({...formData, student: {...formData.student, firstName: e.target.value}})} />
+                            <input placeholder="Apellido" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={formData.student.lastName} onChange={(e) => setFormData({...formData, student: {...formData.student, lastName: e.target.value}})} />
                           </div>
                         </div>
                       )}
@@ -387,24 +358,23 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase text-muted-foreground">{formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}</Label>
-                            <Input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="h-11 rounded-xl font-bold" />
+                            <input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                           </div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><Input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><Input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="h-11 rounded-xl font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Extension Project specific */}
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
                           <div className="grid grid-cols-2 gap-4">
-                            <Input placeholder="Nombre" className="h-12 rounded-xl font-bold" value={formData.director.firstName} onChange={(e) => setFormData({...formData, director: {...formData.director, firstName: e.target.value}})} />
-                            <Input placeholder="Apellido" className="h-12 rounded-xl font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
+                            <input placeholder="Nombre" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={formData.director.firstName} onChange={(e) => setFormData({...formData, director: {...formData.director, firstName: e.target.value}})} />
+                            <input placeholder="Apellido" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={formData.director.lastName} onChange={(e) => setFormData({...formData, director: {...formData.director, lastName: e.target.value}})} />
                           </div>
                         </div>
                         <div className="space-y-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
@@ -432,16 +402,15 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Responsables */}
                   {!isMobilityDocente && (
                     <div className="md:col-span-2 space-y-4 border-t pt-4">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Users className="w-4 h-4" /> {isMobilityLike || isConvenio ? "Responsables Institucionales" : "Responsables"}</Label>
                       <div className="space-y-3">
                         {formData.authors.map((member: PersonName, i: number) => (
                           <div key={i} className="grid grid-cols-2 gap-2 relative">
-                            <Input placeholder="Nombre" className="h-11 rounded-lg font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            <input placeholder="Nombre" className="flex h-11 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-medium" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                             <div className="flex gap-2">
-                              <Input placeholder="Apellido" className="h-11 rounded-lg font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <input placeholder="Apellido" className="flex h-11 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-medium flex-1" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
                               <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-lg text-destructive" onClick={() => setFormData({...formData, authors: formData.authors.filter((_: any, idx: number) => idx !== i)})}><X className="w-4 h-4" /></Button>
                             </div>
                           </div>
@@ -451,7 +420,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Date selection for non-special cases */}
                   {!isMobilityLike && !isProyecto && !isConvenio && (
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
@@ -463,7 +431,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Objectives for Extension */}
                   {isExtensionProyecto && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-2">
@@ -476,7 +443,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                           <div className="space-y-4">
                             {formData.objetivosEspecificos.map((obj: string, i: number) => (
                               <div key={i} className="flex gap-2">
-                                <Input value={obj} onChange={(e) => { const n = [...formData.objetivosEspecificos]; n[i] = e.target.value; setFormData({...formData, objetivosEspecificos: n}); }} className="h-12 rounded-xl font-medium" />
+                                <input value={obj} onChange={(e) => { const n = [...formData.objetivosEspecificos]; n[i] = e.target.value; setFormData({...formData, objetivosEspecificos: n}); }} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-medium" />
                                 <Button type="button" variant="ghost" className="h-12 w-12 rounded-xl text-destructive" onClick={() => setFormData({...formData, objetivosEspecificos: formData.objetivosEspecificos.filter((_: any, idx: number) => idx !== i)})}><X className="w-5 h-5" /></Button>
                               </div>
                             ))}
@@ -487,7 +454,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Convenio specifics */}
                   {isConvenio && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="space-y-4">
@@ -495,7 +461,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="space-y-3">
                           {formData.counterparts?.map((cp: string, i: number) => (
                             <div key={i} className="flex gap-2">
-                              <Input value={cp} onChange={(e) => { const n = [...formData.counterparts]; n[i] = e.target.value; setFormData({...formData, counterparts: n}); }} className="h-12 rounded-xl font-bold" />
+                              <input value={cp} onChange={(e) => { const n = [...formData.counterparts]; n[i] = e.target.value; setFormData({...formData, counterparts: n}); }} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                               <Button type="button" variant="ghost" className="text-destructive h-12 w-12 rounded-xl" onClick={() => setFormData({...formData, counterparts: formData.counterparts.filter((_: any, idx: number) => idx !== i)})}><X className="w-5 h-5" /></Button>
                             </div>
                           ))}
@@ -508,15 +474,13 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {/* Project Code */}
                   {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && !isPasantia && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
+                      <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
                     </div>
                   )}
                 </div>
 
-                {/* File / Link section */}
                 <div className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6 mt-8">
                   <Tabs defaultValue="upload" value={fileSourceMode} onValueChange={(v: any) => setFileMode(v)} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-6 h-12 rounded-xl bg-white border border-primary/10">
@@ -547,9 +511,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">URL del Documento (Drive, Dropbox, etc.)</Label>
                         <div className="relative">
                           <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                          <Input 
+                          <input 
                             placeholder="https://drive.google.com/..." 
-                            className="pl-11 h-14 rounded-xl font-bold bg-white border-primary/20" 
+                            className="flex h-14 w-full rounded-xl border border-primary/20 bg-white pl-11 pr-3 py-2 text-sm font-bold" 
                             value={externalUrl} 
                             onChange={(e) => setExternalUrl(e.target.value)} 
                           />
@@ -561,9 +525,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   <div className="pt-6 border-t border-primary/10">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
-                      <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (fileSourceMode === "upload" ? (!fileDataUri && !docData?.fileUrl) : !externalUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
-                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
-                      </Button>
                     </div>
                     <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
                   </div>

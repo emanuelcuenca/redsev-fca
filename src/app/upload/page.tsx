@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -14,7 +13,6 @@ import {
   ArrowLeftRight,
   Target,
   FileUp,
-  Sparkles,
   Search,
   FileCheck,
   User,
@@ -48,7 +46,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
-import { summarizeDocument } from "@/ai/flows/smart-document-summarization";
 import { PersonName, StaffMember, AgriculturalDocument } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,7 +80,6 @@ export default function UploadPage() {
   const [objetivosEspecificos, setObjetivosEspecificos] = useState<string[]>(["", "", ""]);
   
   const [isSaving, setIsSaving] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [fileDataUri, setFileDataUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [externalUrl, setExternalUrl] = useState("");
@@ -223,23 +219,6 @@ export default function UploadPage() {
       const reader = new FileReader();
       reader.onloadend = () => setFileDataUri(reader.result as string);
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSummarize = async () => {
-    const finalFileUrl = fileSourceMode === "upload" ? fileDataUri : externalUrl;
-    if (!finalFileUrl) return toast({ variant: "destructive", title: "Archivo o Enlace requerido" });
-    setIsSummarizing(true);
-    try {
-      const result = await summarizeDocument({ documentMediaUri: finalFileUrl, documentContent: title });
-      if (result?.summary) {
-        setDescription(result.summary);
-        toast({ title: "Resumen generado" });
-      }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error de IA", description: error.message });
-    } finally {
-      setIsSummarizing(false);
     }
   };
 
@@ -429,9 +408,9 @@ export default function UploadPage() {
                     <div className="flex flex-col md:flex-row gap-3 max-w-lg mx-auto">
                       <div className="flex-1 space-y-1.5">
                         <Label className="text-[9px] font-black uppercase ml-1">Número (***)</Label>
-                        <Input 
+                        <input 
                           placeholder="001" 
-                          className="h-12 rounded-xl text-center font-bold" 
+                          className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-center font-bold" 
                           value={searchProjectNumber}
                           onChange={(e) => setSearchProjectNumber(e.target.value)}
                         />
@@ -477,11 +456,11 @@ export default function UploadPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2 space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                        <Input value={title} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
+                        <input value={title} readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted/50 px-3 py-2 text-sm font-bold" />
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Director</Label>
-                        <Input value={`${director.lastName}, ${director.firstName}`} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
+                        <input value={`${director.lastName}, ${director.firstName}`} readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted/50 px-3 py-2 text-sm font-bold" />
                       </div>
 
                       <div className="space-y-2">
@@ -526,7 +505,7 @@ export default function UploadPage() {
                   <div className="space-y-8 animate-in slide-in-from-top-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                      <Input placeholder="Título del proyecto" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                      <input placeholder="Título del proyecto" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -534,8 +513,8 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
                         <StaffAutocomplete onSelect={(s) => setDirector({ firstName: s.firstName, lastName: s.lastName })} label="Director" />
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Apellido" value={director.lastName} onChange={(e) => setDirector({...director, lastName: e.target.value})} className="h-10 rounded-lg font-bold" />
-                          <Input placeholder="Nombre" value={director.firstName} onChange={(e) => setDirector({...director, firstName: e.target.value})} className="h-10 rounded-lg font-bold" />
+                          <input placeholder="Apellido" value={director.lastName} onChange={(e) => setDirector({...director, lastName: e.target.value})} className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" />
+                          <input placeholder="Nombre" value={director.firstName} onChange={(e) => setDirector({...director, firstName: e.target.value})} className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" />
                         </div>
                       </div>
 
@@ -584,8 +563,8 @@ export default function UploadPage() {
                               placeholder="Buscar por apellido..."
                             />
                             <div className="grid grid-cols-2 gap-2">
-                              <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                              <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                              <input placeholder="Apellido" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <input placeholder="Nombre" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                             </div>
                           </div>
                         ))}
@@ -619,7 +598,7 @@ export default function UploadPage() {
                           <div className="space-y-4 animate-in slide-in-from-top-2">
                             {objetivosEspecificos.map((obj, i) => (
                               <div key={i} className="flex gap-2">
-                                <Input 
+                                <input 
                                   placeholder={`Objetivo específico ${i + 1}`} 
                                   value={obj} 
                                   onChange={(e) => {
@@ -627,7 +606,7 @@ export default function UploadPage() {
                                     newObjs[i] = e.target.value;
                                     setObjetivosEspecificos(newObjs);
                                   }}
-                                  className="h-12 rounded-xl font-medium" 
+                                  className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-medium" 
                                 />
                                 {objetivosEspecificos.length > 3 && (
                                   <Button 
@@ -662,7 +641,7 @@ export default function UploadPage() {
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
                 <div className="space-y-2">
                   <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label>
-                  <Input placeholder="Título del registro" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                  <input placeholder="Título del registro" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
 
                 {type === "Movilidad Docente" && (
@@ -680,8 +659,8 @@ export default function UploadPage() {
                         placeholder="Buscar por apellido..."
                       />
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={technicalTeam[0]?.lastName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'lastName', e.target.value)} />
-                        <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={technicalTeam[0]?.firstName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'firstName', e.target.value)} />
+                        <input placeholder="Apellido" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={technicalTeam[0]?.lastName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'lastName', e.target.value)} />
+                        <input placeholder="Nombre" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={technicalTeam[0]?.firstName || ""} onChange={(e) => handleTechnicalTeamChange(0, 'firstName', e.target.value)} />
                       </div>
                     </div>
                   </div>
@@ -693,8 +672,8 @@ export default function UploadPage() {
                       <div className="space-y-4 p-4 bg-primary/5 rounded-2xl">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary">Datos del Estudiante</Label>
                         <div className="grid grid-cols-2 gap-4">
-                          <Input placeholder="Apellido" value={student.lastName} onChange={(e) => setStudent({...student, lastName: e.target.value})} className="h-11 rounded-xl font-bold" />
-                          <Input placeholder="Nombre" value={student.firstName} onChange={(e) => setStudent({...student, firstName: e.target.value})} className="h-11 rounded-xl font-bold" />
+                          <input placeholder="Apellido" value={student.lastName} onChange={(e) => setStudent({...student, lastName: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
+                          <input placeholder="Nombre" value={student.firstName} onChange={(e) => setStudent({...student, firstName: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                         </div>
                       </div>
                     )}
@@ -717,9 +696,9 @@ export default function UploadPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Input placeholder={type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'} value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="h-11 rounded-xl font-bold" />
-                      <Input placeholder="Estado/Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="h-11 rounded-xl font-bold" />
-                      <Input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="h-11 rounded-xl font-bold" />
+                      <input placeholder={type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'} value={mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
+                      <input placeholder="Estado/Provincia" value={mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
+                      <input placeholder="País" value={mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                     </div>
                   </div>
                 )}
@@ -734,7 +713,7 @@ export default function UploadPage() {
                         <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                       </div>
                     </div>
-                    <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label><Input type="number" min="1" className="h-12 rounded-xl font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} /></div>
+                    <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label><input type="number" min="1" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} /></div>
                   </div>
                 )}
 
@@ -767,8 +746,8 @@ export default function UploadPage() {
                           placeholder="Buscar por apellido..."
                         />
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
-                          <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                          <input placeholder="Apellido" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                          <input placeholder="Nombre" className="flex h-10 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                         </div>
                       </div>
                     ))}
@@ -782,7 +761,7 @@ export default function UploadPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>
-                      <Input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="h-12 rounded-xl font-bold" />
+                      <input placeholder="Número de resolución" value={projectCode} onChange={(e) => setProjectCode(e.target.value)} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                     </div>
                   </div>
                 )}
@@ -791,7 +770,7 @@ export default function UploadPage() {
 
             {type === "Resolución" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><Input placeholder="Título de la resolución" className="h-12 rounded-xl font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><input placeholder="Título de la resolución" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Aprobación</Label>
                   <div className="grid grid-cols-3 gap-1 max-w-sm">
                     <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
@@ -834,9 +813,9 @@ export default function UploadPage() {
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">URL del Documento (Drive, Dropbox, etc.)</Label>
                       <div className="relative">
                         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                        <Input 
+                        <input 
                           placeholder="https://drive.google.com/..." 
-                          className="pl-11 h-14 rounded-xl font-bold bg-white border-primary/20" 
+                          className="flex h-14 w-full rounded-xl border border-primary/20 bg-white pl-11 pr-3 py-2 text-sm font-bold" 
                           value={externalUrl} 
                           onChange={(e) => setExternalUrl(e.target.value)} 
                         />
@@ -848,9 +827,6 @@ export default function UploadPage() {
                 <div className="pt-6 border-t border-primary/10">
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
-                    <Button type="button" onClick={handleSummarize} disabled={isSummarizing || (fileSourceMode === "upload" ? !fileDataUri : !externalUrl)} className="bg-primary/10 hover:bg-primary/20 text-primary h-8 rounded-lg px-3 text-[9px] font-black uppercase tracking-widest border border-primary/20 shadow-none transition-all">
-                      {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}Generar con IA
-                    </Button>
                   </div>
                   <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
