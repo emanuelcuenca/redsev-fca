@@ -8,7 +8,7 @@ Este documento detalla los requisitos técnicos para migrar y alojar el sistema 
 - **Memoria Mínima**: 1GB RAM (2GB recomendados para compilación).
 - **Almacenamiento**: ~500MB para el código y dependencias.
 
-## 🔑 Variables de Envío (.env)
+## 🔑 Variables de Entorno (.env)
 El equipo técnico deberá configurar las siguientes variables en el servidor de producción (estos valores son los actuales del proyecto):
 
 ```env
@@ -31,14 +31,14 @@ Para mantener el sitio actualizado, se recomienda vincular el servidor al reposi
 3. **Build**: `npm run build`
 4. **Ejecución**: `npm start` (se recomienda usar PM2: `pm2 start npm --name "redsev" -- start`)
 
-**Para actualizar**:
-Cuando se realicen mejoras en el código, el equipo de sistemas solo debe ejecutar:
+**Para actualizar el servidor**:
+Cuando se realicen mejoras en el código desde Firebase Studio y se suban a GitHub, el equipo de sistemas solo debe ejecutar:
 `git pull origin main && npm install && npm run build && pm2 restart redsev`
 
 ## 📱 Funcionamiento PWA (Instalable)
-El sistema ya está configurado como una PWA (Progressive Web App). 
+El sistema está configurado como una PWA (Progressive Web App). 
 1. **Instalación**: Al navegar al sitio desde Chrome (Android) o Safari (iOS), el usuario verá la opción "Instalar aplicación" o "Agregar a inicio".
-2. **Actualización Automática**: El usuario **no necesita reinstalar la app**. Cuando el servidor se actualiza, el navegador del celular detecta los cambios automáticamente y refresca la aplicación.
+2. **Actualización Automática**: El usuario **no necesita reinstalar la app**. Cuando el servidor se actualiza (vía `git pull` y `build`), el navegador del celular detecta los cambios automáticamente y refresca la aplicación.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*

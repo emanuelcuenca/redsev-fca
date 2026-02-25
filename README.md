@@ -2,29 +2,28 @@
 
 Sistema de gestión de documentos para la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.
 
-## 🛡 Copia de Seguridad (Backup)
-**IMPORTANTE:** Para realizar una copia de seguridad de este estado actual del sitio:
-1. Haz clic en el icono de la **nube con flecha hacia abajo** (Download Project) en la esquina superior derecha de la pantalla.
-2. Guarda el archivo `.zip` resultante en un lugar seguro (Google Drive, Pendrive o Disco Externo).
-3. En caso de errores futuros, este archivo contiene el código fuente exacto que funciona correctamente hoy.
+## 🔄 Flujo de Trabajo y Actualización
+Para mantener el sistema al día en GitHub y en el servidor de la Universidad tras realizar cambios en Firebase Studio:
 
-## 📥 Cómo descargar y subir a GitHub
-Para llevar este proyecto a tu propio servidor o GitHub:
-1. Usa el botón **"Download Project"** (icono de nube arriba a la derecha).
-2. Crea un nuevo repositorio en tu cuenta de GitHub llamado `redsev-fca`.
-3. Descomprime el archivo descargado en tu computadora.
-4. Abre una terminal en esa carpeta y ejecuta:
+1. **Descargar el Proyecto**: Haz clic en el icono de la **nube con flecha hacia abajo** (Download Project) en la esquina superior derecha de Firebase Studio.
+2. **Sincronizar con GitHub**:
+   - Descomprime el archivo `.zip` descargado en tu carpeta local donde tienes el repositorio.
+   - Abre una terminal en esa carpeta y ejecuta:
+     ```bash
+     git add .
+     git commit -m "Descripción de las mejoras realizadas"
+     git push origin main
+     ```
+3. **Actualizar el Servidor**: Una vez los cambios están en GitHub, el equipo técnico solo debe entrar al servidor y ejecutar:
    ```bash
-   git init
-   git remote add origin https://github.com/TU_USUARIO/redsev-fca.git
-   git add .
-   git commit -m "Carga inicial REDSEV"
-   git branch -M main
-   git push -u origin main
+   git pull origin main
+   npm install
+   npm run build
+   pm2 restart redsev
    ```
 
-## 🏛 Migración a Servidores de la Universidad
-Esta aplicación es un proyecto estándar de **NextJS**. Para alojarla en servidores propios de la UNCA, entrega la carpeta completa al equipo de sistemas. Ellos podrán ejecutarla siguiendo la guía en `docs/ENTREGA_TECNICA.md`.
+## 🛡 Copia de Seguridad (Backup)
+**IMPORTANTE:** Cada descarga es un backup completo. Guarda siempre la última versión estable en un lugar seguro (Google Drive, Pendrive o Disco Externo) antes de subirla al servidor de producción.
 
 ---
 *Desarrollado para la Secretaría de Extensión y Vinculación - FCA UNCA.*
