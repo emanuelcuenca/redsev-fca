@@ -23,7 +23,8 @@ import {
   Plane,
   GraduationCap,
   MapPin,
-  Calendar
+  Calendar,
+  ListTodo
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -68,6 +69,8 @@ export default function UploadPage() {
   const [director, setDirector] = useState<PersonName>({ firstName: "", lastName: "" });
   const [student, setStudent] = useState<PersonName>({ firstName: "", lastName: "" });
   const [technicalTeam, setTechnicalTeam] = useState<PersonName[]>([
+    { firstName: "", lastName: "" },
+    { firstName: "", lastName: "" },
     { firstName: "", lastName: "" }
   ]);
 
@@ -223,8 +226,9 @@ export default function UploadPage() {
       documentData.extensionDocType = extensionDocType;
       documentData.projectCode = finalProjectCode;
       documentData.director = { firstName: formatText(director.firstName), lastName: formatText(director.lastName) };
-      // Para Proyecto de Extensión según requerimiento no se cargan autores manualmente
-      documentData.authors = extensionDocType === "Proyecto de Extensión" ? [] : filteredTeam;
+      documentData.authors = filteredTeam;
+      documentData.objetivoGeneral = objetivoGeneral;
+      documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
     } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
       const startMonthIdx = MONTHS.indexOf(mobilityStartMonth) + 1;
       const endMonthIdx = MONTHS.indexOf(mobilityEndMonth) + 1;
@@ -282,7 +286,11 @@ export default function UploadPage() {
                       setType(item.id);
                       setExtensionDocType("");
                       setTitle("");
-                      setTechnicalTeam([{ firstName: "", lastName: "" }]);
+                      setTechnicalTeam([
+                        { firstName: "", lastName: "" },
+                        { firstName: "", lastName: "" },
+                        { firstName: "", lastName: "" }
+                      ]);
                       setDirector({ firstName: "", lastName: "" });
                       setDescription("");
                     }}
@@ -331,6 +339,92 @@ export default function UploadPage() {
                           <Input placeholder="Apellido" value={director.lastName} onChange={(e) => setDirector({...director, lastName: e.target.value})} className="h-10 rounded-lg font-bold" />
                           <Input placeholder="Nombre" value={director.firstName} onChange={(e) => setDirector({...director, firstName: e.target.value})} className="h-10 rounded-lg font-bold" />
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 border-t pt-4">
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
+                        <Users className="w-4 h-4" /> Equipo Técnico
+                      </Label>
+                      <div className="space-y-4">
+                        {technicalTeam.map((member, i) => (
+                          <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
+                            {technicalTeam.length > 3 && (
+                              <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
+                            )}
+                            <StaffAutocomplete 
+                              onSelect={(s) => handleTechnicalTeamChange(i, 'lastName', s.lastName) || handleTechnicalTeamChange(i, 'firstName', s.firstName)} 
+                              label={`Integrante ${i + 1}`} 
+                              placeholder="Buscar por apellido..."
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input placeholder="Apellido" className="h-10 rounded-lg font-bold" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
+                              <Input placeholder="Nombre" className="h-10 rounded-lg font-bold" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
+                            </div>
+                          </div>
+                        ))}
+                        <Button type="button" variant="outline" className="w-full h-11 border-dashed rounded-xl font-black text-[9px] uppercase" onClick={() => setTechnicalTeam([...technicalTeam, { firstName: "", lastName: "" }])}><Plus className="w-4 h-4 mr-2" /> Añadir integrante</Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 border-t pt-6">
+                      <div className="space-y-2">
+                        <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><Target className="w-4 h-4" /> Objetivo General</Label>
+                        <Textarea 
+                          placeholder="Describa el objetivo general del proyecto..." 
+                          className="min-h-[100px] rounded-xl font-medium" 
+                          value={objetivoGeneral}
+                          onChange={(e) => setObjetivoGeneral(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-6 bg-primary/[0.02] p-6 rounded-3xl border border-dashed border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
+                            <ListTodo className="w-4 h-4" /> Objetivos Específicos
+                          </span>
+                          <Switch 
+                            checked={hasSpecificObjectives} 
+                            onCheckedChange={setHasSpecificObjectives}
+                          />
+                        </div>
+                        
+                        {hasSpecificObjectives && (
+                          <div className="space-y-4 animate-in slide-in-from-top-2">
+                            {objetivosEspecificos.map((obj, i) => (
+                              <div key={i} className="flex gap-2">
+                                <Input 
+                                  placeholder={`Objetivo específico ${i + 1}`} 
+                                  value={obj} 
+                                  onChange={(e) => {
+                                    const newObjs = [...objetivosEspecificos];
+                                    newObjs[i] = e.target.value;
+                                    setObjetivosEspecificos(newObjs);
+                                  }}
+                                  className="h-12 rounded-xl font-medium" 
+                                />
+                                {objetivosEspecificos.length > 3 && (
+                                  <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    className="h-12 w-12 rounded-xl text-destructive"
+                                    onClick={() => setObjetivosEspecificos(objetivosEspecificos.filter((_, idx) => idx !== i))}
+                                  >
+                                    <X className="w-5 h-5" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              className="w-full h-10 border-dashed rounded-xl font-black text-[9px] uppercase"
+                              onClick={() => setObjetivosEspecificos([...objetivosEspecificos, ""])}
+                            >
+                              <Plus className="w-4 h-4 mr-2" /> Añadir objetivo
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
