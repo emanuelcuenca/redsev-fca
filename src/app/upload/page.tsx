@@ -107,7 +107,7 @@ export default function UploadPage() {
       addDoc(collection(db, 'staff'), {
         firstName: formatText(person.firstName),
         lastName: formatText(person.lastName),
-        category: "Docente", // Default category
+        category: "Docente", 
         updatedAt: new Date().toISOString()
       });
     }
@@ -230,7 +230,6 @@ export default function UploadPage() {
 
     const filteredTeam = technicalTeam.filter(member => member.firstName.trim() !== "" || member.lastName.trim() !== "");
 
-    // Upsert people to staff database
     if (director.lastName) await upsertStaff(director);
     for (const member of filteredTeam) {
       await upsertStaff(member);
@@ -374,7 +373,7 @@ export default function UploadPage() {
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2"><User className="w-4 h-4" /> Director del Proyecto</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <StaffAutocomplete 
-                            label="Director" 
+                            label="Buscar Director" 
                             defaultValue={director.lastName ? `${director.lastName}, ${director.firstName}` : ""}
                             onSelect={(s) => setDirector({ firstName: s.firstName, lastName: s.lastName })}
                           />
@@ -391,9 +390,13 @@ export default function UploadPage() {
                           {technicalTeam.map((member, i) => (
                             <div key={i} className="space-y-2 p-4 bg-muted/20 rounded-2xl">
                               <StaffAutocomplete 
-                                label={`Integrante ${i + 1}`} 
+                                label={`Buscar Integrante ${i + 1}`} 
                                 defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
-                                onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                                onSelect={(s) => {
+                                  const newTeam = [...technicalTeam];
+                                  newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                                  setTechnicalTeam(newTeam);
+                                }}
                               />
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 relative">
                                 <Input placeholder="Apellido" className="h-11 rounded-lg font-medium" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
@@ -493,9 +496,13 @@ export default function UploadPage() {
                         {technicalTeam.map((member, i) => (
                           <div key={i} className="space-y-2 p-3 bg-white/50 rounded-xl">
                             <StaffAutocomplete 
-                              label={`Responsable ${i + 1}`} 
+                              label={`Buscar Responsable ${i + 1}`} 
                               defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
-                              onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                              onSelect={(s) => {
+                                const newTeam = [...technicalTeam];
+                                newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                                setTechnicalTeam(newTeam);
+                              }}
                             />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
@@ -527,9 +534,13 @@ export default function UploadPage() {
                     {technicalTeam.map((member, i) => (
                       <div key={i} className="space-y-2 p-3 bg-muted/10 rounded-xl">
                         <StaffAutocomplete 
-                          label={`Responsable ${i + 1}`} 
+                          label={`Buscar Responsable ${i + 1}`} 
                           defaultValue={member.lastName ? `${member.lastName}, ${member.firstName}` : ""}
-                          onSelect={(s) => handleTechnicalTeamChange(i, 'firstName', s.firstName).then(() => handleTechnicalTeamChange(i, 'lastName', s.lastName))}
+                          onSelect={(s) => {
+                            const newTeam = [...technicalTeam];
+                            newTeam[i] = { firstName: s.firstName, lastName: s.lastName };
+                            setTechnicalTeam(newTeam);
+                          }}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           <Input placeholder="Apellido" className="h-10 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />

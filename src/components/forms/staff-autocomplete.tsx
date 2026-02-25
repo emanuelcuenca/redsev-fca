@@ -6,7 +6,7 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
 import { StaffMember } from "@/lib/mock-data";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandGroup, CommandItem, CommandList, CommandInput, CommandEmpty } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -48,22 +48,20 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl" align="start">
           <Command>
-            <Input 
+            <CommandInput 
               placeholder="Escriba el apellido..." 
-              className="border-none focus-visible:ring-0 h-11" 
-              onChange={(e) => {
-                // Permite entrada manual libre si no está en la lista
-                // Pero aquí solo manejamos la búsqueda
-              }}
+              className="h-11 border-none focus:ring-0"
             />
             <CommandList className="max-h-60 overflow-y-auto">
+              <CommandEmpty>No se encontraron coincidencias.</CommandEmpty>
               <CommandGroup>
                 {staffList?.map((person) => (
                   <CommandItem
                     key={person.id}
                     value={`${person.lastName}, ${person.firstName}`}
-                    onSelect={(currentValue) => {
-                      setValue(currentValue);
+                    onSelect={() => {
+                      const fullName = `${person.lastName}, ${person.firstName}`;
+                      setValue(fullName);
                       setOpen(false);
                       onSelect(person);
                     }}
