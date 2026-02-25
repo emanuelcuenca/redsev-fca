@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -36,7 +37,10 @@ import {
   RotateCcw,
   Pencil,
   Target,
-  Users
+  Users,
+  Link as LinkIcon,
+  ChevronRight,
+  History
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -45,8 +49,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
-import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from "@/firebase";
+import { doc, collection, query, where, orderBy } from "firebase/firestore";
 
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -64,11 +68,31 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     if (mounted && !isUserLoading && !user) router.push('/login');
   }, [user, isUserLoading, mounted, router]);
 
+  // Consulta del documento principal
   const docRef = useMemoFirebase(() => (resolvedParams.id && user) ? doc(db, 'documents', resolvedParams.id) : null, [db, resolvedParams.id, user]);
   const { data: documentData, isLoading } = useDoc<AgriculturalDocument>(docRef);
+
+  // Consulta de documentos relacionados por el mismo código de proyecto
+  const relatedDocsQuery = useMemoFirebase(() => {
+    if (!documentData?.projectCode || !user) return null;
+    return query(
+      collection(db, 'documents'),
+      where('projectCode', '==', documentData.projectCode),
+      orderBy('uploadDate', 'asc')
+    );
+  }, [db, documentData?.projectCode, user]);
+
+  const { data: relatedDocs, isLoading: isLoadingRelated } = useCollection<AgriculturalDocument>(relatedDocsQuery);
+
   const adminRef = useMemoFirebase(() => user ? doc(db, 'roles_admin', user.uid) : null, [db, user]);
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
+
+  // Identificar el "Proyecto Maestro" dentro de los relacionados para extraer contexto adicional
+  const masterProject = useMemo(() => {
+    if (!relatedDocs) return null;
+    return relatedDocs.find(d => d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión') || null;
+  }, [relatedDocs]);
 
   if (isUserLoading || isLoading || !mounted) {
     return (
@@ -101,18 +125,24 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const isPasantia = documentData.type === 'Pasantía';
   const isMobilityLike = isMobilityEstudiantil || isMobilityDocente || isPasantia;
   const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
+  
+  // Datos unificados: si es un informe, intentamos usar los objetivos y director del proyecto maestro
+  const objectiveContext = isExtensionProyecto ? documentData.objetivoGeneral : masterProject?.objetivoGeneral;
+  const specificObjectivesContext = isExtensionProyecto ? documentData.objetivosEspecificos : masterProject?.objetivosEspecificos;
+  const directorContext = isExtensionProyecto ? documentData.director : masterProject?.director;
+
   const vigente = isDocumentVigente(documentData);
   const counterparts = documentData.counterparts || (documentData.counterpart ? [documentData.counterpart] : []);
 
-  const getDocIcon = () => {
-    switch (documentData.type) {
-      case 'Convenio': return <Handshake className="w-5 h-5 text-primary" />;
-      case 'Proyecto': return <ArrowLeftRight className="w-5 h-5 text-primary" />;
-      case 'Movilidad Estudiantil': return <Plane className="w-5 h-5 text-primary" />;
-      case 'Movilidad Docente': return <Plane className="w-5 h-5 text-primary" />;
-      case 'Pasantía': return <GraduationCap className="w-5 h-5 text-primary" />;
-      case 'Resolución': return <ScrollText className="w-5 h-5 text-primary" />;
-      default: return <FileText className="w-5 h-5 text-primary" />;
+  const getDocIcon = (type?: string) => {
+    switch (type || documentData.type) {
+      case 'Convenio': return <Handshake className="w-5 h-5" />;
+      case 'Proyecto': return <ArrowLeftRight className="w-5 h-5" />;
+      case 'Movilidad Estudiantil': return <Plane className="w-5 h-5" />;
+      case 'Movilidad Docente': return <Plane className="w-5 h-5" />;
+      case 'Pasantía': return <GraduationCap className="w-5 h-5" />;
+      case 'Resolución': return <ScrollText className="w-5 h-5" />;
+      default: return <FileText className="w-5 h-5" />;
     }
   };
 
@@ -142,7 +172,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           <section className="bg-white p-6 md:p-10 rounded-[2.5rem] border border-muted shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b pb-6">
               <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-3 rounded-2xl">{getDocIcon()}</div>
+                <div className="bg-primary/10 p-3 rounded-2xl text-primary">{getDocIcon()}</div>
                 <div>
                   <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">{documentData.title}</h1>
                   <div className="flex items-center gap-2 mt-2">
@@ -172,11 +202,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           <p className="font-bold text-sm">Hasta: {formatDateString(documentData.mobilityEndDate)}</p>
                         </div>
                       </div>
-                    ) : isExtensionProyecto && documentData.executionStartDate ? (
+                    ) : (isExtensionProyecto || documentData.extensionDocType === "Informe de avance") && documentData.executionStartDate ? (
                        <div className="flex items-start gap-3">
                         <Clock className="w-5 h-5 text-primary/60 mt-0.5" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período de Ejecución</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Período Informado / Ejecución</p>
                           <p className="font-bold text-sm">Desde: {formatDateString(documentData.executionStartDate)}</p>
                           <p className="font-bold text-sm">Hasta: {formatDateString(documentData.executionEndDate)}</p>
                         </div>
@@ -201,15 +231,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       </div>
                     )}
 
-                    {isExtensionProyecto && documentData.director && (
+                    {directorContext && (
                       <div className="flex items-center gap-3">
                         <User className="w-5 h-5 text-primary/60" />
                         <div>
                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Director del Proyecto</p>
-                          <p className="font-bold text-sm">{formatPersonName(documentData.director)}</p>
+                          <p className="font-bold text-sm">{formatPersonName(directorContext)}</p>
                         </div>
                       </div>
                     )}
+
                     {documentData.authors && documentData.authors.length > 0 && (
                       <div className="flex items-start gap-3">
                         {isMobilityDocente ? <UserCheck className="w-5 h-5 text-primary/60 mt-0.5" /> : <Users className="w-5 h-5 text-primary/60 mt-0.5" />}
@@ -225,12 +256,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         </div>
                       </div>
                     )}
+
                     {documentData.projectCode && (
-                      <div className="flex items-center gap-3">
-                        <Fingerprint className="w-5 h-5 text-primary/60" />
+                      <div className="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/10">
+                        <Fingerprint className="w-5 h-5 text-primary" />
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isMobilityLike ? "Resolución" : "Código Institucional"}</p>
-                          <p className="font-bold text-sm text-primary">{documentData.projectCode}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{isMobilityLike ? "Resolución" : "Código de Proyecto"}</p>
+                          <p className="font-black text-sm text-primary tracking-tighter">{documentData.projectCode}</p>
                         </div>
                       </div>
                     )}
@@ -262,7 +294,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {counterparts.length > 0 ? counterparts.map((cp, idx) => (
+                      {(isConvenio || isProyecto) && counterparts.length > 0 ? counterparts.map((cp, idx) => (
                         <div key={idx} className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border border-muted"><Building2 className="w-5 h-5 text-primary/60" /><p className="font-bold text-sm">{cp}</p></div>
                       )) : <p className="text-xs font-bold text-muted-foreground italic">Sin instituciones registradas</p>}
                     </div>
@@ -270,17 +302,63 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               </div>
 
-              {isExtensionProyecto && documentData.objetivoGeneral && (
-                <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2"><Target className="w-4 h-4" /> Objetivo General</h3>
-                  <p className="text-sm leading-relaxed font-medium text-muted-foreground">{documentData.objetivoGeneral}</p>
+              {/* Sección Unificada de Documentos Relacionados */}
+              {documentData.projectCode && relatedDocs && relatedDocs.length > 1 && (
+                <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/20 space-y-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                    <History className="w-4 h-4" /> Cronología y Vinculaciones del Proyecto
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {relatedDocs.map((rel) => {
+                      const isCurrent = rel.id === documentData.id;
+                      return (
+                        <Link 
+                          key={rel.id} 
+                          href={`/documents/${rel.id}`}
+                          className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                            isCurrent 
+                            ? 'bg-primary text-primary-foreground border-primary shadow-md' 
+                            : 'bg-white hover:bg-muted/50 border-muted group'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`p-2 rounded-lg ${isCurrent ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
+                              {getDocIcon(rel.type)}
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-wider leading-none mb-1">
+                                {rel.extensionDocType || rel.type}
+                              </p>
+                              <p className={`text-[11px] font-bold ${isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                                {formatDateString(rel.date || rel.uploadDate)}
+                              </p>
+                            </div>
+                          </div>
+                          {!isCurrent && <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />}
+                          {isCurrent && <Badge variant="secondary" className="bg-white/20 border-none text-[8px] uppercase">Viendo ahora</Badge>}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-              {isExtensionProyecto && documentData.objetivosEspecificos && documentData.objetivosEspecificos.length > 0 && (
+
+              {objectiveContext && (
+                <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                    <Target className="w-4 h-4" /> Objetivo General {!isExtensionProyecto && "(del Proyecto vinculado)"}
+                  </h3>
+                  <p className="text-sm leading-relaxed font-medium text-muted-foreground">{objectiveContext}</p>
+                </div>
+              )}
+
+              {specificObjectivesContext && specificObjectivesContext.length > 0 && (
                 <div className="bg-white p-8 rounded-[2rem] border border-muted shadow-sm">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2"><ListTodo className="w-4 h-4" /> Objetivos Específicos</h3>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                    <ListTodo className="w-4 h-4" /> Objetivos Específicos {!isExtensionProyecto && "(del Proyecto vinculado)"}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {documentData.objetivosEspecificos.map((obj, i) => (
+                    {specificObjectivesContext.map((obj, i) => (
                       <div key={i} className="flex items-start gap-3 p-4 bg-muted/10 rounded-xl border border-muted/20">
                         <div className="bg-primary/10 text-primary w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black">{i + 1}</div>
                         <p className="text-xs font-medium leading-relaxed">{obj}</p>
@@ -289,6 +367,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
               )}
+
               {documentData.description && (
                 <div className="bg-primary/[0.03] p-8 rounded-[2rem] border border-primary/10">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2"><BookOpen className="w-4 h-4" /> Resumen / Descripción</h3>
