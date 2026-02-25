@@ -25,6 +25,7 @@ import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
@@ -78,6 +79,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     type: "",
     extensionDocType: "",
     date: "",
+    resolutionNumber: "",
     director: { firstName: "", lastName: "" },
     student: { firstName: "", lastName: "" },
     authors: [],
@@ -128,6 +130,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         durationYears: docData.durationYears?.toString() || "1",
         counterparts: Array.isArray(docData.counterparts) ? docData.counterparts : [""],
         objetivosEspecificos: Array.isArray(docData.objetivosEspecificos) ? docData.objetivosEspecificos : ["", "", ""],
+        resolutionNumber: docData.resolutionNumber || ""
       });
 
       if (docData.objetivosEspecificos && docData.objetivosEspecificos.length > 0) {
@@ -250,7 +253,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       authors: filteredAuthors,
       director: { firstName: formatText(formData.director.firstName), lastName: formatText(formData.director.lastName) },
       student: { firstName: formatText(formData.student.firstName), lastName: formatText(formData.student.lastName) },
-      date: (formData.type === "Proyecto") ? (formData.date || new Date().toISOString()) : finalDate,
+      date: finalDate,
       executionStartDate: finalExecStart,
       executionEndDate: finalExecEnd,
       mobilityStartDate: finalMobilityStart,
@@ -282,6 +285,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const isPasantia = formData.type === 'Pasantía';
   const isMobilityLike = isMobilityEstudiantil || isMobilityDocente || isPasantia;
   const isExtensionProyecto = isProyecto && formData.extensionDocType === "Proyecto de Extensión";
+  const isResolucionAprobacion = isProyecto && formData.extensionDocType === "Resolución de aprobación";
 
   return (
     <SidebarProvider>
@@ -328,17 +332,17 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="space-y-4">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Desde</Label>
                           <div className="grid grid-cols-3 gap-1">
-                            <Select value={mobilityStartDay} onValueChange={setMobilityStartDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                            <Select value={mobilityStartMonth} onValueChange={setMobilityStartMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                            <Select value={mobilityStartYear} onValueChange={setMobilityStartYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityStartDay} onValueChange={setMobilityStartDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityStartMonth} onValueChange={setMobilityStartMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityStartYear} onValueChange={setMobilityStartYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                           </div>
                         </div>
                         <div className="space-y-4">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2"><Calendar className="w-4 h-4" /> Período - Hasta</Label>
                           <div className="grid grid-cols-3 gap-1">
-                            <Select value={mobilityEndDay} onValueChange={setMobilityEndDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                            <Select value={mobilityEndMonth} onValueChange={setMobilityEndMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                            <Select value={mobilityEndYear} onValueChange={setMobilityEndYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityEndDay} onValueChange={setMobilityEndDay}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityEndMonth} onValueChange={setMobilityEndMonth}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                            <Select value={mobilityEndYear} onValueChange={setMobilityEndYear}><SelectTrigger className="h-10 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                           </div>
                         </div>
                       </div>
@@ -367,7 +371,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {isExtensionProyecto && (
+                  {(isExtensionProyecto || isResolucionAprobacion) && (
                     <div className="md:col-span-2 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
@@ -383,17 +387,17 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
                               <div className="grid grid-cols-3 gap-1">
-                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                               </div>
                             </div>
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
                               <div className="grid grid-cols-3 gap-1">
-                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                               </div>
                             </div>
                           </div>
@@ -424,9 +428,9 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
                       <div className="grid grid-cols-3 gap-1">
-                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                       </div>
                     </div>
                   )}
@@ -524,9 +528,20 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   
                   <div className="pt-6 border-t border-primary/10">
                     <div className="flex items-center justify-between gap-4 mb-4">
-                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                      <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
+                        {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
+                      </Label>
                     </div>
-                    <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
+                    {formData.extensionDocType === "Resolución de aprobación" ? (
+                      <Input 
+                        placeholder="Ej: RES-FCA-001/2026" 
+                        className="h-14 rounded-xl font-bold bg-white border-primary/20" 
+                        value={formData.resolutionNumber} 
+                        onChange={(e) => setFormData({...formData, resolutionNumber: e.target.value})} 
+                      />
+                    ) : (
+                      <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[120px] rounded-xl font-medium bg-white" />
+                    )}
                   </div>
                 </div>
 

@@ -75,6 +75,7 @@ export default function UploadPage() {
   ]);
 
   const [description, setDescription] = useState("");
+  const [resolutionNumber, setResolutionNumber] = useState("");
   const [objetivoGeneral, setObjetivoGeneral] = useState("");
   const [hasSpecificObjectives, setHasSpecificObjectives] = useState(false);
   const [objetivosEspecificos, setObjetivosEspecificos] = useState<string[]>(["", "", ""]);
@@ -90,16 +91,16 @@ export default function UploadPage() {
   const [counterparts, setCounterparts] = useState([""]);
   const [projectCode, setProjectCode] = useState("");
   
-  const [signingDay, setSigningDay] = useState(new Date().getDate().toString());
-  const [signingMonth, setSigningMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [signingYearSelect, setSigningYearSelect] = useState(new Date().getFullYear().toString());
+  const [signingDay, setSigningDay] = useState("");
+  const [signingMonth, setSigningMonth] = useState("");
+  const [signingYearSelect, setSigningYearSelect] = useState("");
 
-  const [execStartDay, setExecStartDay] = useState(new Date().getDate().toString());
-  const [execStartMonth, setExecStartMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [execStartYear, setExecStartYear] = useState(new Date().getFullYear().toString());
-  const [execEndDay, setExecEndDay] = useState(new Date().getDate().toString());
-  const [execEndMonth, setExecEndMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [execEndYear, setExecEndYear] = useState(new Date().getFullYear().toString());
+  const [execStartDay, setExecStartDay] = useState("");
+  const [execStartMonth, setExecStartMonth] = useState("");
+  const [execStartYear, setExecStartYear] = useState("");
+  const [execEndDay, setExecEndDay] = useState("");
+  const [execEndMonth, setExecEndMonth] = useState("");
+  const [execEndYear, setExecEndYear] = useState("");
 
   const [mobilityStartDay, setMobilityStartDay] = useState(new Date().getDate().toString());
   const [mobilityStartMonth, setMobilityStartMonth] = useState(MONTHS[new Date().getMonth()]);
@@ -174,6 +175,7 @@ export default function UploadPage() {
         setDirector(proj.director || { firstName: "", lastName: "" });
         setProjectCode(proj.projectCode || "");
         
+        // Heredar equipo técnico y otros datos para facilitar carga unificada
         if (proj.authors) setTechnicalTeam(proj.authors.length > 0 ? proj.authors : [{ firstName: "", lastName: "" }]);
         if (proj.description) setDescription(proj.description);
         if (proj.objetivoGeneral) setObjetivoGeneral(proj.objetivoGeneral);
@@ -244,8 +246,11 @@ export default function UploadPage() {
 
     setIsSaving(true);
     
-    const monthIdx = MONTHS.indexOf(signingMonth) + 1;
-    const finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
+    let finalDate = new Date().toISOString();
+    if (signingDay && signingMonth && signingYearSelect) {
+      const monthIdx = MONTHS.indexOf(signingMonth) + 1;
+      finalDate = `${signingYearSelect}-${monthIdx.toString().padStart(2, '0')}-${signingDay.padStart(2, '0')}`;
+    }
 
     let finalProjectCode = projectCode;
     if (type === "Proyecto" && extensionDocType === "Proyecto de Extensión") {
@@ -260,10 +265,11 @@ export default function UploadPage() {
     const documentData: any = {
       title: formatText(title),
       type,
-      date: (type === "Proyecto" && extensionDocType === "Proyecto de Extensión") ? (new Date().toISOString()) : finalDate,
+      date: finalDate,
       uploadDate: new Date().toISOString(),
       uploadedByUserId: user.uid,
       description: description || "",
+      resolutionNumber: resolutionNumber || "",
       fileUrl: fileSourceMode === "upload" ? (fileDataUri || "#") : externalUrl,
       fileType: fileSourceMode === "upload" && fileName ? fileName.split('.').pop() : "link",
       projectCode: finalProjectCode || ""
@@ -285,17 +291,26 @@ export default function UploadPage() {
         documentData.authors = filteredTeam;
         documentData.objetivoGeneral = objetivoGeneral || "";
         documentData.objetivosEspecificos = hasSpecificObjectives ? objetivosEspecificos.filter(o => o.trim() !== "") : [];
-        const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
-        const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
-        documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
-        documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+        
+        if (execStartDay && execStartMonth && execStartYear) {
+          const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
+          documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
+        }
+        if (execEndDay && execEndMonth && execEndYear) {
+          const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
+          documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+        }
       } else {
         documentData.authors = filteredTeam;
         if (extensionDocType === "Informe de avance") {
-          const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
-          const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
-          documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
-          documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+          if (execStartDay && execStartMonth && execStartYear) {
+            const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
+            documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
+          }
+          if (execEndDay && execEndMonth && execEndYear) {
+            const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
+            documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
+          }
         }
       }
     } else if (type === "Movilidad Estudiantil" || type === "Movilidad Docente" || type === "Pasantía") {
@@ -364,6 +379,7 @@ export default function UploadPage() {
                       setDirector({ firstName: "", lastName: "" });
                       setStudent({ firstName: "", lastName: "" });
                       setDescription("");
+                      setResolutionNumber("");
                     }}
                     className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${
                       type === item.id ? 'border-primary bg-primary/10 text-primary shadow-md' : 'border-muted-foreground/10 bg-white'
@@ -390,6 +406,9 @@ export default function UploadPage() {
                         onClick={() => {
                           setExtensionDocType(sub);
                           setLinkedProject(null);
+                          setSigningDay("");
+                          setSigningMonth("");
+                          setSigningYearSelect("");
                         }}
                       >
                         {sub}
@@ -466,9 +485,9 @@ export default function UploadPage() {
                       <div className="space-y-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Fecha del Documento (Firma/Aprobación)</Label>
                         <div className="grid grid-cols-3 gap-1">
-                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                          <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                         </div>
                       </div>
 
@@ -481,17 +500,17 @@ export default function UploadPage() {
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
                               <div className="grid grid-cols-3 gap-1">
-                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                               </div>
                             </div>
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
                               <div className="grid grid-cols-3 gap-1">
-                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                                <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                               </div>
                             </div>
                           </div>
@@ -526,17 +545,17 @@ export default function UploadPage() {
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase text-muted-foreground">Desde</Label>
                             <div className="grid grid-cols-3 gap-1">
-                              <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                              <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                              <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execStartDay} onValueChange={setExecStartDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execStartMonth} onValueChange={setExecStartMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execStartYear} onValueChange={setExecStartYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase text-muted-foreground">Hasta</Label>
                             <div className="grid grid-cols-3 gap-1">
-                              <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                              <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                              <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execEndDay} onValueChange={setExecEndDay}><SelectTrigger className="h-10"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execEndMonth} onValueChange={setExecEndMonth}><SelectTrigger className="h-10"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                              <Select value={execEndYear} onValueChange={setExecEndYear}><SelectTrigger className="h-10"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                             </div>
                           </div>
                         </div>
@@ -551,7 +570,7 @@ export default function UploadPage() {
                         {technicalTeam.map((member, i) => (
                           <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
                             {technicalTeam.length > 3 && (
-                              <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></Button>
+                              <button type="button" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}><X className="w-4 h-4" /></button>
                             )}
                             <StaffAutocomplete 
                               onSelect={(s) => {
@@ -708,9 +727,9 @@ export default function UploadPage() {
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma</Label>
                       <div className="grid grid-cols-3 gap-1">
-                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                        <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                       </div>
                     </div>
                     <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1">Duración (Años)</Label><input type="number" min="1" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={durationYears} onChange={(e) => setDurationYears(e.target.value)} /></div>
@@ -726,15 +745,9 @@ export default function UploadPage() {
                     {technicalTeam.map((member, i) => (
                       <div key={i} className="bg-muted/10 p-4 rounded-2xl border border-muted space-y-3 relative">
                         {technicalTeam.length > 1 && (
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="icon" 
-                            className="absolute top-2 right-2 h-8 w-8 text-destructive" 
-                            onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}
-                          >
+                          <button type="button" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => setTechnicalTeam(technicalTeam.filter((_, idx) => idx !== i))}>
                             <X className="w-4 h-4" />
-                          </Button>
+                          </button>
                         )}
                         <StaffAutocomplete 
                           onSelect={(s) => {
@@ -773,9 +786,9 @@ export default function UploadPage() {
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><input placeholder="Título de la resolución" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Aprobación</Label>
                   <div className="grid grid-cols-3 gap-1 max-w-sm">
-                    <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
-                    <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
-                    <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingDay} onValueChange={setSigningDay}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Día" /></SelectTrigger><SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingMonth} onValueChange={setSigningMonth}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Mes" /></SelectTrigger><SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select>
+                    <Select value={signingYearSelect} onValueChange={setSigningYearSelect}><SelectTrigger className="h-12 rounded-xl text-xs"><SelectValue placeholder="Año" /></SelectTrigger><SelectContent>{YEARS_LIST.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}</SelectContent></Select>
                   </div>
                 </div>
               </section>
@@ -826,9 +839,20 @@ export default function UploadPage() {
 
                 <div className="pt-6 border-t border-primary/10">
                   <div className="flex items-center justify-between gap-4 mb-4">
-                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Descripción / Resumen</Label>
+                    <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
+                      {extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
+                    </Label>
                   </div>
-                  <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  {extensionDocType === "Resolución de aprobación" ? (
+                    <Input 
+                      placeholder="Ej: RES-FCA-001/2026" 
+                      className="h-14 rounded-xl font-bold bg-white border-primary/20" 
+                      value={resolutionNumber} 
+                      onChange={(e) => setResolutionNumber(e.target.value)} 
+                    />
+                  ) : (
+                    <Textarea placeholder="Resumen institucional..." className="min-h-[120px] rounded-xl font-medium bg-white" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  )}
                 </div>
                 
                 <div className="flex justify-end gap-4 mt-8">

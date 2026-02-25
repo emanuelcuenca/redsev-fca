@@ -188,12 +188,17 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   <div className="bg-primary/10 p-3 rounded-2xl text-primary">{getDocIcon()}</div>
                   <div>
                     <h1 className="text-xl md:text-3xl font-headline font-bold tracking-tight text-primary leading-tight">
-                      {isExtensionProyecto ? documentData.title : (masterProject?.title || documentData.title)}
+                      {documentData.title}
                     </h1>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className="bg-primary/10 text-primary border-primary/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest">
                         {documentData.extensionDocType || documentData.type}
                       </Badge>
+                      {documentData.resolutionNumber && (
+                        <Badge className="bg-accent/10 text-accent-foreground border-accent/20 h-7 px-3 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                          <ScrollText className="w-3.5 h-3.5" /> {documentData.resolutionNumber}
+                        </Badge>
+                      )}
                       {isConvenio && <Badge className={`h-7 px-3 text-[10px] font-black uppercase tracking-widest ${vigente ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{vigente ? 'Vigente' : 'Vencido'}</Badge>}
                     </div>
                   </div>

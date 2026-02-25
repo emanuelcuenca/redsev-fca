@@ -16,6 +16,7 @@ export interface AgriculturalDocument {
   title: string;
   type: 'Convenio' | 'Proyecto' | 'Movilidad Estudiantil' | 'Movilidad Docente' | 'Pasantía' | 'Resolución' | 'Otro';
   projectCode?: string;
+  resolutionNumber?: string;
   director?: PersonName;
   student?: PersonName;
   date: string;
