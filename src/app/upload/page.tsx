@@ -299,7 +299,7 @@ export default function UploadPage() {
         documentData.executionEndDate = `${execEndYear}-${endMonthIdx.toString().padStart(2, '0')}-${execEndDay.padStart(2, '0')}`;
       }
 
-      if (extensionDocType === "Informe de avance" || extensionDocType === "Informe final") {
+      if (extensionDocType === "Informe de avance") {
         const startMonthIdx = MONTHS.indexOf(execStartMonth) + 1;
         const endMonthIdx = MONTHS.indexOf(execEndMonth) + 1;
         documentData.executionStartDate = `${execStartYear}-${startMonthIdx.toString().padStart(2, '0')}-${execStartDay.padStart(2, '0')}`;
@@ -469,7 +469,7 @@ export default function UploadPage() {
                         <Input value={`${director.lastName}, ${director.firstName}`} readOnly className="h-12 rounded-xl font-bold bg-muted/50" />
                       </div>
 
-                      {(extensionDocType === "Informe de avance" || extensionDocType === "Informe final") && (
+                      {(extensionDocType === "Informe de avance") && (
                         <div className="md:col-span-2 space-y-4 p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-primary flex items-center gap-2">
                             <Clock className="w-4 h-4" /> Período Informado
