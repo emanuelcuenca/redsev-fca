@@ -3,36 +3,36 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // REPOSITORIO DE DOCUMENTOS REDSEV
-    // Cualquier usuario de la facultad autenticado puede leer el repositorio
-    // Solo los administradores registrados pueden realizar cambios
+    // El acceso de lectura está permitido a cualquier usuario registrado (autenticado).
+    // Las operaciones de escritura (crear, actualizar, eliminar) son exclusivas de administradores.
     match /documents/{documentId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      allow get, list: if request.auth != null;
+      allow create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // PERFILES DE USUARIO
-    // Los usuarios pueden leer perfiles y editar el propio
-    // Los administradores tienen control total
+    // PERFILES DE USUARIO (CUENTAS REGISTRADAS)
+    // Los usuarios registrados pueden leer cualquier perfil y editar el propio.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)));
     }
 
     // ROLES ADMINISTRATIVOS
-    // Lectura para verificación de permisos, escritura restringida a administradores existentes
+    // Los administradores registrados controlan el acceso de nivel superior.
     match /roles_admin/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // PADRÓN DOCENTE (STAFF)
-    // Lectura institucional para autocompletado, edición exclusiva para administración
+    // PADRÓN DOCENTE (REFERENCIA INSTITUCIONAL)
+    // El padrón es solo de lectura para usuarios registrados para funciones de autocompletado.
+    // La edición está limitada exclusivamente a la administración.
     match /staff/{staffId} {
-      allow read: if request.auth != null;
+      allow get, list: if request.auth != null;
       allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
     
-    // Identificador de Despliegue de Seguridad: REDSEV-FIX-PERMISSIONS-FINAL-V1
-    // Este comentario fuerza el despliegue de las reglas en el motor de Firestore.
+    // Identificador de Despliegue de Seguridad: REDSEV-AUTH-REGISTERED-V4
+    // Esta marca asegura que Firestore actualice la caché de reglas para permitir el listado a usuarios registrados.
   }
 }

@@ -4,7 +4,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the REDSEV FCA application, with distinct roles and institutional data.",
+      "description": "Represents a registered user of the REDSEV FCA application.",
       "properties": {
         "id": { "type": "string" },
         "email": { "type": "string", "format": "email" },
@@ -12,24 +12,24 @@
         "lastName": { "type": "string" },
         "name": { "type": "string" },
         "photoUrl": { "type": "string", "format": "uri" },
-        "academicRank": { "type": "string", "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"] },
+        "academicRank": { "type": "string" },
         "department": { "type": "string" },
         "role": { "type": "string", "default": "Viewer" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "email", "firstName", "lastName", "role"]
+      "required": ["id", "email", "firstName", "lastName"]
     },
     "Staff": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Staff",
       "type": "object",
-      "description": "Padrón docente de la facultad.",
+      "description": "Institutional teaching staff register (Padrón Docente).",
       "properties": {
         "id": { "type": "string" },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
-        "academicRank": { "type": "string", "enum": ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"] },
+        "academicRank": { "type": "string" },
         "category": { "type": "string", "enum": ["Docente"] },
         "email": { "type": "string", "format": "email" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -40,47 +40,14 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Document",
       "type": "object",
-      "description": "Represents a document stored in the REDSEV FCA repository.",
+      "description": "Represents a document in the REDSEV FCA repository.",
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
-        "type": { "type": "string", "enum": ["Convenio", "Proyecto", "Movilidad Estudiantil", "Movilidad Docente", "Pasantía", "Resolución"] },
-        "extensionDocType": { "type": "string" },
+        "type": { "type": "string" },
         "projectCode": { "type": "string" },
-        "director": {
-          "type": "object",
-          "properties": {
-            "firstName": { "type": "string" },
-            "lastName": { "type": "string" }
-          }
-        },
-        "student": {
-          "type": "object",
-          "properties": {
-            "firstName": { "type": "string" },
-            "lastName": { "type": "string" }
-          }
-        },
-        "authors": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "firstName": { "type": "string" },
-              "lastName": { "type": "string" }
-            }
-          }
-        },
-        "date": { "type": "string", "format": "date-time" },
         "uploadDate": { "type": "string", "format": "date-time" },
-        "uploadedByUserId": { "type": "string" },
-        "description": { "type": "string" },
-        "fileUrl": { "type": "string" },
-        "mobilityStartDate": { "type": "string" },
-        "mobilityEndDate": { "type": "string" },
-        "mobilityInstitution": { "type": "string" },
-        "mobilityState": { "type": "string" },
-        "mobilityCountry": { "type": "string" }
+        "uploadedByUserId": { "type": "string" }
       },
       "required": ["id", "title", "type", "uploadDate"]
     }
@@ -91,19 +58,19 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/backend/entities/User" },
-      "description": "Perfiles de usuario de la facultad."
+      "description": "Registered user profiles."
     },
     "/staff/{staffId}": {
       "schema": { "$ref": "#/backend/entities/Staff" },
-      "description": "Padrón docente institucional."
+      "description": "Institutional staff register for reference."
     },
     "/documents/{documentId}": {
       "schema": { "$ref": "#/backend/entities/Document" },
-      "description": "Repositorio central de documentos de extensión y vinculación."
+      "description": "Central document repository."
     },
     "/roles_admin/{userId}": {
       "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
-      "description": "Registro de usuarios con permisos de administración."
+      "description": "Administrative roles assignment."
     }
   }
 }
