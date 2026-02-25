@@ -763,7 +763,7 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {type !== "Convenio" && type !== "Movilidad Estudiantil" && type !== "Movilidad Docente" && (
+                {type !== "Convenio" && type !== "Movilidad Estudiantil" && type !== "Movilidad Docente" && type !== "Pasantía" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Resolución / Código</Label>

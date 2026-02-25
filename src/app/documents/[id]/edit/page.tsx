@@ -506,7 +506,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && (
+                  {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && !isPasantia && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><Input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="h-12 rounded-xl font-bold" /></div>
                     </div>
