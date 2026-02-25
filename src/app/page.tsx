@@ -178,25 +178,25 @@ export default function Dashboard() {
                 label="Convenios Vigentes" 
                 value={stats?.conveniosVigentes || 0} 
                 icon={Handshake} 
-                color="text-blue-600"
+                color="text-primary"
               />
               <StatCard 
                 label="Proyectos Extensión" 
                 value={stats?.proyectosExtension || 0} 
                 icon={ArrowLeftRight} 
-                color="text-emerald-600"
+                color="text-primary"
               />
               <StatCard 
                 label="Movilidades" 
                 value={stats?.totalMovilidades || 0} 
                 icon={Plane} 
-                color="text-purple-600"
+                color="text-primary"
               />
               <StatCard 
                 label="Prácticas/Pasantías" 
                 value={stats?.pasantias || 0} 
                 icon={GraduationCap} 
-                color="text-indigo-600"
+                color="text-primary"
               />
             </div>
           </section>
