@@ -14,7 +14,9 @@ import {
   Sparkles,
   User,
   Users,
-  ScrollText
+  ScrollText,
+  Target,
+  FileText
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -102,11 +104,11 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     if (docData) {
       setFormData({
         ...docData,
-        authors: docData.authors || [],
+        authors: Array.isArray(docData.authors) ? docData.authors : [],
         director: docData.director || { firstName: "", lastName: "" },
         durationYears: docData.durationYears?.toString() || "1",
-        counterparts: docData.counterparts || [""],
-        objetivosEspecificos: docData.objetivosEspecificos || ["", "", ""],
+        counterparts: Array.isArray(docData.counterparts) ? docData.counterparts : [""],
+        objetivosEspecificos: Array.isArray(docData.objetivosEspecificos) ? docData.objetivosEspecificos : ["", "", ""],
       });
 
       if (docData.objetivosEspecificos && docData.objetivosEspecificos.length > 0) {
@@ -167,7 +169,8 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length >= 2 && (word === "UNCA" || word === "FCA" || word === "INTA" || word === "CONICET")) return word;
+        const upper = word.toUpperCase();
+        if (upper === "UNCA" || upper === "FCA" || upper === "INTA" || upper === "CONICET") return upper;
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');

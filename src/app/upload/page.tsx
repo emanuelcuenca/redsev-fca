@@ -96,7 +96,6 @@ export default function UploadPage() {
   const [isSearchingProject, setIsSearchingProject] = useState(false);
   const [foundProject, setFoundProject] = useState<AgriculturalDocument | null>(null);
 
-  // Lógica de búsqueda en Padrón
   const lookupStaff = async (dni: string) => {
     if (!dni || dni.length < 6) return null;
     try {
@@ -134,13 +133,20 @@ export default function UploadPage() {
     }
   };
 
+  const handleObjectiveChange = (index: number, value: string) => {
+    const newObjectives = [...objetivosEspecificos];
+    newObjectives[index] = value;
+    setObjetivosEspecificos(newObjectives);
+  };
+
   const formatText = (text: string) => {
     if (!text) return "";
     return text
       .split(' ')
       .filter(Boolean)
       .map(word => {
-        if (word.length >= 2 && (word === "UNCA" || word === "FCA" || word === "INTA" || word === "CONICET")) return word;
+        const upper = word.toUpperCase();
+        if (upper === "UNCA" || upper === "FCA" || upper === "INTA" || upper === "CONICET") return upper;
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(' ');
@@ -493,11 +499,7 @@ export default function UploadPage() {
                       <div className="animate-in slide-in-from-top-2 duration-300 space-y-4">
                         <Label className="font-black uppercase text-[9px] tracking-widest text-muted-foreground mb-1 block">Equipo Responsable</Label>
                         {technicalTeam.map((member, i) => (
-                          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <div className="relative">
-                              <Input placeholder="DNI" className="h-9 rounded-lg text-[10px] font-mono" value={member.dni} onChange={(e) => handleTechnicalTeamChange(i, 'dni', e.target.value)} onBlur={() => handleTeamDniBlur(i)} />
-                              <SearchIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-primary/30" />
-                            </div>
+                          <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Input placeholder="Nombre" className="h-9 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                             <Input placeholder="Apellido" className="h-9 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
                           </div>
@@ -524,11 +526,7 @@ export default function UploadPage() {
                   <div className="space-y-4 md:col-span-2 border-t pt-4">
                     <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Responsables</Label>
                     {technicalTeam.map((member, i) => (
-                      <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div className="relative">
-                          <Input placeholder="DNI" className="h-10 rounded-lg text-[10px] font-mono" value={member.dni} onChange={(e) => handleTechnicalTeamChange(i, 'dni', e.target.value)} onBlur={() => handleTeamDniBlur(i)} />
-                          <SearchIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/30" />
-                        </div>
+                      <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <Input placeholder="Nombre" className="h-10 rounded-lg text-xs" value={member.firstName} onChange={(e) => handleTechnicalTeamChange(i, 'firstName', e.target.value)} />
                         <Input placeholder="Apellido" className="h-10 rounded-lg text-xs" value={member.lastName} onChange={(e) => handleTechnicalTeamChange(i, 'lastName', e.target.value)} />
                       </div>
@@ -590,8 +588,4 @@ export default function UploadPage() {
       </SidebarInset>
     </SidebarProvider>
   );
-}
-
-function handleObjectiveChange(arg0: any, arg1: any) {
-  throw new Error("Function not implemented.");
 }
