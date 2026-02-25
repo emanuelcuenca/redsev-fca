@@ -40,11 +40,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-y-auto">
-      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden">
+      {/* Contenedor de decoraciones para evitar desbordamiento lateral */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 py-8">
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="bg-primary w-20 h-20 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
@@ -55,7 +58,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden w-full">
           <CardHeader className="space-y-1 pt-8 px-8 text-center">
             <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Ingreso al Sistema</CardTitle>
             <CardDescription className="font-medium">
