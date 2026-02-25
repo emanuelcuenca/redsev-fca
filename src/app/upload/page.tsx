@@ -333,6 +333,13 @@ export default function UploadPage() {
   };
 
   const isLinkingType = extensionDocType === "Resolución de aprobación" || extensionDocType === "Informe de avance" || extensionDocType === "Informe final";
+  
+  // Determina si se debe mostrar el apartado de subida de archivos y el botón de guardar
+  const shouldShowFileSection = type && (
+    (type !== "Proyecto") || 
+    (extensionDocType === "Proyecto de Extensión") || 
+    (isLinkingType && linkedProject)
+  );
 
   return (
     <SidebarProvider>
@@ -780,7 +787,7 @@ export default function UploadPage() {
               </section>
             )}
 
-            {(type && (type !== "Proyecto" || extensionDocType)) && (
+            {shouldShowFileSection && (
               <section className="bg-primary/5 p-8 rounded-[2.5rem] border border-dashed border-primary/20 space-y-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <Button type="button" onClick={() => fileInputRef.current?.click()} className="h-14 px-10 rounded-xl bg-white border-2 border-primary/30 text-primary font-black uppercase text-[11px] tracking-widest hover:bg-primary/5 transition-all shadow-sm">
