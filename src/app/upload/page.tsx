@@ -19,7 +19,9 @@ import {
   FileCheck,
   User,
   Users,
-  Fingerprint
+  Fingerprint,
+  Plane,
+  GraduationCap
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
