@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { User, Briefcase, LogOut, Copy, Check, Fingerprint, ShieldCheck, UserCircle, BarChart3, BellRing, UserCheck, Mail } from "lucide-react";
+import { User, Briefcase, LogOut, Copy, Check, Fingerprint, ShieldCheck, UserCircle, BarChart3, BellRing, UserCheck, Mail, FileUser } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -101,6 +101,10 @@ export function UserMenu() {
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
             <Link href="/profile"><UserCircle className="w-4 h-4" /><span className="text-sm">Datos Personales</span></Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
+            <Link href="/profile/cv"><FileUser className="w-4 h-4" /><span className="text-sm">Subir CV</span></Link>
           </DropdownMenuItem>
           
           {isAuthority && (

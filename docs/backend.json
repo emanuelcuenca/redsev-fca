@@ -13,6 +13,8 @@
         "lastName": { "type": "string" },
         "name": { "type": "string" },
         "photoUrl": { "type": "string", "format": "uri" },
+        "cvUrl": { "type": "string", "format": "uri", "description": "Data URI or link to the user's CV" },
+        "cvName": { "type": "string", "description": "Original filename of the CV" },
         "claustro": { "type": "string", "enum": ["Docente", "No docente", "Estudiante", "Egresado"] },
         "academicRank": { "type": "string", "description": "Used for Docente" },
         "department": { "type": "string", "description": "Used for Docente, No docente, Estudiante (Facultad)" },
