@@ -13,7 +13,8 @@ import {
   BellRing,
   Plane,
   GraduationCap,
-  ScrollText
+  ScrollText,
+  Info
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,6 +51,7 @@ export function MainSidebar() {
     { icon: Plane, label: "Movilidad", href: "/documents?category=movilidad" },
     { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
     { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones" },
+    { icon: Info, label: "Autoridades y Contacto", href: "/contact" },
   ];
 
   const ADMIN_ITEMS = [
