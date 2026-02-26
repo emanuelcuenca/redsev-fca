@@ -1,10 +1,10 @@
 
 "use client";
 
-import Image from "next/image";
+import Image from "image";
 import Link from "next/link";
 import { useState } from "react";
-import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint, ShieldCheck, UserCircle } from "lucide-react";
+import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint, ShieldCheck, UserCircle, BarChart3 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,12 +120,20 @@ export function UserMenu() {
             </Link>
           </DropdownMenuItem>
           {isAdmin && (
-            <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
-              <Link href="/admin">
-                <Briefcase className="w-4 h-4" />
-                <span className="text-sm">Panel de Gestión</span>
-              </Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+                <Link href="/admin">
+                  <Briefcase className="w-4 h-4" />
+                  <span className="text-sm">Gestión de usuarios</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
+                <Link href="/admin/stats">
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-sm">Panel de estadísticas</span>
+                </Link>
+              </DropdownMenuItem>
+            </>
           )}
         </div>
         <DropdownMenuSeparator className="mx-2" />
