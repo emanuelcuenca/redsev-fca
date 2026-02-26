@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useEffect, useMemo } from "react";
@@ -299,7 +300,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </section>
           )}
 
-          {/* SECCIÓN 3: HISTORIAL DEL EXPEDIENTE (RESUMEN UNIFICADO) */}
+          {/* SECCIÓN 3: RESUMEN DEL EXPEDIENTE (SOLO ASOCIADOS) */}
           {documentData.projectCode && (
             <section className="mt-12 space-y-8">
               <div className="flex items-center gap-3 border-b-2 border-primary/10 pb-4">
@@ -312,7 +313,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               
               <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Título unificado del proyecto al inicio */}
+                  {/* Título unificado del proyecto al inicio - VISIBLE UNA SOLA VEZ */}
                   <div className="bg-primary/5 p-8 md:p-12 border-b">
                     <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Título del Proyecto</p>
                     <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary leading-tight">
@@ -322,7 +323,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
                   <div className="divide-y divide-muted">
                     {relatedDocs
-                      ?.filter(rel => rel.extensionDocType !== 'Proyecto de Extensión') // Excluir el proyecto maestro del listado
+                      ?.filter(rel => rel.extensionDocType !== 'Proyecto de Extensión') // Excluir el registro maestro del listado
                       .sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime())
                       .map((rel) => {
                         const isResolucion = rel.extensionDocType === 'Resolución de aprobación';
