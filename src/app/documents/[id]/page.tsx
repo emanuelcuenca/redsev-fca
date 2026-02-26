@@ -30,7 +30,8 @@ import {
   Lock,
   Clock,
   CheckCircle2,
-  Send
+  Send,
+  Files
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -64,7 +65,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const docRef = useMemoFirebase(() => (resolvedParams.id && user) ? doc(db, 'documents', resolvedParams.id) : null, [db, resolvedParams.id, user]);
   const { data: documentData, isLoading, error: docError } = useDoc<AgriculturalDocument>(docRef);
 
-  // Consulta de documentos relacionados
+  // Consulta de documentos relacionados (Expediente Unificado)
   const relatedDocsQuery = useMemoFirebase(() => {
     if (!documentData?.projectCode || !user) return null;
     return query(collection(db, 'documents'), where('projectCode', '==', documentData.projectCode));
@@ -173,6 +174,22 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
         </header>
 
         <main className="p-4 md:p-8 max-w-5xl mx-auto w-full pb-32">
+          {/* BANNER DE EXPEDIENTE UNIFICADO */}
+          {documentData.projectCode && (
+            <div className="mb-8 p-4 bg-primary text-white rounded-2xl flex items-center justify-between shadow-lg shadow-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg"><Files className="w-5 h-5" /></div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">Expediente Digital Unificado</p>
+                  <h2 className="text-lg font-headline font-bold uppercase tracking-tight">{documentData.projectCode}</h2>
+                </div>
+              </div>
+              <div className="hidden md:block text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{relatedDocs?.length || 0} Registros Vinculados</p>
+              </div>
+            </div>
+          )}
+
           {/* SECCIÓN 1: CABECERA Y ACCIONES */}
           <section className="bg-white p-6 md:p-10 rounded-[2.5rem] border border-muted shadow-sm mb-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b pb-6">
@@ -259,7 +276,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             <section className="space-y-8 mb-12">
               {objectiveContext && (
                 <div className="bg-white p-8 rounded-[2.5rem] border border-muted">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center gap-2"><Target className="w-4 h-4" /> Objetivo General</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center gap-2"><Target className="w-4 h-4" /> Objetivo General del Proyecto</h3>
                   <p className="text-sm font-medium text-muted-foreground leading-relaxed">{objectiveContext}</p>
                 </div>
               )}
@@ -275,21 +292,21 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               )}
               {documentData.description && !objectiveContext && (
                 <div className="bg-white p-8 rounded-[2.5rem] border border-muted">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center gap-2"><ScrollText className="w-4 h-4" /> Descripción / Resumen</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center gap-2"><ScrollText className="w-4 h-4" /> Descripción / Resumen del Registro</h3>
                   <p className="text-sm font-medium text-muted-foreground leading-relaxed">{documentData.description}</p>
                 </div>
               )}
             </section>
           )}
 
-          {/* SECCIÓN 3: HISTORIAL Y VINCULACIONES (AL FINAL) */}
+          {/* SECCIÓN 3: HISTORIAL Y VINCULACIONES (EXPEDIENTE UNIFICADO) */}
           {documentData.projectCode && (
             <section className="mt-12 space-y-8">
               <div className="flex items-center gap-3 border-b-2 border-primary/10 pb-4">
                 <div className="bg-primary/10 p-2.5 rounded-xl"><History className="w-6 h-6 text-primary" /></div>
                 <div>
-                  <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Historial y Vinculaciones del Proyecto</h3>
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Seguimiento cronológico del expediente {documentData.projectCode}</p>
+                  <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Historial del Expediente</h3>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Toda la información del proyecto {documentData.projectCode} en una sola fuente</p>
                 </div>
               </div>
               
@@ -320,7 +337,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                             </Badge>
                             {rel.id === documentData.id && (
                               <Badge className="bg-primary text-white text-[9px] font-black uppercase px-2 shadow-sm">
-                                <CheckCircle2 className="w-3 h-3 mr-1" /> Documento Actual
+                                <CheckCircle2 className="w-3 h-3 mr-1" /> Registro Actual
                               </Badge>
                             )}
                           </div>
@@ -389,7 +406,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       
                       {rel.description && (
                         <div className="pt-6 border-t border-dashed border-muted">
-                          <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest mb-3 flex items-center gap-1.5"><ScrollText className="w-3 h-3" /> Resumen del Registro</p>
+                          <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest mb-3 flex items-center gap-1.5"><ScrollText className="w-3 h-3" /> Información de este Registro</p>
                           <p className="text-sm text-muted-foreground leading-relaxed italic">"{rel.description}"</p>
                         </div>
                       )}
@@ -398,7 +415,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div className="pt-6 flex justify-end">
                           <Button asChild variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-primary/5 px-6">
                             <Link href={`/documents/${rel.id}`}>
-                              Acceder a este registro completo <ChevronRight className="ml-2 w-4 h-4" />
+                              Acceder al detalle de este registro <ChevronRight className="ml-2 w-4 h-4" />
                             </Link>
                           </Button>
                         </div>
