@@ -5,14 +5,10 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, 
-  ShieldCheck,
   Handshake,
   ArrowLeftRight,
   UploadCloud,
   Users,
-  ScrollText,
-  Plane,
-  GraduationCap,
   Contact,
   BellRing
 } from "lucide-react";
@@ -48,10 +44,6 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
-    { icon: Plane, label: "Movilidad Estudiantil", href: "/documents?category=movilidad-estudiantil" },
-    { icon: Plane, label: "Movilidad Docente", href: "/documents?category=movilidad-docente" },
-    { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
-    { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones-reglamentos" },
   ];
 
   const ADMIN_ITEMS = [

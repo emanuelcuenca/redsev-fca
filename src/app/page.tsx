@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -10,23 +9,17 @@ import {
   Calendar, 
   User, 
   ArrowRight,
-  Plus,
   LayoutDashboard,
   Handshake,
-  Sprout,
   BookOpen,
   Leaf,
   Loader2,
-  LogIn,
-  UserPlus,
   ShieldCheck,
   AlertTriangle,
   ArrowLeftRight,
   Fingerprint,
   Plane,
   GraduationCap,
-  TrendingUp,
-  BarChart3,
   Send,
   Mail
 } from "lucide-react";
@@ -44,7 +37,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, collection, query } from "firebase/firestore";
+import { doc, collection } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +78,15 @@ export default function Dashboard() {
   
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
+  // Filtrar solo registros principales para visibilidad de usuarios y autoridades
+  const visibleDocuments = useMemo(() => {
+    if (!allDocuments) return [];
+    return allDocuments.filter(d => 
+      d.type === 'Convenio' || 
+      (d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión')
+    );
+  }, [allDocuments]);
+
   const stats = useMemo(() => {
     if (!allDocuments) return null;
     return {
@@ -96,14 +98,13 @@ export default function Dashboard() {
   }, [allDocuments]);
 
   const recentDocuments = useMemo(() => {
-    if (!allDocuments) return [];
-    return [...allDocuments]
+    return [...visibleDocuments]
       .sort((a, b) => new Date(b.uploadDate || 0).getTime() - new Date(a.uploadDate || 0).getTime())
       .slice(0, 6);
-  }, [allDocuments]);
+  }, [visibleDocuments]);
 
   const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0]?.toUpperCase() || '');
-  const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
+  const isProfileIncomplete = userProfile && (!userProfile.academicRank && userProfile.claustro === 'Docente');
 
   if (!mounted || isUserLoading) {
     return (
@@ -147,7 +148,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h4 className="font-headline font-black uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
-                  <p className="text-xs text-muted-foreground font-medium">Por favor, complete su cargo y dependencia para participar plenamente del sistema.</p>
+                  <p className="text-xs text-muted-foreground font-medium">Por favor, complete sus datos de cargo y dependencia en su perfil.</p>
                 </div>
               </div>
               <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl font-black uppercase tracking-widest text-[10px] px-6">
@@ -258,7 +259,7 @@ export default function Dashboard() {
           </section>
 
           <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
-            <h3 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight text-primary">Documentos Recientes</h3>
+            <h3 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight text-primary">Registros Recientes</h3>
             <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary">
               <Link href="/documents">Ver todos →</Link>
             </Button>
@@ -278,7 +279,7 @@ export default function Dashboard() {
               ) : (
                 <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
                   <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos cargados aún.</p>
+                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos principales cargados.</p>
                 </div>
               )
             )}
@@ -338,7 +339,7 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
       <CardHeader className="p-6 pb-2 flex-grow">
         <div className="flex items-center justify-between mb-3">
           <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">
-            {document.type}
+            {document.extensionDocType || document.type}
           </Badge>
           <div className="text-primary/40"><FileText className="w-5 h-5" /></div>
         </div>
@@ -353,7 +354,7 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
       <CardContent className="px-6 py-4 flex flex-col gap-4">
         <div className="flex items-center gap-3 text-sm text-muted-foreground font-bold">
           <User className="w-4 h-4 text-primary" />
-          <span className="truncate">{document.authors?.map(a => formatPersonName(a)).join(', ') || 'Responsable SEyV'}</span>
+          <span className="truncate">{document.authors && document.authors.length > 0 ? formatPersonName(document.authors[0]) : formatPersonName(document.director) || 'Responsable SEyV'}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {document.projectCode && (

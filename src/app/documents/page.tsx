@@ -13,10 +13,7 @@ import {
   Handshake,
   Loader2,
   ArrowLeftRight,
-  ScrollText,
-  GraduationCap,
   Trash2,
-  Plane,
   Fingerprint,
   Pencil
 } from "lucide-react";
@@ -85,27 +82,32 @@ export default function DocumentsListPage() {
 
   const filteredDocs = useMemo(() => {
     if (!rawDocs) return [];
+    
+    // FILTRADO ESTRICTO: Solo mostrar Proyectos de Extensión y Convenios
+    // Registros secundarios (resoluciones, informes) solo son visibles entrando al expediente.
     return rawDocs.filter(doc => {
+      // 1. Regla de visibilidad general: solo registros principales
+      const isPrincipal = (doc.type === 'Convenio') || (doc.type === 'Proyecto' && doc.extensionDocType === 'Proyecto de Extensión');
+      if (!isPrincipal) return false;
+
+      // 2. Filtro por categoría de sidebar
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type !== 'Proyecto') return false;
-      if (category === 'resoluciones-reglamentos' && !['Resolución', 'Reglamento'].includes(doc.type)) return false;
-      if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'movilidad-estudiantil' && doc.type !== 'Movilidad Estudiantil') return false;
-      if (category === 'movilidad-docente' && doc.type !== 'Movilidad Docente') return false;
 
+      // 3. Búsqueda por texto
       const searchableString = (
         (doc.title || "") + 
         (doc.projectCode || '') + 
         (doc.authors?.map(a => a.lastName).join(' ') || '') +
-        (doc.student?.lastName || '')
+        (doc.director?.lastName || '')
       ).toLowerCase();
       
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      if (category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'extension') {
-        const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
-        if (filterYear !== "all" && docYear !== filterYear) return false;
-      }
+      // 4. Filtros adicionales (Año / Vigencia)
+      const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
+      if (filterYear !== "all" && docYear !== filterYear) return false;
+      
       if (category === 'convenios' && filterVigente !== "all") {
         const isVig = isDocumentVigente(doc);
         if (isVig !== (filterVigente === "vigente")) return false;
@@ -116,8 +118,10 @@ export default function DocumentsListPage() {
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
-    deleteDocumentNonBlocking(doc(db, 'documents', docId));
-    toast({ title: "Documento eliminado" });
+    if (confirm("¿Está seguro de eliminar este registro principal? Esto no eliminará los documentos vinculados en el expediente.")) {
+      deleteDocumentNonBlocking(doc(db, 'documents', docId));
+      toast({ title: "Registro eliminado" });
+    }
   };
 
   const years = useMemo(() => {
@@ -129,12 +133,8 @@ export default function DocumentsListPage() {
   const getPageInfo = () => {
     switch(category) {
       case 'convenios': return { title: 'Convenios', icon: Handshake };
-      case 'extension': return { title: 'Extensión', icon: ArrowLeftRight };
-      case 'resoluciones-reglamentos': return { title: 'Resoluciones y Reglamentos', icon: ScrollText };
-      case 'pasantias': return { title: 'Prácticas y Pasantías', icon: GraduationCap };
-      case 'movilidad-estudiantil': return { title: 'Movilidad Estudiantil', icon: Plane };
-      case 'movilidad-docente': return { title: 'Movilidad Docente', icon: User };
-      default: return { title: 'Repositorio de Documentos', icon: FileText };
+      case 'extension': return { title: 'Gestión de Proyectos', icon: ArrowLeftRight };
+      default: return { title: 'Repositorio Institucional', icon: FileText };
     }
   };
 
@@ -170,46 +170,44 @@ export default function DocumentsListPage() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input 
-                placeholder="Buscar por título, código o responsable..." 
+                placeholder="Buscar por título, código o director..." 
                 className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
             </div>
-            {(category === 'convenios' || category === 'resoluciones-reglamentos' || category === 'extension') && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {category === 'convenios' && (
-                  <Select value={filterVigente} onValueChange={setFilterVigente}>
-                    <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="vigente">Vigente</SelectItem>
-                      <SelectItem value="vencido">Vencido</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-                <Select value={filterYear} onValueChange={setFilterYear}>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {category === 'convenios' && (
+                <Select value={filterVigente} onValueChange={setFilterVigente}>
                   <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
-                    <SelectValue placeholder="Año" />
+                    <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Cualquier Año</SelectItem>
-                    {years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="vigente">Vigente</SelectItem>
+                    <SelectItem value="vencido">Vencido</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground">Limpiar</Button>
-              </div>
-            )}
+              )}
+              <Select value={filterYear} onValueChange={setFilterYear}>
+                <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Cualquier Año</SelectItem>
+                  {years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground">Limpiar</Button>
+            </div>
           </div>
 
           <div className="bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Documento</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Detalles / Código</TableHead>
+                  <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Proyecto / Convenio</TableHead>
+                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Código / Nivel</TableHead>
                   <TableHead className="font-black text-[12px] uppercase tracking-widest">Fecha</TableHead>
                   <TableHead className="pr-12 text-right font-black text-[12px] uppercase tracking-widest">Acciones</TableHead>
                 </TableRow>
@@ -222,12 +220,12 @@ export default function DocumentsListPage() {
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
-                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : (doc.type === 'Movilidad Estudiantil' || doc.type === 'Movilidad Docente') ? <Plane className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <ArrowLeftRight className="w-6 h-6" />}
                         </div>
-                        <div>
-                          <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors">{doc.title}</p>
+                        <div className="max-w-md">
+                          <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">{doc.title}</p>
                           <p className="text-sm text-muted-foreground mt-1 font-bold flex items-center gap-2">
-                            <User className="w-4 h-4 text-primary/60" /> {doc.authors && doc.authors.length > 0 ? formatPersonName(doc.authors[0]) + (doc.authors.length > 1 ? ` +${doc.authors.length - 1}` : '') : 'Responsable SEyV'}
+                            <User className="w-4 h-4 text-primary/60" /> {formatPersonName(doc.director) || (doc.authors && doc.authors.length > 0 ? formatPersonName(doc.authors[0]) : 'Responsable SEyV')}
                           </p>
                         </div>
                       </div>
@@ -257,7 +255,7 @@ export default function DocumentsListPage() {
                   </TableRow>
                 ))}
                 {!isLoading && filteredDocs.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros en esta categoría</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros principales en esta categoría</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
