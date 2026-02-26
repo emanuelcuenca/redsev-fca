@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -22,7 +22,9 @@ import {
   GraduationCap,
   Send,
   Mail,
-  ScrollText
+  ScrollText,
+  FileUp,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -37,16 +39,43 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
 import { UserMenu } from "@/components/layout/user-menu";
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, addDocumentNonBlocking } from "@/firebase";
 import { doc, collection } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+
+  // Estados para formularios de contacto/propuesta
+  const [isProposalOpen, setIsProposalOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+    fileName: "",
+    fileDataUri: ""
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -58,38 +87,40 @@ export default function Dashboard() {
     }
   }, [user, isUserLoading, mounted, router]);
 
-  const adminRef = useMemoFirebase(() => 
-    user ? doc(db, 'roles_admin', user.uid) : null, 
-    [db, user]
-  );
-  
-  const { data: adminDoc } = useDoc(adminRef);
-  const isAdmin = !!adminDoc;
-
   const userProfileRef = useMemoFirebase(() => 
     user ? doc(db, 'users', user.uid) : null, 
     [db, user]
   );
   const { data: userProfile } = useDoc(userProfileRef);
 
+  useEffect(() => {
+    if (userProfile) {
+      setContactForm(prev => ({
+        ...prev,
+        name: userProfile.name || "",
+        email: userProfile.email || ""
+      }));
+    }
+  }, [userProfile]);
+
+  const adminRef = useMemoFirebase(() => 
+    user ? doc(db, 'roles_admin', user.uid) : null, 
+    [db, user]
+  );
+  const { data: adminDoc } = useDoc(adminRef);
+  const isAdmin = !!adminDoc;
+
   const allDocsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return collection(db, 'documents');
   }, [db, user]);
-  
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
   const visibleDocuments = useMemo(() => {
     if (!allDocuments) return [];
-    
-    // Si es administrador, ve todo directamente
     if (isAdmin) return allDocuments;
-
-    // Para otros usuarios, aplicar filtro jerárquico de extensión
     return allDocuments.filter(doc => {
-      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
-        return false;
-      }
+      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') return false;
       return true;
     });
   }, [allDocuments, isAdmin]);
@@ -110,6 +141,56 @@ export default function Dashboard() {
       .slice(0, 6);
   }, [visibleDocuments]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setContactForm(prev => ({
+          ...prev,
+          fileName: file.name,
+          fileDataUri: reader.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSendRequest = async (type: 'proposal' | 'contact') => {
+    if (!contactForm.message.trim()) {
+      toast({ variant: "destructive", title: "Mensaje requerido" });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      await addDocumentNonBlocking(collection(db, 'contact_requests'), {
+        userId: user?.uid || 'anonymous',
+        type,
+        name: contactForm.name,
+        email: contactForm.email,
+        message: contactForm.message,
+        fileName: contactForm.fileName,
+        fileDataUri: contactForm.fileDataUri,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+
+      toast({ 
+        title: "Solicitud enviada", 
+        description: "Su mensaje ha sido enviado a la Secretaría exitosamente." 
+      });
+      
+      setContactForm(prev => ({ ...prev, message: "", fileName: "", fileDataUri: "" }));
+      setIsProposalOpen(false);
+      setIsContactOpen(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error al enviar" });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0]?.toUpperCase() || '');
   const isProfileIncomplete = userProfile && (!userProfile.academicRank && userProfile.claustro === 'Docente');
 
@@ -128,162 +209,77 @@ export default function Dashboard() {
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <SidebarTrigger />
-          </div>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
-                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
-              </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
-                FCA - UNCA
-              </span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">FCA - UNCA</span>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-             <UserMenu />
-          </div>
+          <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-24">
           {user && isProfileIncomplete && (
             <div className="mb-8 p-4 bg-accent/10 border-2 border-accent/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-3">
-                <div className="bg-accent p-2 rounded-xl">
-                  <AlertTriangle className="w-5 h-5 text-accent-foreground" />
-                </div>
+                <div className="bg-accent p-2 rounded-xl"><AlertTriangle className="w-5 h-5 text-accent-foreground" /></div>
                 <div>
                   <h4 className="font-headline font-black uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
                   <p className="text-xs text-muted-foreground font-medium">Por favor, complete sus datos de cargo y dependencia en su perfil.</p>
                 </div>
               </div>
-              <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl font-black uppercase tracking-widest text-[10px] px-6">
-                <Link href="/profile">Completar ahora</Link>
-              </Button>
+              <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl font-black uppercase tracking-widest text-[10px] px-6"><Link href="/profile">Completar ahora</Link></Button>
             </div>
           )}
 
           <div className="mb-8 md:mb-12">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <div className="bg-primary/10 p-2.5 rounded-xl">
-                <LayoutDashboard className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-xl md:text-2xl font-headline font-bold tracking-tight uppercase">
-                BIENVENIDO{formattedName ? `, ${formattedName}` : ''}
-              </h2>
+              <div className="bg-primary/10 p-2.5 rounded-xl"><LayoutDashboard className="w-6 h-6 text-primary" /></div>
+              <h2 className="text-xl md:text-2xl font-headline font-bold tracking-tight uppercase">BIENVENIDO{formattedName ? `, ${formattedName}` : ''}</h2>
               {isAdmin && (
                 <Badge className="bg-primary/20 text-primary border-primary/30 font-black text-[9px] uppercase tracking-widest px-3 py-1 animate-pulse">
                   <ShieldCheck className="w-3 h-3 mr-1.5" /> Modo Administrador
                 </Badge>
               )}
             </div>
-            <p className="text-muted-foreground text-sm md:text-base font-bold max-w-4xl leading-relaxed uppercase tracking-tight">
-              Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.
-            </p>
+            <p className="text-muted-foreground text-sm md:text-base font-bold max-w-4xl leading-relaxed uppercase tracking-tight">Repositorio Digital de la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias de la UNCA.</p>
           </div>
 
           <section className="mb-12 md:mb-20">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard 
-                label="Convenios Vigentes" 
-                value={stats?.conveniosVigentes || 0} 
-                icon={Handshake} 
-                color="text-primary"
-              />
-              <StatCard 
-                label="Proyectos Extensión" 
-                value={stats?.proyectosExtension || 0} 
-                icon={ArrowLeftRight} 
-                color="text-primary"
-              />
-              <StatCard 
-                label="Movilidades" 
-                value={stats?.totalMovilidades || 0} 
-                icon={Plane} 
-                color="text-primary"
-              />
-              <StatCard 
-                label="Prácticas/Pasantías" 
-                value={stats?.pasantias || 0} 
-                icon={GraduationCap} 
-                color="text-primary"
-              />
+              <StatCard label="Convenios Vigentes" value={stats?.conveniosVigentes || 0} icon={Handshake} color="text-primary" />
+              <StatCard label="Proyectos Extensión" value={stats?.proyectosExtension || 0} icon={ArrowLeftRight} color="text-primary" />
+              <StatCard label="Movilidades" value={stats?.totalMovilidades || 0} icon={Plane} color="text-primary" />
+              <StatCard label="Prácticas/Pasantías" value={stats?.pasantias || 0} icon={GraduationCap} color="text-primary" />
             </div>
           </section>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight text-center md:text-left">
-                Estrategias para el Desarrollo Sustentable
-              </h2>
-              <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight text-center md:text-left">
-                La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.
-              </p>
-              
+              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight text-center md:text-left">Estrategias para el Desarrollo Sustentable</h2>
+              <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight text-center md:text-left">La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                <div className="flex gap-4">
-                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
-                    <ArrowLeftRight className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Interacción dialéctica entre la Universidad y los demás componentes del cuerpo social.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
-                    <Handshake className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Vinculación</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad y el medio socio-productivo.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
-                    <BookOpen className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Formación</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Capacitación continua para profesionales y técnicos.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit">
-                    <Leaf className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Sustentabilidad</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p>
-                  </div>
-                </div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><ArrowLeftRight className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3><p className="text-sm text-muted-foreground leading-relaxed">Interacción dialéctica entre la Universidad y los demás componentes del cuerpo social.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Handshake className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Vinculación</h3><p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad y el medio socio-productivo.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><BookOpen className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Formación</h3><p className="text-sm text-muted-foreground leading-relaxed">Capacitación continua para profesionales y técnicos.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Leaf className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Sustentabilidad</h3><p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p></div></div>
               </div>
             </div>
           </section>
 
           <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
             <h3 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight text-primary">Registros Recientes</h3>
-            <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary">
-              <Link href="/documents">Ver todos →</Link>
-            </Button>
+            <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary"><Link href="/documents">Ver todos →</Link></Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-24">
             {isDocsLoading ? (
               <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
-                <Loader2 className="w-10 h-10 animate-spin mb-4" />
-                <p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
+                <Loader2 className="w-10 h-10 animate-spin mb-4" /><p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
               </div>
             ) : (
-              recentDocuments.length > 0 ? (
-                recentDocuments.map((doc) => (
-                  <DocumentCard key={doc.id} document={doc} isMounted={mounted} />
-                ))
-              ) : (
+              recentDocuments.length > 0 ? recentDocuments.map((doc) => <DocumentCard key={doc.id} document={doc} isMounted={mounted} />) : (
                 <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
                   <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
                   <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay registros cargados.</p>
@@ -295,29 +291,97 @@ export default function Dashboard() {
           <section className="bg-primary text-primary-foreground p-8 md:p-16 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group mb-16 md:mb-24">
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
-            
             <div className="relative z-10 max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-6 leading-tight">
-                Impulsemos juntos el desarrollo regional
-              </h2>
-              <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">
-                ¿Tienes una idea de proyecto o buscas una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto positivo en nuestra comunidad.
-              </p>
+              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-6 leading-tight">Impulsemos juntos el desarrollo regional</h2>
+              <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">¿Tienes una idea de proyecto o buscas una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto positivo en nuestra comunidad.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
-                  <Send className="w-4 h-4 mr-2" /> Enviar Propuesta
-                </Button>
-                <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
-                  <Mail className="w-4 h-4 mr-2" /> Contactar a la Secretaría
-                </Button>
+                {/* DIÁLOGO ENVIAR PROPUESTA */}
+                <Dialog open={isProposalOpen} onOpenChange={setIsProposalOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+                      <Send className="w-4 h-4 mr-2" /> Enviar Propuesta
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="rounded-3xl sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle className="font-headline font-bold uppercase text-primary">Nueva Propuesta Institucional</DialogTitle>
+                      <DialogDescription className="text-xs uppercase font-bold tracking-tight">Presente su iniciativa a la Secretaría de Extensión y Vinculación.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Nombre y Apellido</Label>
+                        <Input value={contactForm.name} onChange={(e) => setContactForm({...contactForm, name: e.target.value})} className="h-12 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Correo Electrónico</Label>
+                        <Input type="email" value={contactForm.email} onChange={(e) => setContactForm({...contactForm, email: e.target.value})} className="h-12 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Mensaje / Resumen de la Idea</Label>
+                        <Textarea placeholder="Describa brevemente su propuesta..." className="min-h-[120px] rounded-xl" value={contactForm.message} onChange={(e) => setContactForm({...contactForm, message: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Archivo Adjunto (Opcional)</Label>
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-muted rounded-xl p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                          <FileUp className="w-5 h-5 text-primary/60" />
+                          <span className="text-xs font-bold text-muted-foreground truncate max-w-[200px]">
+                            {contactForm.fileName || "Seleccionar PDF o Imagen"}
+                          </span>
+                          <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleFileChange} />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={() => handleSendRequest('proposal')} disabled={isSending} className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px]">
+                        {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Propuesta a la Secretaría"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* DIÁLOGO CONTACTAR SECRETARÍA */}
+                <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+                      <Mail className="w-4 h-4 mr-2" /> Contactar a la Secretaría
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="rounded-3xl sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle className="font-headline font-bold uppercase text-primary">Consulta Directa</DialogTitle>
+                      <DialogDescription className="text-xs uppercase font-bold tracking-tight">Envíe su consulta administrativa o técnica.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Nombre y Apellido</Label>
+                        <Input value={contactForm.name} onChange={(e) => setContactForm({...contactForm, name: e.target.value})} className="h-12 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Correo Electrónico</Label>
+                        <Input type="email" value={contactForm.email} onChange={(e) => setContactForm({...contactForm, email: e.target.value})} className="h-12 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Mensaje</Label>
+                        <Textarea placeholder="Escriba su consulta aquí..." className="min-h-[150px] rounded-xl" value={contactForm.message} onChange={(e) => setContactForm({...contactForm, message: e.target.value})} />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={() => handleSendRequest('contact')} disabled={isSending} className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px]">
+                        {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Mensaje"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </section>
 
           <footer className="text-center pt-8 border-t border-muted-foreground/10">
             <p className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest leading-relaxed max-w-2xl mx-auto opacity-70">
-              © 2026 Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias. <br />
-              Universidad Nacional de Catamarca. Todos los derechos reservados.
+              © 2026 Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias. <br /> Universidad Nacional de Catamarca. Todos los derechos reservados.
             </p>
           </footer>
         </main>
@@ -329,9 +393,7 @@ export default function Dashboard() {
 function StatCard({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
     <div className="flex flex-col items-center text-center p-4 transition-transform hover:scale-105 duration-300">
-      <div className={cn("mb-3", color)}>
-        <Icon className="w-12 h-12" />
-      </div>
+      <div className={cn("mb-3", color)}><Icon className="w-12 h-12" /></div>
       <div className="text-4xl font-black font-headline tracking-tighter leading-none mb-1 text-primary">{value}</div>
       <div className="text-[10px] font-bold uppercase tracking-widest leading-tight text-muted-foreground max-w-[120px]">{label}</div>
     </div>
@@ -340,47 +402,26 @@ function StatCard({ label, value, icon: Icon, color }: { label: string, value: n
 
 function DocumentCard({ document, isMounted }: { document: AgriculturalDocument, isMounted: boolean }) {
   const displayDate = document.date || document.uploadDate;
-  
   return (
     <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl border-2 border-muted/20 hover:border-primary/5">
       <CardHeader className="p-6 pb-2 flex-grow">
         <div className="flex items-center justify-between mb-3">
-          <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">
-            {document.extensionDocType || document.type}
-          </Badge>
-          <div className="text-primary/40">
-            {document.type === 'Resolución' ? <ScrollText className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-          </div>
+          <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">{document.extensionDocType || document.type}</Badge>
+          <div className="text-primary/40">{document.type === 'Resolución' ? <ScrollText className="w-5 h-5" /> : <FileText className="w-5 h-5" />}</div>
         </div>
-        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
-          {document.title}
-        </CardTitle>
+        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{document.title}</CardTitle>
         <CardDescription className="flex items-center gap-2 mt-3 font-black text-[10px] md:text-xs uppercase tracking-widest text-primary/70">
-          <Calendar className="w-4 h-4" /> 
-          {isMounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : '...'}
+          <Calendar className="w-4 h-4" /> {isMounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : '...'}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-6 py-4 flex flex-col gap-4">
         <div className="flex items-center gap-3 text-sm text-muted-foreground font-bold">
-          <User className="w-4 h-4 text-primary" />
-          <span className="truncate">{document.authors && document.authors.length > 0 ? formatPersonName(document.authors[0]) : formatPersonName(document.director) || 'Responsable SEyV'}</span>
+          <User className="w-4 h-4 text-primary" /><span className="truncate">{document.authors && document.authors.length > 0 ? formatPersonName(document.authors[0]) : formatPersonName(document.director) || 'Responsable SEyV'}</span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {document.projectCode && (
-            <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-primary/20 text-primary bg-primary/5">
-              <Fingerprint className="w-3 h-3 mr-1" /> {document.projectCode}
-            </Badge>
-          )}
-        </div>
+        <div className="flex flex-wrap gap-1.5">{document.projectCode && <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-primary/20 text-primary bg-primary/5"><Fingerprint className="w-3 h-3 mr-1" /> {document.projectCode}</Badge>}</div>
       </CardContent>
       <CardFooter className="p-6 mt-auto border-t border-dashed">
-        <Link 
-          href={`/documents/${document.id}`} 
-          className="flex items-center gap-2 w-full justify-between text-primary hover:text-primary/80 font-black text-sm md:text-base transition-colors group/link"
-        >
-          ACCEDER AL REGISTRO 
-          <ArrowRight className="w-5 h-5 group-hover/link:translate-x-2 transition-transform" />
-        </Link>
+        <Link href={`/documents/${document.id}`} className="flex items-center gap-2 w-full justify-between text-primary hover:text-primary/80 font-black text-sm md:text-base transition-colors group/link">ACCEDER AL REGISTRO <ArrowRight className="w-5 h-5 group-hover/link:translate-x-2 transition-transform" /></Link>
       </CardFooter>
     </Card>
   );
