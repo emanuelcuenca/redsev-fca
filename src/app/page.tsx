@@ -284,22 +284,22 @@ export default function Dashboard() {
             )}
           </div>
 
-          <section className="bg-primary text-primary-foreground p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group">
+          <section className="bg-primary text-primary-foreground p-8 md:p-16 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group">
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="relative z-10 max-w-2xl">
-              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-4 leading-tight">
+            <div className="relative z-10 max-w-3xl mx-auto text-center">
+              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-6 leading-tight">
                 Impulsemos juntos el desarrollo regional
               </h2>
-              <p className="text-sm md:text-lg font-medium opacity-90 mb-8 leading-relaxed">
+              <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">
                 ¿Tienes una idea de proyecto o buscas una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto positivo en nuestra comunidad.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
                   <Send className="w-4 h-4 mr-2" /> Enviar Propuesta
                 </Button>
-                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all backdrop-blur-sm">
+                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
                   <Mail className="w-4 h-4 mr-2" /> Contactar a la Secretaría
                 </Button>
               </div>
