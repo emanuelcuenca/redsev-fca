@@ -87,10 +87,13 @@ export default function DocumentsListPage() {
     if (!rawDocs) return [];
     
     return rawDocs.filter(doc => {
-      // FILTRO JERÁRQUICO DE EXTENSIÓN: Solo mostrar "Proyecto de Extensión" en listas generales.
-      // Resoluciones e Informes son accesibles solo desde el detalle del proyecto.
-      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
-        return false;
+      // Si el usuario es administrador, no aplicamos el filtro jerárquico
+      if (!isAdmin) {
+        // FILTRO JERÁRQUICO DE EXTENSIÓN: Solo mostrar "Proyecto de Extensión" en listas generales.
+        // Resoluciones e Informes son accesibles solo desde el detalle del proyecto.
+        if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
+          return false;
+        }
       }
 
       // 1. Filtro por categoría de sidebar
@@ -122,7 +125,7 @@ export default function DocumentsListPage() {
       }
       return true;
     });
-  }, [rawDocs, searchQuery, category, filterVigente, filterYear]);
+  }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin]);
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
