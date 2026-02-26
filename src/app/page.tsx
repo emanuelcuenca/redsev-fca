@@ -26,7 +26,9 @@ import {
   Plane,
   GraduationCap,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Send,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -136,7 +138,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-24">
           {user && isProfileIncomplete && (
             <div className="mb-8 p-4 bg-accent/10 border-2 border-accent/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-3">
@@ -262,7 +264,7 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-24">
             {isDocsLoading ? (
               <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" />
@@ -281,6 +283,28 @@ export default function Dashboard() {
               )
             )}
           </div>
+
+          <section className="bg-primary text-primary-foreground p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 max-w-2xl">
+              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-4 leading-tight">
+                Impulsemos juntos el desarrollo regional
+              </h2>
+              <p className="text-sm md:text-lg font-medium opacity-90 mb-8 leading-relaxed">
+                ¿Tienes una idea de proyecto o buscas una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto positivo en nuestra comunidad.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+                  <Send className="w-4 h-4 mr-2" /> Enviar Propuesta
+                </Button>
+                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all backdrop-blur-sm">
+                  <Mail className="w-4 h-4 mr-2" /> Contactar a la Secretaría
+                </Button>
+              </div>
+            </div>
+          </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
