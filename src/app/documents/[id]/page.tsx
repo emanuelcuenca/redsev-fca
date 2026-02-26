@@ -306,78 +306,80 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="bg-primary/10 p-2.5 rounded-xl"><History className="w-6 h-6 text-primary" /></div>
                 <div>
                   <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Historial del Expediente</h3>
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Toda la información del proyecto {documentData.projectCode} en una sola fuente</p>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Gestión integral del código {documentData.projectCode}</p>
                 </div>
               </div>
               
-              <div className="space-y-6">
-                {relatedDocs?.sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime()).map((rel) => (
-                  <Card key={rel.id} className={cn(
-                    "rounded-[2.5rem] overflow-hidden border-none shadow-xl transition-all duration-300",
-                    rel.id === documentData.id ? "ring-2 ring-primary ring-offset-4 bg-primary/[0.02]" : "bg-white border border-muted hover:border-primary/20"
-                  )}>
-                    <div className={cn(
-                      "p-6 md:p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-6",
-                      rel.id === documentData.id ? "bg-primary/10 border-primary/10" : "bg-muted/20 border-muted"
-                    )}>
-                      <div className="flex items-center gap-5">
-                        <div className={cn(
-                          "p-4 rounded-2xl shadow-sm shrink-0", 
-                          rel.id === documentData.id ? "bg-primary text-white" : "bg-white text-primary"
-                        )}>
-                          {getDocIcon(rel.type)}
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <Badge variant="outline" className={cn(
-                              "text-[9px] font-black uppercase border-primary/30",
-                              rel.id === documentData.id ? "bg-primary/20 text-primary border-primary/40" : "text-primary"
-                            )}>
-                              {rel.extensionDocType || rel.type}
-                            </Badge>
-                            {rel.id === documentData.id && (
-                              <Badge className="bg-primary text-white text-[9px] font-black uppercase px-2 shadow-sm">
-                                <CheckCircle2 className="w-3 h-3 mr-1" /> Registro Actual
-                              </Badge>
-                            )}
+              <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
+                <div className="divide-y divide-muted">
+                  {relatedDocs?.sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime()).map((rel) => (
+                    <div 
+                      key={rel.id} 
+                      className={cn(
+                        "p-8 md:p-12 transition-all duration-300",
+                        rel.id === documentData.id ? "bg-primary/[0.03] ring-inset ring-1 ring-primary/10" : "hover:bg-muted/5"
+                      )}
+                    >
+                      {/* Cabecera del Item */}
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
+                        <div className="flex items-start gap-6">
+                          <div className={cn(
+                            "p-5 rounded-[1.5rem] shadow-sm shrink-0", 
+                            rel.id === documentData.id ? "bg-primary text-white" : "bg-muted text-primary"
+                          )}>
+                            {getDocIcon(rel.type)}
                           </div>
-                          <h4 className="font-headline font-bold text-lg md:text-xl leading-tight text-foreground">{rel.title}</h4>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className={cn(
+                                "text-[10px] font-black uppercase border-primary/30 text-primary px-3 py-1",
+                                rel.id === documentData.id && "bg-primary/10"
+                              )}>
+                                {rel.extensionDocType || rel.type}
+                              </Badge>
+                              {rel.id === documentData.id && (
+                                <Badge className="bg-primary text-white text-[10px] font-black uppercase px-3 py-1 shadow-sm">
+                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Registro Actual
+                                </Badge>
+                              )}
+                            </div>
+                            <h4 className="font-headline font-bold text-xl md:text-2xl leading-tight text-foreground">{rel.title}</h4>
+                          </div>
+                        </div>
+                        
+                        <div className="text-left md:text-right shrink-0 bg-white/80 p-5 rounded-[1.5rem] border border-muted shadow-sm">
+                          <div className="flex items-center md:justify-end gap-2 text-primary font-black text-[10px] uppercase tracking-widest mb-1.5">
+                            <Clock className="w-4 h-4" /> Fecha de Registro
+                          </div>
+                          <p className="text-sm font-black text-foreground">
+                            {new Date(rel.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          </p>
+                          <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">
+                            {new Date(rel.uploadDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} hs
+                          </p>
                         </div>
                       </div>
                       
-                      <div className="text-left md:text-right shrink-0 bg-white/50 md:bg-transparent p-4 md:p-0 rounded-2xl md:rounded-none">
-                        <div className="flex items-center md:justify-end gap-2 text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-1">
-                          <Clock className="w-3.5 h-3.5" /> Fecha de Registro
-                        </div>
-                        <p className="text-sm font-black text-foreground">
-                          {new Date(rel.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
-                        </p>
-                        <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">
-                          {new Date(rel.uploadDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} hs
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <CardContent className="p-6 md:p-10 space-y-8">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {/* Grid de Información Detallada */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-10 pl-2">
                         {rel.director && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Director</p>
-                            <p className="text-sm font-bold text-foreground">{formatPersonName(rel.director)}</p>
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><User className="w-3.5 h-3.5" /> Director Responsable</p>
+                            <p className="text-base font-bold text-foreground">{formatPersonName(rel.director)}</p>
                           </div>
                         )}
                         {rel.student && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Estudiante</p>
-                            <p className="text-sm font-bold text-foreground">{formatPersonName(rel.student)}</p>
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5" /> Estudiante Beneficiario</p>
+                            <p className="text-base font-bold text-foreground">{formatPersonName(rel.student)}</p>
                           </div>
                         )}
                         {rel.authors && rel.authors.length > 0 && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><Users className="w-3 h-3" /> Responsables</p>
-                            <div className="flex flex-wrap gap-1.5">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><Users className="w-3.5 h-3.5" /> Equipo Técnico / Responsables</p>
+                            <div className="flex flex-wrap gap-2">
                               {rel.authors.map((a, i) => (
-                                <Badge key={i} variant="secondary" className="text-[9px] font-bold px-2 py-0.5 bg-muted text-muted-foreground border-none">
+                                <Badge key={i} variant="secondary" className="text-[10px] font-bold px-3 py-1 bg-muted text-muted-foreground border-none rounded-lg">
                                   {formatPersonName(a)}
                                 </Badge>
                               ))}
@@ -385,45 +387,45 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           </div>
                         )}
                         {rel.resolutionNumber && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><Fingerprint className="w-3 h-3" /> Resolución</p>
-                            <p className="text-sm font-black text-primary">{rel.resolutionNumber}</p>
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><Fingerprint className="w-3.5 h-3.5" /> Número de Resolución</p>
+                            <p className="text-base font-black text-primary">{rel.resolutionNumber}</p>
                           </div>
                         )}
                         {rel.date && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><Calendar className="w-3 h-3" /> Fecha Doc.</p>
-                            <p className="text-sm font-bold text-foreground">{new Date(rel.date).toLocaleDateString('es-ES')}</p>
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> Fecha Documento</p>
+                            <p className="text-base font-bold text-foreground">{new Date(rel.date).toLocaleDateString('es-ES')}</p>
                           </div>
                         )}
                         {rel.mobilityInstitution && (
-                          <div className="space-y-1.5">
-                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest flex items-center gap-1.5"><Building2 className="w-3 h-3" /> Institución</p>
-                            <p className="text-sm font-bold text-foreground">{rel.mobilityInstitution}</p>
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.15em] flex items-center gap-2"><Building2 className="w-3.5 h-3.5" /> Institución de Destino</p>
+                            <p className="text-base font-bold text-foreground">{rel.mobilityInstitution}</p>
                           </div>
                         )}
                       </div>
                       
+                      {/* Descripción del Registro */}
                       {rel.description && (
-                        <div className="pt-6 border-t border-dashed border-muted">
-                          <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest mb-3 flex items-center gap-1.5"><ScrollText className="w-3 h-3" /> Información de este Registro</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed italic">"{rel.description}"</p>
+                        <div className="bg-primary/5 p-6 rounded-[1.5rem] border border-primary/10 mb-8 italic text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2 flex items-center gap-2"><ScrollText className="w-3.5 h-3.5" /> Información / Resumen de este paso</p>
+                          "{rel.description}"
                         </div>
                       )}
                       
-                      {rel.id !== documentData.id && (
-                        <div className="pt-6 flex justify-end">
-                          <Button asChild variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-primary/5 px-6">
-                            <Link href={`/documents/${rel.id}`}>
-                              Acceder al detalle de este registro <ChevronRight className="ml-2 w-4 h-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      {/* Acciones */}
+                      <div className="flex justify-end pt-4 border-t border-dashed border-muted">
+                        <Button asChild variant={rel.id === documentData.id ? "secondary" : "outline"} className="rounded-xl h-11 px-8 font-black uppercase text-[10px] tracking-widest shadow-sm">
+                          <Link href={`/documents/${rel.id}`}>
+                            {rel.id === documentData.id ? "Viendo este registro" : <span className="flex items-center gap-2">Acceder al Registro Completo <ChevronRight className="w-4 h-4" /></span>}
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </section>
           )}
         </main>
