@@ -10,7 +10,9 @@ import {
   UserPlus, 
   Pencil,
   Mail,
-  UserCheck
+  UserCheck,
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -117,16 +119,20 @@ export default function StaffAdminPage() {
   );
   const { data: staffList, isLoading: isStaffLoading } = useCollection<StaffMember>(staffQuery);
 
-  // Suscripción a Usuarios Registrados para vinculación por email
+  // Suscripción a Usuarios Registrados para vinculación por email y obtención de CV
   const usersQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? collection(db, 'users') : null,
     [db, user, currentAdminDoc]
   );
   const { data: registeredUsers } = useCollection(usersQuery);
 
-  // Crear un set de emails registrados para búsqueda rápida
-  const registeredEmails = useMemo(() => {
-    return new Set(registeredUsers?.map(u => u.email?.toLowerCase()) || []);
+  // Crear un mapa de emails registrados a datos de usuario para búsqueda rápida
+  const userMap = useMemo(() => {
+    const map = new Map<string, any>();
+    registeredUsers?.forEach(u => {
+      if (u.email) map.set(u.email.toLowerCase(), u);
+    });
+    return map;
   }, [registeredUsers]);
 
   const filteredStaff = staffList?.filter(s => 
@@ -369,7 +375,9 @@ export default function StaffAdminPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredStaff.map((person) => {
-                        const isUserLinked = person.email && registeredEmails.has(person.email.toLowerCase());
+                        const linkedUser = person.email ? userMap.get(person.email.toLowerCase()) : null;
+                        const isUserLinked = !!linkedUser;
+                        const hasCV = linkedUser?.cvUrl;
                         
                         return (
                           <TableRow key={person.id} className="group hover:bg-primary/[0.02] transition-colors">
@@ -408,6 +416,11 @@ export default function StaffAdminPage() {
                             </TableCell>
                             <TableCell className="pr-8 text-right">
                               <div className="flex justify-end gap-2">
+                                {hasCV && (
+                                  <Button variant="ghost" size="icon" className="rounded-xl text-amber-600 hover:bg-amber-50" asChild title="Ver CV del Extensionista">
+                                    <a href={linkedUser.cvUrl} target="_blank" rel="noopener noreferrer"><FileText className="w-4 h-4" /></a>
+                                  </Button>
+                                )}
                                 <Button variant="ghost" size="icon" className="rounded-xl text-primary hover:bg-primary/10" onClick={() => handleEdit(person)}>
                                   <Pencil className="w-4 h-4" />
                                 </Button>
