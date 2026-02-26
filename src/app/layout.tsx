@@ -1,7 +1,10 @@
+
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'REDSEV FCA - Secretaría de Extensión y Vinculación',
@@ -41,7 +44,23 @@ export default function RootLayout({
         <FirebaseClientProvider>
           {children}
           <Toaster />
+          <PwaInstallPrompt />
         </FirebaseClientProvider>
+        
+        {/* Registro del Service Worker para soporte PWA */}
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                  console.log('SW registered');
+                }, function(err) {
+                  console.log('SW registration failed: ', err);
+                });
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   );
