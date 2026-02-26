@@ -4,20 +4,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Loader2, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowRight, UserPlus, AlertCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut, sendEmailVerification, User } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [unverifiedUser, setUnverifiedUser] = useState<User | null>(null);
   const router = useRouter();
   const auth = useAuth();
 
@@ -25,14 +27,15 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
+    setUnverifiedUser(null);
     
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       
       // Verificar si el correo está validado
       if (!userCredential.user.emailVerified) {
-        setLoginError("Su correo electrónico aún no ha sido verificado. Por favor, confirme su cuenta desde el enlace enviado a su casilla institucional.");
-        await signOut(auth); // Desconectar sesión si no está verificado
+        setLoginError("Su correo institucional aún no ha sido verificado.");
+        setUnverifiedUser(userCredential.user);
         setLoading(false);
         return;
       }
@@ -48,6 +51,32 @@ export default function LoginPage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedUser) return;
+    
+    setResending(true);
+    try {
+      auth.languageCode = 'es';
+      await sendEmailVerification(unverifiedUser);
+      toast({
+        title: "Enlace enviado",
+        description: "Se ha reenviado el correo de confirmación a su casilla.",
+      });
+      // Después de enviar, cerramos la sesión para limpiar el estado
+      await signOut(auth);
+      setUnverifiedUser(null);
+      setLoginError("Nuevo enlace enviado. Por favor, revise su casilla (incluyendo Spam).");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error al enviar",
+        description: "No se pudo reenviar el correo. Intente más tarde.",
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -60,8 +89,8 @@ export default function LoginPage() {
           <Link href="/" className="bg-primary w-20 h-20 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-sm md:text-base font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-sm md:text-base font-headline text-black uppercase tracking-tighter text-center mt-1">
+          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal text-center mt-1">
             FCA - UNCA
           </p>
         </div>
@@ -92,7 +121,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
+                  <Label htmlFor="password" title="Contraseña" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
@@ -107,11 +136,29 @@ export default function LoginPage() {
                   />
                 </div>
                 {loginError && (
-                  <div className="flex items-start gap-2 mt-3 animate-in fade-in slide-in-from-top-1 px-1 bg-destructive/5 p-3 rounded-xl border border-destructive/10">
-                    <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                    <p className="text-[11px] font-bold text-destructive leading-tight">
-                      {loginError}
-                    </p>
+                  <div className="flex flex-col gap-3 mt-3 animate-in fade-in slide-in-from-top-1 px-1 bg-destructive/5 p-4 rounded-2xl border border-destructive/10">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                      <p className="text-[11px] font-bold text-destructive leading-tight">
+                        {loginError}
+                      </p>
+                    </div>
+                    {unverifiedUser && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full rounded-xl h-10 text-[9px] font-black uppercase border-destructive/20 text-destructive hover:bg-destructive/10"
+                        onClick={handleResendVerification}
+                        disabled={resending}
+                      >
+                        {resending ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <><Send className="w-3.5 h-3.5 mr-2" /> Reenviar enlace de confirmación</>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
