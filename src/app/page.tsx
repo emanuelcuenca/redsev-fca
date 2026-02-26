@@ -81,7 +81,14 @@ export default function Dashboard() {
 
   const visibleDocuments = useMemo(() => {
     if (!allDocuments) return [];
-    return allDocuments;
+    // Solo mostrar Proyectos de Extensión y Convenios (y otros tipos), 
+    // pero filtrar sub-registros de extensión (informes, resoluciones) del acceso directo.
+    return allDocuments.filter(doc => {
+      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
+        return false;
+      }
+      return true;
+    });
   }, [allDocuments]);
 
   const stats = useMemo(() => {

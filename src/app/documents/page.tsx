@@ -87,9 +87,15 @@ export default function DocumentsListPage() {
     if (!rawDocs) return [];
     
     return rawDocs.filter(doc => {
+      // FILTRO JERÁRQUICO DE EXTENSIÓN: Solo mostrar "Proyecto de Extensión" en listas generales.
+      // Resoluciones e Informes son accesibles solo desde el detalle del proyecto.
+      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
+        return false;
+      }
+
       // 1. Filtro por categoría de sidebar
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
-      if (category === 'extension' && doc.type !== 'Proyecto' && doc.type !== 'Resolución') return false;
+      if (category === 'extension' && doc.type !== 'Proyecto') return false;
       if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
