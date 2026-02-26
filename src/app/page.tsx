@@ -116,15 +116,6 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
-  const visibleDocuments = useMemo(() => {
-    if (!allDocuments) return [];
-    if (isAdmin) return allDocuments;
-    return allDocuments.filter(doc => {
-      if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') return false;
-      return true;
-    });
-  }, [allDocuments, isAdmin]);
-
   const stats = useMemo(() => {
     if (!allDocuments) return null;
     return {
@@ -134,12 +125,6 @@ export default function Dashboard() {
       pasantias: allDocuments.filter(d => d.type === 'Pasantía').length,
     };
   }, [allDocuments]);
-
-  const recentDocuments = useMemo(() => {
-    return [...visibleDocuments]
-      .sort((a, b) => new Date(b.uploadDate || 0).getTime() - new Date(a.uploadDate || 0).getTime())
-      .slice(0, 6);
-  }, [visibleDocuments]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -268,26 +253,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <div className="flex items-center justify-between mb-6 md:mb-8 border-b pb-4">
-            <h3 className="text-lg md:text-xl font-headline font-bold uppercase tracking-tight text-primary">Registros Recientes</h3>
-            <Button asChild variant="ghost" className="font-bold text-xs uppercase tracking-widest hover:text-primary"><Link href="/documents">Ver todos →</Link></Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-24">
-            {isDocsLoading ? (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
-                <Loader2 className="w-10 h-10 animate-spin mb-4" /><p className="font-bold uppercase tracking-widest text-xs">Cargando repositorio...</p>
-              </div>
-            ) : (
-              recentDocuments.length > 0 ? recentDocuments.map((doc) => <DocumentCard key={doc.id} document={doc} isMounted={mounted} />) : (
-                <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
-                  <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay registros cargados.</p>
-                </div>
-              )
-            )}
-          </div>
-
           <section className="bg-primary text-primary-foreground p-8 md:p-16 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group mb-16 md:mb-24">
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
@@ -397,32 +362,5 @@ function StatCard({ label, value, icon: Icon, color }: { label: string, value: n
       <div className="text-4xl font-black font-headline tracking-tighter leading-none mb-1 text-primary">{value}</div>
       <div className="text-[10px] font-bold uppercase tracking-widest leading-tight text-muted-foreground max-w-[120px]">{label}</div>
     </div>
-  );
-}
-
-function DocumentCard({ document, isMounted }: { document: AgriculturalDocument, isMounted: boolean }) {
-  const displayDate = document.date || document.uploadDate;
-  return (
-    <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 flex flex-col h-full bg-card rounded-3xl border-2 border-muted/20 hover:border-primary/5">
-      <CardHeader className="p-6 pb-2 flex-grow">
-        <div className="flex items-center justify-between mb-3">
-          <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">{document.extensionDocType || document.type}</Badge>
-          <div className="text-primary/40">{document.type === 'Resolución' ? <ScrollText className="w-5 h-5" /> : <FileText className="w-5 h-5" />}</div>
-        </div>
-        <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{document.title}</CardTitle>
-        <CardDescription className="flex items-center gap-2 mt-3 font-black text-[10px] md:text-xs uppercase tracking-widest text-primary/70">
-          <Calendar className="w-4 h-4" /> {isMounted && displayDate ? new Date(displayDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : '...'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-6 py-4 flex flex-col gap-4">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground font-bold">
-          <User className="w-4 h-4 text-primary" /><span className="truncate">{document.authors && document.authors.length > 0 ? formatPersonName(document.authors[0]) : formatPersonName(document.director) || 'Responsable SEyV'}</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5">{document.projectCode && <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] py-0.5 font-bold border-primary/20 text-primary bg-primary/5"><Fingerprint className="w-3 h-3 mr-1" /> {document.projectCode}</Badge>}</div>
-      </CardContent>
-      <CardFooter className="p-6 mt-auto border-t border-dashed">
-        <Link href={`/documents/${document.id}`} className="flex items-center gap-2 w-full justify-between text-primary hover:text-primary/80 font-black text-sm md:text-base transition-colors group/link">ACCEDER AL REGISTRO <ArrowRight className="w-5 h-5 group-hover/link:translate-x-2 transition-transform" /></Link>
-      </CardFooter>
-    </Card>
   );
 }
