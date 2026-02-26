@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect, useMemo } from "react";
@@ -322,147 +321,127 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
 
                   <div className="divide-y divide-muted">
-                    {relatedDocs?.sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime()).map((rel) => {
-                      const isProyectoMaster = rel.extensionDocType === 'Proyecto de Extensión';
-                      const isResolucion = rel.extensionDocType === 'Resolución de aprobación';
-                      const isInforme = rel.extensionDocType === 'Informe de avance' || rel.extensionDocType === 'Informe final';
+                    {relatedDocs
+                      ?.filter(rel => rel.extensionDocType !== 'Proyecto de Extensión') // Excluir el proyecto maestro del listado
+                      .sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime())
+                      .map((rel) => {
+                        const isResolucion = rel.extensionDocType === 'Resolución de aprobación';
+                        const isInforme = rel.extensionDocType === 'Informe de avance' || rel.extensionDocType === 'Informe final';
 
-                      return (
-                        <div 
-                          key={rel.id} 
-                          className={cn(
-                            "p-8 md:p-12 transition-all duration-300",
-                            rel.id === documentData.id ? "bg-primary/[0.02]" : "hover:bg-muted/[0.03]"
-                          )}
-                        >
-                          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-                            <div className="flex items-start gap-6">
-                              <div className={cn(
-                                "p-4 rounded-2xl shadow-sm shrink-0", 
-                                rel.id === documentData.id ? "bg-primary text-white" : "bg-muted text-primary"
-                              )}>
-                                {getDocIcon(rel.type)}
-                              </div>
-                              <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Badge variant="outline" className={cn(
-                                    "text-[10px] font-black uppercase border-primary/30 text-primary px-3 py-1",
-                                    rel.id === documentData.id && "bg-primary/10"
-                                  )}>
-                                    {rel.extensionDocType || rel.type}
-                                  </Badge>
-                                  {rel.id === documentData.id && (
-                                    <Badge className="bg-primary text-white text-[10px] font-black uppercase px-3 py-1 shadow-sm">
-                                      <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Registro actual
-                                    </Badge>
-                                  )}
+                        return (
+                          <div 
+                            key={rel.id} 
+                            className={cn(
+                              "p-8 md:p-12 transition-all duration-300",
+                              rel.id === documentData.id ? "bg-primary/[0.02]" : "hover:bg-muted/[0.03]"
+                            )}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+                              <div className="flex items-start gap-6">
+                                <div className={cn(
+                                  "p-4 rounded-2xl shadow-sm shrink-0", 
+                                  rel.id === documentData.id ? "bg-primary text-white" : "bg-muted text-primary"
+                                )}>
+                                  {getDocIcon(rel.type)}
                                 </div>
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge variant="outline" className={cn(
+                                      "text-[10px] font-black uppercase border-primary/30 text-primary px-3 py-1",
+                                      rel.id === documentData.id && "bg-primary/10"
+                                    )}>
+                                      {rel.extensionDocType || rel.type}
+                                    </Badge>
+                                    {rel.id === documentData.id && (
+                                      <Badge className="bg-primary text-white text-[10px] font-black uppercase px-3 py-1 shadow-sm">
+                                        <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Registro actual
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="text-left md:text-right shrink-0">
+                                <div className="flex items-center md:justify-end gap-2 text-primary font-black text-[10px] uppercase tracking-widest mb-1">
+                                  <Clock className="w-4 h-4" /> Fecha de Registro
+                                </div>
+                                <p className="text-sm font-black text-foreground">
+                                  {new Date(rel.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                </p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">
+                                  {new Date(rel.uploadDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} hs
+                                </p>
                               </div>
                             </div>
                             
-                            <div className="text-left md:text-right shrink-0">
-                              <div className="flex items-center md:justify-end gap-2 text-primary font-black text-[10px] uppercase tracking-widest mb-1">
-                                <Clock className="w-4 h-4" /> Fecha de Registro
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 pl-2">
+                              {/* Informes muestran responsables y períodos */}
+                              {isInforme && (
+                                <>
+                                  {rel.director && (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><User className="w-3 h-3" /> Director</p>
+                                      <p className="text-sm font-bold text-foreground">{formatPersonName(rel.director)}</p>
+                                    </div>
+                                  )}
+                                  {rel.authors && rel.authors.length > 0 && (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Users className="w-3 h-3" /> Equipo / Responsables</p>
+                                      <p className="text-sm font-bold text-foreground">{rel.authors.map(a => formatPersonName(a)).join('; ')}</p>
+                                    </div>
+                                  )}
+                                  {(rel.executionStartDate || rel.executionEndDate) && (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Clock className="w-3 h-3" /> Período</p>
+                                      <p className="text-sm font-bold text-foreground">
+                                        {rel.executionStartDate ? new Date(rel.executionStartDate).toLocaleDateString('es-ES') : '?'} - {rel.executionEndDate ? new Date(rel.executionEndDate).toLocaleDateString('es-ES') : '?'}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Resoluciones solo muestran número y fecha de doc */}
+                              {isResolucion && (
+                                <>
+                                  {rel.resolutionNumber && (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Fingerprint className="w-3 h-3" /> Número de Resolución</p>
+                                      <p className="text-sm font-black text-primary">{rel.resolutionNumber}</p>
+                                    </div>
+                                  )}
+                                  {rel.date && (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Calendar className="w-3 h-3" /> Fecha Resolución</p>
+                                      <p className="text-sm font-bold text-foreground">{new Date(rel.date).toLocaleDateString('es-ES')}</p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            
+                            {/* Resúmenes para Informes */}
+                            {isInforme && rel.description && (
+                              <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 mb-8 italic text-sm text-muted-foreground leading-relaxed">
+                                <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Información / Resumen</p>
+                                "{rel.description}"
                               </div>
-                              <p className="text-sm font-black text-foreground">
-                                {new Date(rel.uploadDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
-                              </p>
-                              <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">
-                                {new Date(rel.uploadDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} hs
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 pl-2">
-                            {/* Proyectos e Informes muestran responsables y períodos */}
-                            {(isProyectoMaster || isInforme) && (
-                              <>
-                                {rel.director && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><User className="w-3 h-3" /> Director</p>
-                                    <p className="text-sm font-bold text-foreground">{formatPersonName(rel.director)}</p>
-                                  </div>
-                                )}
-                                {rel.authors && rel.authors.length > 0 && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Users className="w-3 h-3" /> Equipo / Responsables</p>
-                                    <p className="text-sm font-bold text-foreground">{rel.authors.map(a => formatPersonName(a)).join('; ')}</p>
-                                  </div>
-                                )}
-                                {(rel.executionStartDate || rel.executionEndDate) && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Clock className="w-3 h-3" /> Período</p>
-                                    <p className="text-sm font-bold text-foreground">
-                                      {rel.executionStartDate ? new Date(rel.executionStartDate).toLocaleDateString('es-ES') : '?'} - {rel.executionEndDate ? new Date(rel.executionEndDate).toLocaleDateString('es-ES') : '?'}
-                                    </p>
-                                  </div>
-                                )}
-                              </>
                             )}
-
-                            {/* Resoluciones solo muestran número y fecha de doc */}
-                            {isResolucion && (
-                              <>
-                                {rel.resolutionNumber && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Fingerprint className="w-3 h-3" /> Número de Resolución</p>
-                                    <p className="text-sm font-black text-primary">{rel.resolutionNumber}</p>
-                                  </div>
-                                )}
-                                {rel.date && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Calendar className="w-3 h-3" /> Fecha Resolución</p>
-                                    <p className="text-sm font-bold text-foreground">{new Date(rel.date).toLocaleDateString('es-ES')}</p>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-
-                          {/* Objetivos solo para Proyecto */}
-                          {isProyectoMaster && (
-                            <div className="space-y-6 mb-8 pl-2">
-                              {rel.objetivoGeneral && (
-                                <div className="space-y-1">
-                                  <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Target className="w-3 h-3" /> Objetivo General</p>
-                                  <p className="text-sm font-medium text-muted-foreground leading-relaxed">{rel.objetivoGeneral}</p>
-                                </div>
-                              )}
-                              {rel.objetivosEspecificos && rel.objetivosEspecificos.length > 0 && (
-                                <div className="space-y-2">
-                                  <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><ListTodo className="w-3 h-3" /> Objetivos Específicos</p>
-                                  <ul className="list-disc pl-5 space-y-1">
-                                    {rel.objetivosEspecificos.map((obj, idx) => (
-                                      <li key={idx} className="text-xs text-muted-foreground font-medium">{obj}</li>
-                                    ))}
-                                  </ul>
-                                </div>
+                            
+                            <div className="flex justify-end pt-4 border-t border-dashed border-muted">
+                              {canViewFile ? (
+                                <Button asChild variant="outline" className="rounded-xl h-11 px-8 font-black uppercase text-[10px] tracking-widest shadow-sm border-primary text-primary hover:bg-primary/5">
+                                  <a href={rel.fileUrl} target="_blank" rel="noopener noreferrer">
+                                    <span className="flex items-center gap-2">Ver Documento Adjunto <ExternalLink className="w-4 h-4" /></span>
+                                  </a>
+                                </Button>
+                              ) : (
+                                <p className="text-[10px] font-black uppercase text-muted-foreground italic">Acceso restringido al archivo</p>
                               )}
                             </div>
-                          )}
-                          
-                          {/* Resúmenes para Proyecto e Informes */}
-                          {(isProyectoMaster || isInforme) && rel.description && (
-                            <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 mb-8 italic text-sm text-muted-foreground leading-relaxed">
-                              <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Información / Resumen</p>
-                              "{rel.description}"
-                            </div>
-                          )}
-                          
-                          <div className="flex justify-end pt-4 border-t border-dashed border-muted">
-                            {canViewFile ? (
-                              <Button asChild variant="outline" className="rounded-xl h-11 px-8 font-black uppercase text-[10px] tracking-widest shadow-sm border-primary text-primary hover:bg-primary/5">
-                                <a href={rel.fileUrl} target="_blank" rel="noopener noreferrer">
-                                  <span className="flex items-center gap-2">Ver Documento Adjunto <ExternalLink className="w-4 h-4" /></span>
-                                </a>
-                              </Button>
-                            ) : (
-                              <p className="text-[10px] font-black uppercase text-muted-foreground italic">Acceso restringido al archivo</p>
-                            )}
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </CardContent>
               </Card>
