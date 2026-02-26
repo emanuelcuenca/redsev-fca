@@ -126,7 +126,8 @@ export default function DocumentsListPage() {
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
       // 4. Filtros adicionales
-      const docYear = (doc.date ? new Date(doc.date).getFullYear() : (doc.uploadDate ? new Date(doc.uploadDate).getFullYear() : null))?.toString();
+      const dateToUse = (category === 'extension' ? doc.uploadDate : (doc.date || doc.uploadDate));
+      const docYear = dateToUse ? new Date(dateToUse).getFullYear().toString() : null;
       if (filterYear !== "all" && docYear !== filterYear) return false;
       
       if (category === 'convenios' && filterVigente !== "all") {
@@ -158,9 +159,12 @@ export default function DocumentsListPage() {
 
   const years = useMemo(() => {
     if (!rawDocs) return [];
-    const allYears = rawDocs.map(d => (d.date ? new Date(d.date).getFullYear() : (d.uploadDate ? new Date(d.uploadDate).getFullYear() : null))).filter(Boolean);
+    const allYears = rawDocs.map(d => {
+      const dateToUse = (category === 'extension' ? d.uploadDate : (d.date || d.uploadDate));
+      return dateToUse ? new Date(dateToUse).getFullYear() : null;
+    }).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
-  }, [rawDocs]);
+  }, [rawDocs, category]);
 
   const getPageInfo = () => {
     switch(category) {
@@ -327,7 +331,9 @@ export default function DocumentsListPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-bold">{new Date(doc.date || doc.uploadDate || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
+                    <TableCell className="text-muted-foreground font-bold">
+                      {new Date((category === 'extension' ? doc.uploadDate : (doc.date || doc.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </TableCell>
                     <TableCell className="text-right pr-12">
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10"><Link href={`/documents/${doc.id}`}><Eye className="w-5 h-5" /></Link></Button>
