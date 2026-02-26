@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use, useEffect, useMemo } from "react";
@@ -113,6 +112,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     setIsRequesting(false);
   };
 
+  const getButtonLabel = (type?: string, subType?: string) => {
+    if (subType === 'Proyecto de Extensión') return "Ver Proyecto";
+    if (subType === 'Resolución de aprobación' || type === 'Resolución') return "Ver Resolución";
+    if (subType === 'Informe de avance' || subType === 'Informe final') return "Ver Informe";
+    if (type === 'Convenio') return "Ver Convenio";
+    if (type === 'Movilidad Estudiantil' || type === 'Movilidad Docente') return "Ver Movilidad";
+    if (type === 'Pasantía') return "Ver Pasantía";
+    return "Ver Documento";
+  };
+
   if (isUserLoading || isLoading || !mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -209,7 +218,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex flex-col gap-2">
                 {canViewFile ? (
                   <Button className="rounded-xl h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20" asChild>
-                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer"><Eye className="w-4 h-4 mr-2" /> Ver Archivo Adjunto</a>
+                    <a href={documentData.fileUrl} target="_blank" rel="noopener noreferrer">
+                      <Eye className="w-4 h-4 mr-2" /> {getButtonLabel(documentData.type, documentData.extensionDocType)}
+                    </a>
                   </Button>
                 ) : activeRequest?.status === 'pending' ? (
                   <Button disabled className="rounded-xl h-12 bg-muted text-muted-foreground font-black uppercase text-[10px] tracking-widest">
@@ -227,7 +238,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                     className="rounded-xl h-12 px-6 bg-accent text-accent-foreground hover:bg-accent/90 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-accent/20"
                   >
                     {isRequesting ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />} 
-                    Solicitar Acceso al Archivo
+                    Solicitar Acceso
                   </Button>
                 )}
               </div>
@@ -256,7 +267,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               </div>
 
-              {!isExtensionProyecto && (
+              {!isExtensionProyecto && !isProyecto && (
                 <div className="space-y-6">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b pb-2">Instituciones y Ubicación</h3>
                   <div className="space-y-3">
@@ -433,7 +444,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               {canViewFile ? (
                                 <Button asChild variant="outline" className="rounded-xl h-11 px-8 font-black uppercase text-[10px] tracking-widest shadow-sm border-primary text-primary hover:bg-primary/5">
                                   <a href={rel.fileUrl} target="_blank" rel="noopener noreferrer">
-                                    <span className="flex items-center gap-2">Ver Documento Adjunto <ExternalLink className="w-4 h-4" /></span>
+                                    <span className="flex items-center gap-2">
+                                      {getButtonLabel(rel.type, rel.extensionDocType)} <ExternalLink className="w-4 h-4" />
+                                    </span>
                                   </a>
                                 </Button>
                               ) : (
