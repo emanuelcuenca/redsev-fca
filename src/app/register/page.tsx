@@ -46,8 +46,44 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
+// Función de compresión para evitar error "URL too long"
+const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+      };
+    };
+  });
+};
+
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
+  const [isCompresing, setIsCompresing] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -70,14 +106,18 @@ export default function RegisterPage() {
       .join(' ');
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setIsCompresing(true);
+      try {
+        const compressed = await compressImage(file);
+        setPhotoUrl(compressed);
+      } catch (err) {
+        toast({ variant: "destructive", title: "Error al cargar imagen" });
+      } finally {
+        setIsCompresing(false);
+      }
     }
   };
 
@@ -149,7 +189,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden py-10 md:py-16">
-      {/* Contenedor de decoraciones para evitar desbordamiento lateral */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl" />
@@ -186,15 +225,19 @@ export default function RegisterPage() {
               <div className="flex flex-col items-center justify-center space-y-3 mb-4">
                 <div 
                   className="relative group cursor-pointer"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => !isCompresing && fileInputRef.current?.click()}
                 >
                   <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
-                    <Avatar className="w-full h-full rounded-none">
-                      <AvatarImage src={photoUrl} className="object-cover" />
-                      <AvatarFallback className="bg-transparent">
-                        <UserRound className="w-16 h-16 text-primary/20" strokeWidth={1.2} />
-                      </AvatarFallback>
-                    </Avatar>
+                    {isCompresing ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+                    ) : (
+                      <Avatar className="w-full h-full rounded-none">
+                        <AvatarImage src={photoUrl} className="object-cover" />
+                        <AvatarFallback className="bg-transparent">
+                          <UserRound className="w-16 h-16 text-primary/20" strokeWidth={1.2} />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <ImageIcon className="w-6 h-6 text-white mb-1" />
                       <span className="text-[8px] text-white font-black uppercase tracking-widest">Subir Foto</span>
@@ -320,7 +363,7 @@ export default function RegisterPage() {
               <Button 
                 type="submit" 
                 className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mt-2"
-                disabled={loading}
+                disabled={loading || isCompresing}
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

@@ -49,11 +49,47 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
+// Función de compresión para evitar error "URL too long" en móviles
+const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Comprimido al 70%
+      };
+    };
+  });
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
+  const [isCompresing, setIsCompresing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,7 +98,6 @@ export default function ProfilePage() {
     setMounted(true);
   }, []);
 
-  // REDIRECCIÓN ESTRICTA
   useEffect(() => {
     if (mounted && !isUserLoading && !user) {
       router.push('/login');
@@ -105,22 +140,22 @@ export default function ProfilePage() {
     }
   }, [profile, user]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      setIsCompresing(true);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setFormData(prev => ({ ...prev, photoUrl: compressedBase64 }));
+      } catch (err) {
         toast({
           variant: "destructive",
-          title: "Archivo muy pesado",
-          description: "La imagen no debe superar los 2MB.",
+          title: "Error al procesar imagen",
+          description: "No se pudo optimizar la fotografía.",
         });
-        return;
+      } finally {
+        setIsCompresing(false);
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, photoUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -148,9 +183,9 @@ export default function ProfilePage() {
 
       const fullName = `${formData.firstName} ${formData.lastName}`;
       
+      // Actualizamos solo el nombre en Auth. La foto solo en Firestore para evitar error de longitud de URL en Auth
       await updateProfile(user, {
-        displayName: isAdmin ? fullName : user.displayName,
-        photoURL: formData.photoUrl
+        displayName: isAdmin ? fullName : user.displayName
       });
 
       updateDocumentNonBlocking(userProfileRef, {
@@ -218,7 +253,7 @@ export default function ProfilePage() {
               <UserCircle className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">Relación Laboral</h2>
+              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">Datos Personales</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Gestión de identidad y datos institucionales</p>
             </div>
           </div>
@@ -243,15 +278,19 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">
                 <div 
                   className="relative group cursor-pointer mb-4"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => !isCompresing && fileInputRef.current?.click()}
                 >
                   <div className="w-40 h-40 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40 hover:scale-105 duration-300">
-                    <Avatar className="w-full h-full rounded-none">
-                      <AvatarImage src={formData.photoUrl} className="object-cover" />
-                      <AvatarFallback className="bg-transparent">
-                        <UserRound className="w-20 h-20 text-primary/20" strokeWidth={1.2} />
-                      </AvatarFallback>
-                    </Avatar>
+                    {isCompresing ? (
+                      <Loader2 className="w-10 h-10 animate-spin text-primary/40" />
+                    ) : (
+                      <Avatar className="w-full h-full rounded-none">
+                        <AvatarImage src={formData.photoUrl} className="object-cover" />
+                        <AvatarFallback className="bg-transparent">
+                          <UserRound className="w-20 h-20 text-primary/20" strokeWidth={1.2} />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <ImageIcon className="w-8 h-8 text-white mb-2" />
                       <span className="text-[10px] text-white font-black uppercase tracking-widest">Cambiar Foto</span>
@@ -370,7 +409,7 @@ export default function ProfilePage() {
                 <Button 
                   className="w-full md:w-auto h-14 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px]"
                   onClick={handleSave}
-                  disabled={isSaving}
+                  disabled={isSaving || isCompresing}
                 >
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar y Finalizar</span>}
                 </Button>

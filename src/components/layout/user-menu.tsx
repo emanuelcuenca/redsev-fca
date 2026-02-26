@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint, ShieldCheck } from "lucide-react";
+import { User, Briefcase, LogOut, Settings, Copy, Check, Fingerprint, ShieldCheck, UserCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,12 @@ export function UserMenu() {
   const db = useFirestore();
   const [copied, setCopied] = useState(false);
 
+  const userProfileRef = useMemoFirebase(() => 
+    user ? doc(db, 'users', user.uid) : null, 
+    [db, user]
+  );
+  const { data: userProfile } = useDoc(userProfileRef);
+
   const adminRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
@@ -33,8 +39,8 @@ export function UserMenu() {
   const { data: adminDoc } = useDoc(adminRef);
   const isAdmin = !!adminDoc;
   
-  const userPhoto = user?.photoURL || "";
-  const userName = user?.displayName || user?.email?.split('@')[0] || "Usuario FCA";
+  const userPhoto = userProfile?.photoUrl || user?.photoURL || "";
+  const userName = userProfile?.name || user?.displayName || user?.email?.split('@')[0] || "Usuario FCA";
   const userEmail = user?.email || "institucional@unca.edu.ar";
 
   // Generar iniciales del nombre
@@ -109,8 +115,8 @@ export function UserMenu() {
         <div className="p-1">
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer focus:bg-primary/5 focus:text-primary transition-colors">
             <Link href="/profile">
-              <User className="w-4 h-4" />
-              <span className="text-sm">Relación laboral</span>
+              <UserCircle className="w-4 h-4" />
+              <span className="text-sm">Datos Personales</span>
             </Link>
           </DropdownMenuItem>
           {isAdmin && (
