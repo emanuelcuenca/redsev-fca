@@ -13,13 +13,16 @@
         "lastName": { "type": "string" },
         "name": { "type": "string" },
         "photoUrl": { "type": "string", "format": "uri" },
-        "academicRank": { "type": "string" },
-        "department": { "type": "string" },
+        "claustro": { "type": "string", "enum": ["Docente", "No docente", "Estudiante", "Egresado"] },
+        "academicRank": { "type": "string", "description": "Used for Docente" },
+        "department": { "type": "string", "description": "Used for Docente, No docente, Estudiante (Facultad)" },
+        "carrera": { "type": "string", "description": "Used for Estudiante" },
+        "profession": { "type": "string", "description": "Used for Egresado" },
         "role": { "type": "string", "enum": ["Admin", "Authority", "User"], "default": "User" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "email", "firstName", "lastName"]
+      "required": ["id", "email", "firstName", "lastName", "claustro"]
     },
     "AccessRequest": {
       "title": "AccessRequest",

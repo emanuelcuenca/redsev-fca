@@ -16,7 +16,9 @@ import {
   UserCircle,
   ShieldAlert,
   UserRound,
-  Image as ImageIcon
+  Image as ImageIcon,
+  GraduationCap,
+  BookOpen
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -49,7 +51,6 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
-// Función de compresión para evitar error "URL too long" en móviles
 const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -61,7 +62,6 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
         if (width > height) {
           if (width > maxWidth) {
             height *= maxWidth / width;
@@ -73,12 +73,11 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
             height = maxHeight;
           }
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Comprimido al 70%
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
       };
     };
   });
@@ -98,17 +97,10 @@ export default function ProfilePage() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted && !isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, mounted, router]);
-
   const userProfileRef = useMemoFirebase(() => 
     user ? doc(db, 'users', user.uid) : null, 
     [db, user]
   );
-  
   const { data: profile, isLoading: isProfileLoading } = useDoc(userProfileRef);
 
   const adminCheckRef = useMemoFirebase(() => 
@@ -121,8 +113,11 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    claustro: "",
     academicRank: "",
     department: "",
+    carrera: "",
+    profession: "",
     email: "",
     photoUrl: ""
   });
@@ -132,8 +127,11 @@ export default function ProfilePage() {
       setFormData({
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
+        claustro: profile.claustro || "",
         academicRank: profile.academicRank || "",
         department: profile.department || "",
+        carrera: profile.carrera || "",
+        profession: profile.profession || "",
         email: profile.email || user?.email || "",
         photoUrl: profile.photoUrl || user?.photoURL || ""
       });
@@ -148,11 +146,7 @@ export default function ProfilePage() {
         const compressedBase64 = await compressImage(file);
         setFormData(prev => ({ ...prev, photoUrl: compressedBase64 }));
       } catch (err) {
-        toast({
-          variant: "destructive",
-          title: "Error al procesar imagen",
-          description: "No se pudo optimizar la fotografía.",
-        });
+        toast({ variant: "destructive", title: "Error al procesar imagen" });
       } finally {
         setIsCompresing(false);
       }
@@ -161,55 +155,25 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user || !userProfileRef) return;
-    
     setIsSaving(true);
-    
     try {
       if (formData.email !== user.email && isAdmin) {
         if (!currentPassword) {
-          toast({
-            variant: "destructive",
-            title: "Contraseña requerida",
-            description: "Debe ingresar su contraseña actual para cambiar el correo electrónico.",
-          });
+          toast({ variant: "destructive", title: "Contraseña requerida", description: "Debe ingresar su contraseña para cambiar el correo." });
           setIsSaving(false);
           return;
         }
-
         const credential = EmailAuthProvider.credential(user.email!, currentPassword);
         await reauthenticateWithCredential(user, credential);
         await updateEmail(user, formData.email);
       }
-
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      
-      // Actualizamos solo el nombre en Auth. La foto solo en Firestore para evitar error de longitud de URL en Auth
-      await updateProfile(user, {
-        displayName: isAdmin ? fullName : user.displayName
-      });
-
-      updateDocumentNonBlocking(userProfileRef, {
-        ...formData,
-        name: fullName,
-        updatedAt: new Date().toISOString()
-      });
-
-      toast({
-        title: "Perfil actualizado",
-        description: "Tus datos han sido guardados correctamente.",
-      });
-
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
-
+      await updateProfile(user, { displayName: isAdmin ? fullName : user.displayName });
+      updateDocumentNonBlocking(userProfileRef, { ...formData, name: fullName, updatedAt: new Date().toISOString() });
+      toast({ title: "Perfil actualizado" });
+      setTimeout(() => router.push("/"), 1500);
     } catch (error: any) {
-      console.error("Error updating profile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al actualizar",
-        description: error.message || "No se pudieron guardar los cambios.",
-      });
+      toast({ variant: "destructive", title: "Error al actualizar", description: error.message });
       setIsSaving(false);
     }
   };
@@ -222,196 +186,129 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) return null;
+  const isDocente = formData.claustro === "Docente";
+  const isNoDocente = formData.claustro === "No docente";
+  const isEstudiante = formData.claustro === "Estudiante";
+  const isEgresado = formData.claustro === "Egresado";
 
   return (
     <SidebarProvider>
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <SidebarTrigger />
-          </div>
-          <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
-                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
-              </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
-                FCA - UNCA
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <UserMenu />
-          </div>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
+          <div className="flex-1 flex justify-center text-center font-headline font-bold text-primary uppercase">Datos Personales</div>
+          <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
           <div className="flex items-center gap-3 mb-8">
-            <div className="bg-primary/10 p-2.5 rounded-xl">
-              <UserCircle className="w-6 h-6 text-primary" />
-            </div>
+            <div className="bg-primary/10 p-2.5 rounded-xl"><UserCircle className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">Datos Personales</h2>
-              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Gestión de identidad y datos institucionales</p>
+              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Mi Perfil</h2>
+              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">{formData.claustro || "Usuario FCA"}</p>
             </div>
           </div>
-
-          {!isAdmin && (
-            <div className="mb-6 p-4 bg-muted/50 rounded-2xl flex items-center gap-3 border border-dashed border-muted-foreground/20 animate-in fade-in duration-700">
-              <ShieldAlert className="w-5 h-5 text-muted-foreground" />
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">
-                Los campos de nombre y correo están protegidos. Contacte a un administrador para realizar cambios en estos datos.
-              </p>
-            </div>
-          )}
 
           <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm mb-8">
             <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
               <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Información Profesional</CardTitle>
-              <CardDescription className="font-medium text-muted-foreground">
-                Gestione sus datos de acceso y su cargo dentro de la facultad.
-              </CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">
-                <div 
-                  className="relative group cursor-pointer mb-4"
-                  onClick={() => !isCompresing && fileInputRef.current?.click()}
-                >
-                  <div className="w-40 h-40 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40 hover:scale-105 duration-300">
+                <div className="relative group cursor-pointer mb-4" onClick={() => !isCompresing && fileInputRef.current?.click()}>
+                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-secondary overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
                     {isCompresing ? (
-                      <Loader2 className="w-10 h-10 animate-spin text-primary/40" />
+                      <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                     ) : (
                       <Avatar className="w-full h-full rounded-none">
                         <AvatarImage src={formData.photoUrl} className="object-cover" />
-                        <AvatarFallback className="bg-transparent">
-                          <UserRound className="w-20 h-20 text-primary/20" strokeWidth={1.2} />
-                        </AvatarFallback>
+                        <AvatarFallback><UserRound className="w-16 h-16 text-primary/20" strokeWidth={1.2} /></AvatarFallback>
                       </Avatar>
                     )}
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ImageIcon className="w-8 h-8 text-white mb-2" />
-                      <span className="text-[10px] text-white font-black uppercase tracking-widest">Cambiar Foto</span>
+                      <span className="text-[8px] text-white font-black uppercase">Cambiar Foto</span>
                     </div>
                   </div>
-                  <div className="absolute bottom-2 right-2 bg-primary text-white p-2.5 rounded-full shadow-lg border-2 border-white">
-                    <Camera className="w-4 h-4" />
-                  </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                  />
+                  <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white"><Camera className="w-4 h-4" /></div>
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">subir foto de perfil</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nombre</Label>
-                  <Input 
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                    placeholder="Su nombre"
-                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
-                    disabled={!isAdmin}
-                  />
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Nombre</Label>
+                  <Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="h-12 rounded-xl bg-white font-bold" disabled={!isAdmin} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Apellido</Label>
-                  <Input 
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                    placeholder="Su apellido"
-                    className="h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
-                    disabled={!isAdmin}
-                  />
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Apellido</Label>
+                  <Input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="h-12 rounded-xl bg-white font-bold" disabled={!isAdmin} />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Correo Institucional</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
-                    <Input 
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="usuario@unca.edu.ar"
-                      className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold disabled:opacity-70 disabled:bg-muted/30"
-                      disabled={!isAdmin}
-                    />
-                  </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Correo Institucional</Label>
+                  <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 rounded-xl bg-white font-bold" disabled={!isAdmin} />
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cargo Docente</Label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
-                    <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold">
-                        <SelectValue placeholder="Seleccione cargo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Auxiliar">Auxiliar</SelectItem>
-                        <SelectItem value="JTP">JTP</SelectItem>
-                        <SelectItem value="Adjunto">Adjunto</SelectItem>
-                        <SelectItem value="Asociado">Asociado</SelectItem>
-                        <SelectItem value="Titular">Titular</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Dependencia Académica</Label>
-                  <div className="relative">
-                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+                {isDocente && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground">Cargo Docente</Label>
+                      <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground">Dependencia</Label>
+                      <Select value={formData.department} onValueChange={(v) => setFormData({...formData, department: v})}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                {isNoDocente && (
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Dependencia</Label>
                     <Select value={formData.department} onValueChange={(v) => setFormData({...formData, department: v})}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl bg-white border-muted-foreground/20 font-bold">
-                        <SelectValue placeholder="Seleccione dependencia" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DEPARTMENTS.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
+                      <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                </div>
+                )}
+
+                {isEstudiante && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground">Facultad</Label>
+                      <Select value={formData.department} onValueChange={(v) => setFormData({...formData, department: v})}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground">Carrera</Label>
+                      <Input value={formData.carrera} onChange={(e) => setFormData({...formData, carrera: e.target.value})} className="h-12 rounded-xl bg-white font-bold" />
+                    </div>
+                  </>
+                )}
+
+                {isEgresado && (
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Profesión</Label>
+                    <Input value={formData.profession} onChange={(e) => setFormData({...formData, profession: e.target.value})} className="h-12 rounded-xl bg-white font-bold" />
+                  </div>
+                )}
               </div>
 
-              {isAdmin && formData.email !== user?.email && (
-                <div className="p-6 bg-accent/5 border-2 border-accent/20 rounded-2xl animate-in fade-in slide-in-from-top-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Lock className="w-5 h-5 text-accent" />
-                    <h4 className="font-headline font-bold text-accent-foreground uppercase text-sm tracking-tight">Confirmación de Seguridad</h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium mb-4">
-                    Para cambiar el correo electrónico, por favor ingrese su contraseña actual.
-                  </p>
-                  <Input 
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Contraseña actual"
-                    className="h-12 rounded-xl bg-white border-accent/20 font-bold"
-                  />
-                </div>
-              )}
-
               <div className="pt-6 border-t border-dashed flex flex-col md:flex-row items-center justify-between gap-4">
-                <Button variant="ghost" className="w-full md:w-auto rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.push("/")}>
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Volver
-                </Button>
-                <Button 
-                  className="w-full md:w-auto h-14 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px]"
-                  onClick={handleSave}
-                  disabled={isSaving || isCompresing}
-                >
-                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> Guardar y Finalizar</span>}
+                <Button variant="ghost" className="rounded-xl font-bold uppercase tracking-widest text-[10px]" onClick={() => router.push("/")}><ArrowLeft className="w-4 h-4 mr-2" /> Volver</Button>
+                <Button className="h-14 px-10 rounded-xl bg-primary font-black uppercase tracking-widest text-[11px]" onClick={handleSave} disabled={isSaving || isCompresing}>
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Guardar Cambios"}
                 </Button>
               </div>
             </CardContent>

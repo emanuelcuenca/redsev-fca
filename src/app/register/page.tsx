@@ -16,7 +16,9 @@ import {
   Landmark,
   UserRound,
   Image as ImageIcon,
-  AlertCircle
+  AlertCircle,
+  GraduationCap,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +37,8 @@ import { useAuth } from "@/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
+const CLAUSTROS = ["Docente", "Egresado", "Estudiante", "No docente"];
+
 const DEPARTMENTS = [
   "Cs. Agrarias",
   "Cs. de la Salud",
@@ -46,7 +50,6 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
-// Función de compresión para evitar error "URL too long"
 const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -58,7 +61,6 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
         if (width > height) {
           if (width > maxWidth) {
             height *= maxWidth / width;
@@ -70,7 +72,6 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
             height = maxHeight;
           }
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
@@ -89,8 +90,11 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [claustro, setClaustro] = useState("");
   const [academicRank, setAcademicRank] = useState("");
   const [department, setDepartment] = useState("");
+  const [carrera, setCarrera] = useState("");
+  const [profession, setProfession] = useState("");
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -139,12 +143,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!academicRank || !department) {
-      toast({
-        variant: "destructive",
-        title: "Campos incompletos",
-        description: "Debe seleccionar su cargo y dependencia institucional.",
-      });
+    if (!claustro) {
+      toast({ variant: "destructive", title: "Debe seleccionar su claustro" });
       return;
     }
 
@@ -159,8 +159,11 @@ export default function RegisterPage() {
         firstName: formattedFirstName,
         lastName: formattedLastName,
         photoUrl,
-        academicRank,
-        department,
+        claustro,
+        academicRank: claustro === 'Docente' ? academicRank : "",
+        department: (claustro === 'Docente' || claustro === 'No docente' || claustro === 'Estudiante') ? department : "",
+        carrera: claustro === 'Estudiante' ? carrera : "",
+        profession: claustro === 'Egresado' ? profession : "",
         name: fullName
       }));
     }
@@ -207,7 +210,7 @@ export default function RegisterPage() {
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden w-full">
           <CardHeader className="space-y-1 pt-8 px-8 text-center">
-            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear Cuenta Institucional</CardTitle>
+            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear cuenta</CardTitle>
             <CardDescription className="font-medium">
               Forme parte del Repositorio Digital de Extensión y Vinculación.
             </CardDescription>
@@ -227,14 +230,14 @@ export default function RegisterPage() {
                   className="relative group cursor-pointer"
                   onClick={() => !isCompresing && fileInputRef.current?.click()}
                 >
-                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
+                  <div className="w-28 h-28 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
                     {isCompresing ? (
                       <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                     ) : (
                       <Avatar className="w-full h-full rounded-none">
                         <AvatarImage src={photoUrl} className="object-cover" />
                         <AvatarFallback className="bg-transparent">
-                          <UserRound className="w-16 h-16 text-primary/20" strokeWidth={1.2} />
+                          <UserRound className="w-14 h-14 text-primary/20" strokeWidth={1.2} />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -247,7 +250,6 @@ export default function RegisterPage() {
                     <Camera className="w-4 h-4" />
                   </div>
                 </div>
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">subir foto de perfil</Label>
                 <input 
                   type="file" 
                   ref={fileInputRef} 
@@ -260,86 +262,112 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                    <Input 
-                      id="firstName" 
-                      type="text" 
-                      placeholder="Juan" 
-                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
+                  <Input id="firstName" placeholder="Juan" className="h-12 rounded-xl bg-white/50 font-bold" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Apellido</Label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                    <Input 
-                      id="lastName" 
-                      type="text" 
-                      placeholder="Pérez" 
-                      className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
+                  <Input id="lastName" placeholder="Pérez" className="h-12 rounded-xl bg-white/50 font-bold" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargo Docente</Label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
-                    <Select value={academicRank} onValueChange={setAcademicRank}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-bold">
-                        <SelectValue placeholder="Seleccione cargo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Auxiliar">Auxiliar</SelectItem>
-                        <SelectItem value="JTP">JTP</SelectItem>
-                        <SelectItem value="Adjunto">Adjunto</SelectItem>
-                        <SelectItem value="Asociado">Asociado</SelectItem>
-                        <SelectItem value="Titular">Titular</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
-                  <div className="relative">
-                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 z-10" />
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Claustro</Label>
+                <Select value={claustro} onValueChange={setClaustro}>
+                  <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                    <SelectValue placeholder="Seleccione su claustro" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CLAUSTROS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Campos condicionales según Claustro */}
+              <div className="grid grid-cols-1 gap-4">
+                {claustro === "Docente" && (
+                  <>
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargo Docente</Label>
+                      <Select value={academicRank} onValueChange={setAcademicRank}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                          <SelectValue placeholder="Seleccione cargo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Auxiliar">Auxiliar</SelectItem>
+                          <SelectItem value="JTP">JTP</SelectItem>
+                          <SelectItem value="Adjunto">Adjunto</SelectItem>
+                          <SelectItem value="Asociado">Asociado</SelectItem>
+                          <SelectItem value="Titular">Titular</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
+                      <Select value={department} onValueChange={setDepartment}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                          <SelectValue placeholder="Seleccione dependencia" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                {claustro === "No docente" && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
                     <Select value={department} onValueChange={setDepartment}>
-                      <SelectTrigger className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white/50 font-bold">
+                      <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
                         <SelectValue placeholder="Seleccione dependencia" />
                       </SelectTrigger>
                       <SelectContent>
-                        {DEPARTMENTS.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
+                        {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+                )}
+
+                {claustro === "Estudiante" && (
+                  <>
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Facultad</Label>
+                      <Select value={department} onValueChange={setDepartment}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                          <SelectValue placeholder="Seleccione facultad" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Carrera</Label>
+                      <div className="relative">
+                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                        <Input placeholder="Ej: Ingeniería Agronómica" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={carrera} onChange={(e) => setCarrera(e.target.value)} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {claustro === "Egresado" && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profesión</Label>
+                    <div className="relative">
+                      <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                      <Input placeholder="Su título profesional" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={profession} onChange={(e) => setProfession(e.target.value)} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Correo Institucional</Label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="usuario@unca.edu.ar" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <Input id="email" type="email" placeholder="usuario@unca.edu.ar" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
               </div>
 
@@ -347,29 +375,12 @@ export default function RegisterPage() {
                 <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="Mínimo 6 caracteres" 
-                    className="pl-11 h-12 rounded-xl border-muted-foreground/20 focus:ring-primary/10 bg-white/50 font-bold"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <Input id="password" type="password" placeholder="Mínimo 6 caracteres" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mt-2"
-                disabled={loading || isCompresing}
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <span className="flex items-center gap-2">Registrarse <ArrowRight className="w-4 h-4" /></span>
-                )}
+              <Button type="submit" className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary shadow-lg shadow-primary/20 mt-2" disabled={loading || isCompresing}>
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2">Registrarse <ArrowRight className="w-4 h-4" /></span>}
               </Button>
             </form>
           </CardContent>
@@ -378,9 +389,7 @@ export default function RegisterPage() {
             <div className="text-center space-y-3">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿Ya tiene una cuenta?</p>
               <Button asChild variant="ghost" className="w-full h-11 rounded-xl text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
-                <Link href="/login">
-                  <LogIn className="w-4 h-4 mr-2" /> Volver al ingreso
-                </Link>
+                <Link href="/login"><LogIn className="w-4 h-4 mr-2" /> Volver al ingreso</Link>
               </Button>
             </div>
           </CardFooter>

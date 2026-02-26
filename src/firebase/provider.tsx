@@ -69,12 +69,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       async (firebaseUser) => {
         if (firebaseUser) {
-          // Lógica para inicializar el perfil de usuario en Firestore si no existe
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
           if (!userDocSnap.exists()) {
-            // Intentar recuperar datos del registro pendiente en localStorage
             let pendingData: any = {};
             if (typeof window !== 'undefined') {
               const stored = localStorage.getItem('pending_profile_data');
@@ -92,16 +90,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               lastName: pendingData.lastName || "",
               name: pendingData.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0],
               photoUrl: pendingData.photoUrl || firebaseUser.photoURL || "",
-              academicRank: pendingData.academicRank || "Auxiliar",
-              department: pendingData.department || "Cs. Agrarias",
-              role: "Viewer",
+              claustro: pendingData.claustro || "Externo",
+              academicRank: pendingData.academicRank || "",
+              department: pendingData.department || "",
+              carrera: pendingData.carrera || "",
+              profession: pendingData.profession || "",
+              role: "User",
               createdAt: now,
               updatedAt: now,
             };
 
             await setDoc(userDocRef, profileData);
             
-            // Actualizar el perfil de Auth también
             if (pendingData.name || pendingData.photoUrl) {
               await updateProfile(firebaseUser, {
                 displayName: pendingData.name,
