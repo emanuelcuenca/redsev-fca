@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -104,7 +103,7 @@ export function UserMenu() {
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
-            <Link href="/profile/cv"><FileUser className="w-4 h-4" /><span className="text-sm">Subir CV</span></Link>
+            <Link href="/profile/cv"><FileUser className="w-4 h-4" /><span className="text-sm">CV</span></Link>
           </DropdownMenuItem>
           
           {isAuthority && (
