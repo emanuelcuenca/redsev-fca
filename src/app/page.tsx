@@ -258,7 +258,11 @@ export default function Dashboard() {
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-6 leading-tight">Impulsemos juntos el desarrollo regional</h2>
-              <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">¿Tenés una idea de proyecto o buscás una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto en nuestra comunidad.</p>
+              <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">
+                ¿Tenés una idea de proyecto o buscás una alianza estratégica?
+                <br />
+                Estamos listos para colaborar.
+              </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* DIÁLOGO ENVIAR PROPUESTA */}
                 <Dialog open={isProposalOpen} onOpenChange={setIsProposalOpen}>
