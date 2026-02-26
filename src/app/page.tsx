@@ -34,10 +34,10 @@ import { Button } from "@/components/ui/button";
 import { 
   Card, 
   CardContent, 
-  CardDescription, 
-  CardFooter, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardDescription,
+  CardFooter
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -205,11 +205,11 @@ export default function Dashboard() {
           </section>
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
-            <div className="max-w-4xl">
-              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight text-center md:text-left">
                 Estrategias para el Desarrollo Sustentable
               </h2>
-              <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight">
+              <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight text-center md:text-left">
                 La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.
               </p>
               
@@ -284,7 +284,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <section className="bg-primary text-primary-foreground p-8 md:p-16 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group">
+          <section className="bg-primary text-primary-foreground p-8 md:p-16 rounded-[2.5rem] shadow-2xl shadow-primary/20 relative overflow-hidden group mb-16 md:mb-24">
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
             
@@ -296,15 +296,22 @@ export default function Dashboard() {
                 ¿Tienes una idea de proyecto o buscas una alianza estratégica? Estamos listos para colaborar en iniciativas que generen un impacto positivo en nuestra comunidad.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+                <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
                   <Send className="w-4 h-4 mr-2" /> Enviar Propuesta
                 </Button>
-                <Button className="bg-white text-primary hover:bg-white/90 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
+                <Button className="bg-white text-primary hover:bg-white/95 h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-black/10">
                   <Mail className="w-4 h-4 mr-2" /> Contactar a la Secretaría
                 </Button>
               </div>
             </div>
           </section>
+
+          <footer className="text-center pt-8 border-t border-muted-foreground/10">
+            <p className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest leading-relaxed max-w-2xl mx-auto opacity-70">
+              © 2026 Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias. <br />
+              Universidad Nacional de Catamarca. Todos los derechos reservados.
+            </p>
+          </footer>
         </main>
       </SidebarInset>
     </SidebarProvider>
