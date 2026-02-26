@@ -159,7 +159,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center text-center">
             <span className="text-xs md:text-lg font-headline text-primary uppercase font-bold tracking-tight truncate max-w-[250px] md:max-w-md">
               {documentData.projectCode || 'Detalle del Registro'}
             </span>
@@ -300,13 +300,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             </section>
           )}
 
-          {/* SECCIÓN 3: HISTORIAL DEL EXPEDIENTE (UNIFICADO) */}
+          {/* SECCIÓN 3: HISTORIAL DEL EXPEDIENTE (RESUMEN UNIFICADO) */}
           {documentData.projectCode && (
             <section className="mt-12 space-y-8">
               <div className="flex items-center gap-3 border-b-2 border-primary/10 pb-4">
                 <div className="bg-primary/10 p-2.5 rounded-xl"><History className="w-6 h-6 text-primary" /></div>
                 <div>
-                  <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Historial del Expediente</h3>
+                  <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Resumen del Expediente</h3>
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Código institucional: {documentData.projectCode}</p>
                 </div>
               </div>
@@ -389,6 +389,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                                     <p className="text-sm font-bold text-foreground">{rel.authors.map(a => formatPersonName(a)).join('; ')}</p>
                                   </div>
                                 )}
+                                {(rel.executionStartDate || rel.executionEndDate) && (
+                                  <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Clock className="w-3 h-3" /> Período</p>
+                                    <p className="text-sm font-bold text-foreground">
+                                      {rel.executionStartDate ? new Date(rel.executionStartDate).toLocaleDateString('es-ES') : '?'} - {rel.executionEndDate ? new Date(rel.executionEndDate).toLocaleDateString('es-ES') : '?'}
+                                    </p>
+                                  </div>
+                                )}
                               </>
                             )}
 
@@ -409,15 +417,29 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                                 )}
                               </>
                             )}
-
-                            {/* Proyectos muestran su fecha propia también si aplica */}
-                            {isProyectoMaster && rel.date && (
-                              <div className="space-y-1">
-                                <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Calendar className="w-3 h-3" /> Fecha Doc.</p>
-                                <p className="text-sm font-bold text-foreground">{new Date(rel.date).toLocaleDateString('es-ES')}</p>
-                              </div>
-                            )}
                           </div>
+
+                          {/* Objetivos solo para Proyecto */}
+                          {isProyectoMaster && (
+                            <div className="space-y-6 mb-8 pl-2">
+                              {rel.objetivoGeneral && (
+                                <div className="space-y-1">
+                                  <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><Target className="w-3 h-3" /> Objetivo General</p>
+                                  <p className="text-sm font-medium text-muted-foreground leading-relaxed">{rel.objetivoGeneral}</p>
+                                </div>
+                              )}
+                              {rel.objetivosEspecificos && rel.objetivosEspecificos.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.1em] flex items-center gap-2"><ListTodo className="w-3 h-3" /> Objetivos Específicos</p>
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    {rel.objetivosEspecificos.map((obj, idx) => (
+                                      <li key={idx} className="text-xs text-muted-foreground font-medium">{obj}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           
                           {/* Resúmenes para Proyecto e Informes */}
                           {(isProyectoMaster || isInforme) && rel.description && (
