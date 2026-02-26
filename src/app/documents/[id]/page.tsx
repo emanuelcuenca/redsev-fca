@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, use, useEffect, useMemo } from "react";
@@ -244,7 +245,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
-            <div className={cn("grid grid-cols-1 gap-10", !isExtensionProyecto && "md:grid-cols-2")}>
+            <div className={cn("grid grid-cols-1 gap-10", (!isExtensionProyecto && !isProyecto) && "md:grid-cols-2")}>
               <div className="space-y-6">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b pb-2">Gestión Institucional</h3>
                 <div className="space-y-4">
@@ -337,7 +338,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
 
                   <div className="divide-y divide-muted">
                     {relatedDocs
-                      ?.filter(rel => rel.extensionDocType !== 'Proyecto de Extensión') // Excluir el registro maestro del listado
+                      ?.filter(rel => rel.id !== (masterProject?.id || documentData.id)) // Excluir el registro maestro del listado cronológico
                       .sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime())
                       .map((rel) => {
                         const isResolucion = rel.extensionDocType === 'Resolución de aprobación';
@@ -461,6 +462,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </Card>
             </section>
           )}
+
+          <div className="mt-12 flex justify-center border-t pt-12">
+            <Button 
+              variant="outline" 
+              className="h-12 px-10 rounded-xl font-black uppercase text-[10px] tracking-widest border-primary text-primary hover:bg-primary/5 transition-all"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Repositorio
+            </Button>
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>

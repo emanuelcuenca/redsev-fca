@@ -160,7 +160,7 @@ export default function DocumentsListPage() {
   const years = useMemo(() => {
     if (!rawDocs) return [];
     const allYears = rawDocs.map(d => {
-      const dateToUse = (category === 'extension' ? d.uploadDate : (d.date || d.uploadDate));
+      const dateToUse = (category === 'extension' ? d.uploadDate : (doc.date || doc.uploadDate));
       return dateToUse ? new Date(dateToUse).getFullYear() : null;
     }).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
@@ -304,7 +304,11 @@ export default function DocumentsListPage() {
                 {isLoading ? (
                   <TableRow><TableCell colSpan={4} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
                 ) : filteredDocs.map((doc) => (
-                  <TableRow key={doc.id} className="hover:bg-primary/[0.03] group transition-all duration-300">
+                  <TableRow 
+                    key={doc.id} 
+                    className="hover:bg-primary/[0.03] group transition-all duration-300 cursor-pointer"
+                    onClick={() => router.push(`/documents/${doc.id}`)}
+                  >
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
@@ -334,7 +338,7 @@ export default function DocumentsListPage() {
                     <TableCell className="text-muted-foreground font-bold">
                       {new Date((category === 'extension' ? doc.uploadDate : (doc.date || doc.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
-                    <TableCell className="text-right pr-12">
+                    <TableCell className="text-right pr-12" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10"><Link href={`/documents/${doc.id}`}><Eye className="w-5 h-5" /></Link></Button>
                         {isAdmin && (
