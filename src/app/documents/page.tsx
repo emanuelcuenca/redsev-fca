@@ -18,7 +18,8 @@ import {
   Pencil,
   Plane,
   GraduationCap,
-  ScrollText
+  ScrollText,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -59,6 +60,8 @@ export default function DocumentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterVigente, setFilterVigente] = useState<string>("all");
   const [filterYear, setFilterYear] = useState<string>("all");
+  const [filterDirector, setFilterDirector] = useState<string>("all");
+  const [filterExtensionType, setFilterExtensionType] = useState<string>("all");
   
   useEffect(() => {
     setMounted(true);
@@ -83,27 +86,34 @@ export default function DocumentsListPage() {
   }, [db, user]);
   const { data: rawDocs, isLoading } = useCollection<AgriculturalDocument>(docsQuery);
 
+  const directorsList = useMemo(() => {
+    if (!rawDocs) return [];
+    const list = rawDocs
+      .filter(d => d.type === 'Proyecto')
+      .map(d => formatPersonName(d.director))
+      .filter(name => name !== 'Sin asignar');
+    return Array.from(new Set(list)).sort();
+  }, [rawDocs]);
+
   const filteredDocs = useMemo(() => {
     if (!rawDocs) return [];
     
     return rawDocs.filter(doc => {
-      // Si el usuario es administrador, no aplicamos el filtro jerárquico
+      // 1. Filtro jerárquico para no administradores
       if (!isAdmin) {
-        // FILTRO JERÁRQUICO DE EXTENSIÓN: Solo mostrar "Proyecto de Extensión" en listas generales.
-        // Resoluciones e Informes son accesibles solo desde el detalle del proyecto.
         if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
           return false;
         }
       }
 
-      // 1. Filtro por categoría de sidebar
+      // 2. Filtro por categoría de sidebar
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
       if (category === 'extension' && doc.type !== 'Proyecto') return false;
       if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
       if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
 
-      // 2. Búsqueda por texto
+      // 3. Búsqueda por texto
       const searchableString = (
         (doc.title || "") + 
         (doc.projectCode || '') + 
@@ -115,7 +125,7 @@ export default function DocumentsListPage() {
       
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      // 3. Filtros adicionales (Año / Vigencia)
+      // 4. Filtros adicionales
       const docYear = (doc.date ? new Date(doc.date).getFullYear() : (doc.uploadDate ? new Date(doc.uploadDate).getFullYear() : null))?.toString();
       if (filterYear !== "all" && docYear !== filterYear) return false;
       
@@ -123,9 +133,20 @@ export default function DocumentsListPage() {
         const isVig = isDocumentVigente(doc);
         if (isVig !== (filterVigente === "vigente")) return false;
       }
+
+      // 5. Filtro de Director (Extensión)
+      if (category === 'extension' && filterDirector !== "all") {
+        if (formatPersonName(doc.director) !== filterDirector) return false;
+      }
+
+      // 6. Filtro de Tipo de Extensión (Solo Admin)
+      if (isAdmin && category === 'extension' && filterExtensionType !== "all") {
+        if (doc.extensionDocType !== filterExtensionType) return false;
+      }
+
       return true;
     });
-  }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin]);
+  }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin, filterDirector, filterExtensionType]);
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
@@ -202,10 +223,10 @@ export default function DocumentsListPage() {
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-3">
               {category === 'convenios' && (
                 <Select value={filterVigente} onValueChange={setFilterVigente}>
-                  <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
+                  <SelectTrigger className="h-11 w-full md:w-40 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
@@ -215,8 +236,44 @@ export default function DocumentsListPage() {
                   </SelectContent>
                 </Select>
               )}
+
+              {category === 'extension' && (
+                <>
+                  <Select value={filterDirector} onValueChange={setFilterDirector}>
+                    <SelectTrigger className="h-11 w-full md:w-56 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                      <div className="flex items-center gap-2 truncate">
+                        <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                        <SelectValue placeholder="Director/a" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los Directores</SelectItem>
+                      {directorsList.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+
+                  {isAdmin && (
+                    <Select value={filterExtensionType} onValueChange={setFilterExtensionType}>
+                      <SelectTrigger className="h-11 w-full md:w-56 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                        <div className="flex items-center gap-2 truncate">
+                          <Fingerprint className="w-3.5 h-3.5 shrink-0" />
+                          <SelectValue placeholder="Tipo / Código" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las Categorías</SelectItem>
+                        <SelectItem value="Proyecto de Extensión">Proyecto de Extensión</SelectItem>
+                        <SelectItem value="Resolución de aprobación">Resolución de aprobación</SelectItem>
+                        <SelectItem value="Informe de avance">Informe de avance</SelectItem>
+                        <SelectItem value="Informe final">Informe final</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
+              )}
+
               <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger className="h-11 rounded-xl font-bold text-xs uppercase tracking-wider">
+                <SelectTrigger className="h-11 w-full md:w-40 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
                   <SelectValue placeholder="Año" />
                 </SelectTrigger>
                 <SelectContent>
@@ -224,7 +281,8 @@ export default function DocumentsListPage() {
                   {years.map(y => <SelectItem key={y as number} value={y!.toString()}>{y}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground">Limpiar</Button>
+
+              <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setFilterDirector("all"); setFilterExtensionType("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-auto">Limpiar Filtros</Button>
             </div>
           </div>
 
@@ -288,7 +346,7 @@ export default function DocumentsListPage() {
                   </TableRow>
                 ))}
                 {!isLoading && filteredDocs.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros en esta categoría</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros con los filtros seleccionados</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
