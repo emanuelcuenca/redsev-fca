@@ -14,10 +14,8 @@ import {
   User,
   Users,
   ScrollText,
-  FileText,
   Calendar,
   MapPin,
-  Building2,
   Clock,
   Globe
 } from "lucide-react";
@@ -302,7 +300,6 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const isResolucionAprobacion = isProyecto && formData.extensionDocType === "Resolución de aprobación";
   const isInformeAvance = isProyecto && formData.extensionDocType === "Informe de avance";
   const isInformeFinal = isProyecto && formData.extensionDocType === "Informe final";
-  const isLinkingType = isResolucionAprobacion || isInformeAvance || isInformeFinal;
 
   return (
     <SidebarProvider>
@@ -310,15 +307,28 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 text-center"><span className="font-headline font-bold text-primary uppercase">Editar Registro</span></div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">FCA - UNCA</span>
+            </div>
+          </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-primary/10 p-2.5 rounded-xl"><Pencil className="w-6 h-6 text-primary" /></div>
+            <div>
+              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Editar Registro</h2>
+              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Actualización de datos institucionales</p>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
               <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
-                <CardTitle className="text-xl font-headline font-bold uppercase text-primary flex items-center gap-3"><Pencil className="w-5 h-5" /> Información General</CardTitle>
+                <CardTitle className="text-xl font-headline font-bold uppercase text-primary flex items-center gap-3">Información General</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -379,10 +389,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase text-muted-foreground">{formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}</Label>
-                            <input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
+                            <input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                           </div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
                         </div>
                       </div>
                     </div>
@@ -441,7 +451,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {!isMobilityLike && !isProyecto && !isConvenio && !isPasantia && (
+                  {!isMobilityLike && !isProyecto && !isConvenio && formData.type !== 'Pasantía' && (
                     <div className="space-y-2">
                       <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Firma / Registro</Label>
                       <div className="grid grid-cols-3 gap-1">
@@ -495,7 +505,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && !isPasantia && (
+                  {!isMobilityEstudiantil && !isMobilityDocente && !isConvenio && formData.type !== 'Pasantía' && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">{isMobilityLike ? "Resolución" : "Código / Expediente"}</Label><input value={formData.projectCode || ""} onChange={(e) => setFormData({...formData, projectCode: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
                     </div>

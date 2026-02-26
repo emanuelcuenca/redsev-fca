@@ -13,24 +13,19 @@ import {
   Eye,
   Handshake,
   Building2,
-  BookOpen,
-  GraduationCap,
   Plane,
   ArrowLeftRight,
   ScrollText,
   Fingerprint,
   MapPin,
-  ListTodo,
   Pencil,
   Target,
   Users,
-  ChevronRight,
   History,
   AlertTriangle,
   Lock,
   Clock,
   CheckCircle2,
-  Send,
   Files,
   ExternalLink
 } from "lucide-react";
@@ -159,7 +154,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       case 'Convenio': return <Handshake className="w-5 h-5" />;
       case 'Proyecto': return <ArrowLeftRight className="w-5 h-5" />;
       case 'Movilidad Estudiantil': case 'Movilidad Docente': return <Plane className="w-5 h-5" />;
-      case 'Pasantía': return <GraduationCap className="w-5 h-5" />;
+      case 'Pasantía': return <ScrollText className="w-5 h-5" />;
       default: return <FileText className="w-5 h-5" />;
     }
   };
@@ -170,10 +165,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 flex justify-center text-center">
-            <span className="text-xs md:text-lg font-headline text-primary uppercase font-bold tracking-tight truncate max-w-[250px] md:max-w-md">
-              {documentData.projectCode || 'Detalle del Registro'}
-            </span>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">FCA - UNCA</span>
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {isAdmin && (

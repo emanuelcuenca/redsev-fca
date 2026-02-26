@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   X, 
@@ -15,19 +15,16 @@ import {
   Target,
   FileUp,
   Search,
-  FileCheck,
   User,
   Users,
   Fingerprint,
   Plane,
   GraduationCap,
-  MapPin,
-  Calendar,
-  ListTodo,
   Clock,
   SearchCode,
   Link as LinkIcon,
-  Globe
+  Globe,
+  ListTodo
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -46,7 +43,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useUser, useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { PersonName, StaffMember, AgriculturalDocument } from "@/lib/mock-data";
 import { StaffAutocomplete } from "@/components/forms/staff-autocomplete";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -361,11 +358,24 @@ export default function UploadPage() {
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 text-center"><span className="font-headline font-bold text-primary uppercase">Cargar Registro SEyV</span></div>
+          <div className="flex-1 flex justify-center overflow-hidden px-2">
+            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">FCA - UNCA</span>
+            </div>
+          </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
         <main className="p-4 md:p-8 max-w-4xl mx-auto w-full pb-32">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-6 h-6 text-primary" /></div>
+            <div>
+              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Cargar Registro</h2>
+              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Ingreso de documentación SEyV</p>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
             <section className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
               <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Categoría Institucional</h2>
