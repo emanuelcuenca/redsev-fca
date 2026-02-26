@@ -78,13 +78,10 @@ export default function Dashboard() {
   
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
-  // Filtrar solo registros principales para visibilidad de usuarios y autoridades
+  // Mostrar todos los documentos sin restricciones de jerarquía
   const visibleDocuments = useMemo(() => {
     if (!allDocuments) return [];
-    return allDocuments.filter(d => 
-      d.type === 'Convenio' || 
-      (d.type === 'Proyecto' && d.extensionDocType === 'Proyecto de Extensión')
-    );
+    return allDocuments;
   }, [allDocuments]);
 
   const stats = useMemo(() => {
@@ -279,7 +276,7 @@ export default function Dashboard() {
               ) : (
                 <div className="col-span-full py-20 text-center bg-muted/20 rounded-[3rem] border-2 border-dashed border-muted">
                   <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay documentos principales cargados.</p>
+                  <p className="text-muted-foreground font-bold uppercase tracking-tight">No hay registros cargados.</p>
                 </div>
               )
             )}

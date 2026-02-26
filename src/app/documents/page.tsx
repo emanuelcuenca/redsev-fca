@@ -15,7 +15,10 @@ import {
   ArrowLeftRight,
   Trash2,
   Fingerprint,
-  Pencil
+  Pencil,
+  Plane,
+  GraduationCap,
+  ScrollText
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -83,29 +86,27 @@ export default function DocumentsListPage() {
   const filteredDocs = useMemo(() => {
     if (!rawDocs) return [];
     
-    // FILTRADO ESTRICTO: Solo mostrar Proyectos de Extensión y Convenios
-    // Registros secundarios (resoluciones, informes) solo son visibles entrando al expediente.
     return rawDocs.filter(doc => {
-      // 1. Regla de visibilidad general: solo registros principales
-      const isPrincipal = (doc.type === 'Convenio') || (doc.type === 'Proyecto' && doc.extensionDocType === 'Proyecto de Extensión');
-      if (!isPrincipal) return false;
-
-      // 2. Filtro por categoría de sidebar
+      // 1. Filtro por categoría de sidebar
       if (category === 'convenios' && doc.type !== 'Convenio') return false;
-      if (category === 'extension' && doc.type !== 'Proyecto') return false;
+      if (category === 'extension' && doc.type !== 'Proyecto' && doc.type !== 'Resolución') return false;
+      if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
+      if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
 
-      // 3. Búsqueda por texto
+      // 2. Búsqueda por texto
       const searchableString = (
         (doc.title || "") + 
         (doc.projectCode || '') + 
+        (doc.resolutionNumber || '') +
         (doc.authors?.map(a => a.lastName).join(' ') || '') +
-        (doc.director?.lastName || '')
+        (doc.director?.lastName || '') +
+        (doc.student?.lastName || '')
       ).toLowerCase();
       
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      // 4. Filtros adicionales (Año / Vigencia)
-      const docYear = (doc.date ? new Date(doc.date).getFullYear() : null)?.toString();
+      // 3. Filtros adicionales (Año / Vigencia)
+      const docYear = (doc.date ? new Date(doc.date).getFullYear() : (doc.uploadDate ? new Date(doc.uploadDate).getFullYear() : null))?.toString();
       if (filterYear !== "all" && docYear !== filterYear) return false;
       
       if (category === 'convenios' && filterVigente !== "all") {
@@ -118,7 +119,7 @@ export default function DocumentsListPage() {
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
-    if (confirm("¿Está seguro de eliminar este registro principal? Esto no eliminará los documentos vinculados en el expediente.")) {
+    if (confirm("¿Está seguro de eliminar este registro?")) {
       deleteDocumentNonBlocking(doc(db, 'documents', docId));
       toast({ title: "Registro eliminado" });
     }
@@ -126,19 +127,33 @@ export default function DocumentsListPage() {
 
   const years = useMemo(() => {
     if (!rawDocs) return [];
-    const allYears = rawDocs.map(d => (d.date ? new Date(d.date).getFullYear() : null)).filter(Boolean);
+    const allYears = rawDocs.map(d => (d.date ? new Date(d.date).getFullYear() : (d.uploadDate ? new Date(d.uploadDate).getFullYear() : null))).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
   }, [rawDocs]);
 
   const getPageInfo = () => {
     switch(category) {
       case 'convenios': return { title: 'Convenios', icon: Handshake };
-      case 'extension': return { title: 'Gestión de Proyectos', icon: ArrowLeftRight };
+      case 'extension': return { title: 'Extensión y Proyectos', icon: ArrowLeftRight };
+      case 'movilidad': return { title: 'Movilidad Estudiantil/Docente', icon: Plane };
+      case 'pasantias': return { title: 'Pasantías y Prácticas', icon: GraduationCap };
       default: return { title: 'Repositorio Institucional', icon: FileText };
     }
   };
 
   const { title: pageTitle, icon: PageIcon } = getPageInfo();
+
+  const getDocIcon = (type: string) => {
+    switch(type) {
+      case 'Convenio': return <Handshake className="w-6 h-6" />;
+      case 'Proyecto': return <ArrowLeftRight className="w-6 h-6" />;
+      case 'Movilidad Estudiantil':
+      case 'Movilidad Docente': return <Plane className="w-6 h-6" />;
+      case 'Pasantía': return <GraduationCap className="w-6 h-6" />;
+      case 'Resolución': return <ScrollText className="w-6 h-6" />;
+      default: return <FileText className="w-6 h-6" />;
+    }
+  };
 
   if (isUserLoading || !mounted) {
     return (
@@ -170,7 +185,7 @@ export default function DocumentsListPage() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input 
-                placeholder="Buscar por título, código o director..." 
+                placeholder="Buscar por título, código, responsable o resolución..." 
                 className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
@@ -206,8 +221,8 @@ export default function DocumentsListPage() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Proyecto / Convenio</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Código / Nivel</TableHead>
+                  <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Documento / Trámite</TableHead>
+                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Código / Categoría</TableHead>
                   <TableHead className="font-black text-[12px] uppercase tracking-widest">Fecha</TableHead>
                   <TableHead className="pr-12 text-right font-black text-[12px] uppercase tracking-widest">Acciones</TableHead>
                 </TableRow>
@@ -220,12 +235,15 @@ export default function DocumentsListPage() {
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
-                          {doc.type === 'Convenio' ? <Handshake className="w-6 h-6" /> : <ArrowLeftRight className="w-6 h-6" />}
+                          {getDocIcon(doc.type)}
                         </div>
                         <div className="max-w-md">
                           <p className="font-black text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">{doc.title}</p>
                           <p className="text-sm text-muted-foreground mt-1 font-bold flex items-center gap-2">
-                            <User className="w-4 h-4 text-primary/60" /> {formatPersonName(doc.director) || (doc.authors && doc.authors.length > 0 ? formatPersonName(doc.authors[0]) : 'Responsable SEyV')}
+                            <User className="w-4 h-4 text-primary/60" /> 
+                            {formatPersonName(doc.director) !== 'Sin asignar' ? formatPersonName(doc.director) : 
+                             (doc.student && formatPersonName(doc.student) !== 'Sin asignar') ? formatPersonName(doc.student) :
+                             (doc.authors && doc.authors.length > 0) ? formatPersonName(doc.authors[0]) : 'Responsable SEyV'}
                           </p>
                         </div>
                       </div>
@@ -233,7 +251,11 @@ export default function DocumentsListPage() {
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{doc.extensionDocType || doc.type}</Badge>
-                        {doc.projectCode && (<span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1"><Fingerprint className="w-3 h-3" /> {doc.projectCode}</span>)}
+                        {(doc.projectCode || doc.resolutionNumber) && (
+                          <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
+                            <Fingerprint className="w-3 h-3" /> {doc.projectCode || doc.resolutionNumber}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground font-bold">{new Date(doc.date || doc.uploadDate || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
@@ -255,7 +277,7 @@ export default function DocumentsListPage() {
                   </TableRow>
                 ))}
                 {!isLoading && filteredDocs.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros principales en esta categoría</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros en esta categoría</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

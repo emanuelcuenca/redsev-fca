@@ -10,7 +10,9 @@ import {
   UploadCloud,
   Users,
   Contact,
-  BellRing
+  BellRing,
+  Plane,
+  GraduationCap
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +46,8 @@ export function MainSidebar() {
     { icon: LayoutDashboard, label: "Inicio", href: "/" },
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
+    { icon: Plane, label: "Movilidad", href: "/documents?category=movilidad" },
+    { icon: GraduationCap, label: "Pasantías", href: "/documents?category=pasantias" },
   ];
 
   const ADMIN_ITEMS = [
