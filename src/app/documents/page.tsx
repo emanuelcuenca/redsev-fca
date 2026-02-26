@@ -72,7 +72,6 @@ export default function DocumentsListPage() {
   const [filterDirector, setFilterDirector] = useState<string>("all");
   const [filterExtensionType, setFilterExtensionType] = useState<string>("all");
   
-  // Estado para gestionar la eliminación con el diálogo profesional
   const [docIdToDelete, setDocIdToDelete] = useState<string | null>(null);
   
   useEffect(() => {
@@ -190,13 +189,13 @@ export default function DocumentsListPage() {
 
   const getDocIcon = (type: string) => {
     switch(type) {
-      case 'Convenio': return <Handshake className="w-6 h-6" />;
-      case 'Proyecto': return <ArrowLeftRight className="w-6 h-6" />;
+      case 'Convenio': return <Handshake className="w-4 h-4 md:w-6 md:h-6" />;
+      case 'Proyecto': return <ArrowLeftRight className="w-4 h-4 md:w-6 md:h-6" />;
       case 'Movilidad Estudiantil':
-      case 'Movilidad Docente': return <Plane className="w-6 h-6" />;
-      case 'Pasantía': return <GraduationCap className="w-6 h-6" />;
-      case 'Resolución': return <ScrollText className="w-6 h-6" />;
-      default: return <FileText className="w-6 h-6" />;
+      case 'Movilidad Docente': return <Plane className="w-4 h-4 md:w-6 md:h-6" />;
+      case 'Pasantía': return <GraduationCap className="w-4 h-4 md:w-6 md:h-6" />;
+      case 'Resolución': return <ScrollText className="w-4 h-4 md:w-6 md:h-6" />;
+      default: return <FileText className="w-4 h-4 md:w-6 md:h-6" />;
     }
   };
 
@@ -216,30 +215,35 @@ export default function DocumentsListPage() {
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center text-center">
             <div className="flex flex-col items-center">
-              <span className="text-[12px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
-              <span className="text-[12px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal">FCA - UNCA</span>
+              <span className="text-[10px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[10px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
-        <main className="p-4 md:p-8 w-full max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-6 md:mb-8"><div className="bg-primary/10 p-2.5 rounded-xl"><PageIcon className="w-6 h-6 text-primary" /></div><h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2></div>
+        <main className="p-3 md:p-8 w-full max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-4 md:mb-8">
+            <div className="bg-primary/10 p-2 rounded-xl">
+              <PageIcon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+            </div>
+            <h2 className="text-lg md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2>
+          </div>
           
-          <div className="space-y-4 mb-8">
+          <div className="space-y-3 mb-6 md:mb-8">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 md:w-5 md:h-5" />
               <Input 
-                placeholder="Buscar por título, código, responsable o resolución..." 
-                className="pl-12 h-14 rounded-2xl text-sm md:text-base border-muted-foreground/20 shadow-sm font-medium" 
+                placeholder="Buscar registros..." 
+                className="pl-10 md:pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl text-xs md:text-base border-muted-foreground/20 shadow-sm font-medium" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
               />
             </div>
-            <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-3">
+            <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-2 md:gap-3">
               {category === 'convenios' && (
                 <Select value={filterVigente} onValueChange={setFilterVigente}>
-                  <SelectTrigger className="h-11 w-full md:w-40 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                  <SelectTrigger className="h-10 w-full md:w-40 rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-wider bg-white">
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
@@ -253,9 +257,9 @@ export default function DocumentsListPage() {
               {category === 'extension' && (
                 <>
                   <Select value={filterDirector} onValueChange={setFilterDirector}>
-                    <SelectTrigger className="h-11 w-full md:w-56 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                    <SelectTrigger className="h-10 w-full md:w-56 rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-wider bg-white">
                       <div className="flex items-center gap-2 truncate">
-                        <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                        <UserCheck className="w-3 h-3 shrink-0" />
                         <SelectValue placeholder="Director/a" />
                       </div>
                     </SelectTrigger>
@@ -267,9 +271,9 @@ export default function DocumentsListPage() {
 
                   {isAdmin && (
                     <Select value={filterExtensionType} onValueChange={setFilterExtensionType}>
-                      <SelectTrigger className="h-11 w-full md:w-56 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                      <SelectTrigger className="h-10 w-full md:w-56 rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-wider bg-white">
                         <div className="flex items-center gap-2 truncate">
-                          <Fingerprint className="w-3.5 h-3.5 shrink-0" />
+                          <Fingerprint className="w-3 h-3 shrink-0" />
                           <SelectValue placeholder="Tipo / Código" />
                         </div>
                       </SelectTrigger>
@@ -286,7 +290,7 @@ export default function DocumentsListPage() {
               )}
 
               <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger className="h-11 w-full md:w-40 rounded-xl font-bold text-xs uppercase tracking-wider bg-white">
+                <SelectTrigger className="h-10 w-full md:w-40 rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-wider bg-white">
                   <SelectValue placeholder="Año" />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,66 +299,81 @@ export default function DocumentsListPage() {
                 </SelectContent>
               </Select>
 
-              <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setFilterDirector("all"); setFilterExtensionType("all"); setSearchQuery(""); }} className="h-11 text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-auto">Limpiar Filtros</Button>
+              <Button variant="ghost" onClick={() => { setFilterVigente("all"); setFilterYear("all"); setFilterDirector("all"); setFilterExtensionType("all"); setSearchQuery(""); }} className="h-10 text-[9px] md:text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-auto">Limpiar Filtros</Button>
             </div>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] border border-muted shadow-2xl overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Documento / Trámite</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Código / Categoría</TableHead>
-                  <TableHead className="font-black text-[12px] uppercase tracking-widest">Fecha</TableHead>
-                  {isAdmin && <TableHead className="pr-12 text-right font-black text-[12px] uppercase tracking-widest">Acciones</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
-                ) : filteredDocs.map((docItem) => (
-                  <TableRow 
-                    key={docItem.id} 
-                    className="hover:bg-primary/[0.03] group transition-all duration-300"
-                  >
-                    <TableCell className="py-8 pl-12">
-                      <div className="flex items-center gap-6">
-                        <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
-                          {getDocIcon(docItem.type)}
+          <div className="bg-white rounded-2xl md:rounded-[2.5rem] border border-muted shadow-xl md:shadow-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="hover:bg-transparent border-none">
+                    <TableHead className="py-4 md:py-7 pl-4 md:pl-12 font-black text-[10px] md:text-[12px] uppercase tracking-widest">Registro</TableHead>
+                    <TableHead className="hidden md:table-cell font-black text-[12px] uppercase tracking-widest">Código / Categoría</TableHead>
+                    <TableHead className="hidden sm:table-cell font-black text-[10px] md:text-[12px] uppercase tracking-widest">Fecha</TableHead>
+                    {isAdmin && <TableHead className="pr-4 md:pr-12 text-right font-black text-[10px] md:text-[12px] uppercase tracking-widest">Acciones</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
+                  ) : filteredDocs.map((docItem) => (
+                    <TableRow 
+                      key={docItem.id} 
+                      className="hover:bg-primary/[0.03] group transition-all duration-300"
+                    >
+                      <TableCell className="py-4 md:py-8 pl-4 md:pl-12">
+                        <div className="flex items-center gap-3 md:gap-6">
+                          <div className="bg-primary/10 p-2 md:p-4 rounded-lg md:rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
+                            {getDocIcon(docItem.type)}
+                          </div>
+                          <div className="max-w-xs md:max-w-md">
+                            <Link href={`/documents/${docItem.id}`} className="block w-fit">
+                              <p className="font-black text-sm md:text-lg leading-tight text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                                {docItem.title}
+                              </p>
+                            </Link>
+                            <div className="flex flex-col gap-1 mt-1">
+                              <p className="text-[10px] md:text-sm text-muted-foreground font-bold flex items-center gap-1.5">
+                                <User className="w-3 h-3 md:w-4 md:h-4 text-primary/60" /> 
+                                <span className="truncate">
+                                  {formatPersonName(docItem.director) !== 'Sin asignar' ? formatPersonName(docItem.director) : 
+                                   (docItem.student && formatPersonName(docItem.student) !== 'Sin asignar') ? formatPersonName(docItem.student) :
+                                   (docItem.authors && docItem.authors.length > 0) ? formatPersonName(docItem.authors[0]) : 'Responsable SEyV'}
+                                </span>
+                              </p>
+                              {/* Información adicional visible solo en móvil debajo del título */}
+                              <div className="flex flex-wrap items-center gap-2 md:hidden">
+                                <Badge variant="secondary" className="font-black text-[8px] uppercase px-2 py-0 h-4 bg-secondary text-primary">
+                                  {docItem.extensionDocType || docItem.type}
+                                </Badge>
+                                <span className="text-[8px] font-bold text-muted-foreground">
+                                  {new Date((category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate)) || 0).toLocaleDateString('es-ES')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="max-w-md">
-                          <Link href={`/documents/${docItem.id}`} className="block w-fit">
-                            <p className="font-black text-lg leading-tight text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">{docItem.title}</p>
-                          </Link>
-                          <p className="text-sm text-muted-foreground mt-1 font-bold flex items-center gap-2">
-                            <User className="w-4 h-4 text-primary/60" /> 
-                            {formatPersonName(docItem.director) !== 'Sin asignar' ? formatPersonName(docItem.director) : 
-                             (docItem.student && formatPersonName(docItem.student) !== 'Sin asignar') ? formatPersonName(docItem.student) :
-                             (docItem.authors && docItem.authors.length > 0) ? formatPersonName(docItem.authors[0]) : 'Responsable SEyV'}
-                          </p>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{docItem.extensionDocType || docItem.type}</Badge>
+                          {(docItem.projectCode || docItem.resolutionNumber) && (
+                            <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
+                              <Fingerprint className="w-3 h-3" /> {docItem.projectCode || docItem.resolutionNumber}
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{docItem.extensionDocType || docItem.type}</Badge>
-                        {(docItem.projectCode || docItem.resolutionNumber) && (
-                          <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
-                            <Fingerprint className="w-3 h-3" /> {docItem.projectCode || docItem.resolutionNumber}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-bold">
-                      {new Date((category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell className="text-right pr-12">
-                        <div className="flex justify-end gap-2">
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-muted-foreground font-bold text-xs md:text-sm">
+                        {new Date((category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right pr-4 md:pr-12">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
-                                <MoreVertical className="w-5 h-5" />
+                              <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 md:h-10 md:w-10">
+                                <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="rounded-xl">
@@ -372,36 +391,35 @@ export default function DocumentsListPage() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-                {!isLoading && filteredDocs.length === 0 && (
-                  <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros con los filtros seleccionados</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                  {!isLoading && filteredDocs.length === 0 && (
+                    <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px]">No se encontraron registros</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </main>
 
-        {/* Diálogo de Confirmación de Eliminación */}
         <AlertDialog open={!!docIdToDelete} onOpenChange={(open) => !open && setDocIdToDelete(null)}>
-          <AlertDialogContent className="rounded-[2rem] max-w-md">
+          <AlertDialogContent className="rounded-2xl md:rounded-[2rem] max-w-[90vw] md:max-w-md">
             <AlertDialogHeader className="items-center text-center">
-              <div className="bg-destructive/10 p-4 rounded-full mb-4">
-                <AlertTriangle className="w-10 h-10 text-destructive" />
+              <div className="bg-destructive/10 p-3 md:p-4 rounded-full mb-3 md:mb-4">
+                <AlertTriangle className="w-8 h-8 md:w-10 md:h-10 text-destructive" />
               </div>
-              <AlertDialogTitle className="font-headline font-bold uppercase text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
-              <AlertDialogDescription className="text-muted-foreground font-medium pt-2">
+              <AlertDialogTitle className="font-headline font-bold uppercase text-lg md:text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground font-medium pt-2 text-xs md:text-sm">
                 Esta acción es permanente y eliminará este registro de la base de datos institucional. No se podrá recuperar.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="sm:justify-center gap-3 mt-6">
-              <AlertDialogCancel className="rounded-xl font-bold uppercase text-[10px] tracking-widest h-12 px-6">Cancelar</AlertDialogCancel>
+            <AlertDialogFooter className="sm:justify-center gap-2 md:gap-3 mt-4 md:mt-6">
+              <AlertDialogCancel className="rounded-xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest h-10 md:h-12 px-4 md:px-6">Cancelar</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={confirmDelete}
-                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-black uppercase text-[10px] tracking-widest h-12 px-8"
+                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-black uppercase text-[9px] md:text-[10px] tracking-widest h-10 md:h-12 px-6 md:px-8"
               >
                 Eliminar Registro
               </AlertDialogAction>
