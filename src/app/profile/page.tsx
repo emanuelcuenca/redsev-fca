@@ -51,6 +51,16 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
+const CARRERAS = [
+  "Ingeniería Agronómica",
+  "Ingeniería de Paisajes",
+  "Ingeniería de Alimentos",
+  "Tecnicatura Univ. de Paisajes",
+  "Tecnicatura Univ. en Parques y Jardines",
+  "Tecnicatura Univ. en Prod. Vegetal",
+  "Tecnicatura Univ. en Prod. Animal"
+].sort();
+
 const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -292,7 +302,12 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground">Carrera</Label>
-                      <Input value={formData.carrera} onChange={(e) => setFormData({...formData, carrera: e.target.value})} className="h-12 rounded-xl bg-white font-bold" />
+                      <Select value={formData.carrera} onValueChange={(v) => setFormData({...formData, carrera: v})}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue placeholder="Seleccione carrera" /></SelectTrigger>
+                        <SelectContent>
+                          {CARRERAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </>
                 )}

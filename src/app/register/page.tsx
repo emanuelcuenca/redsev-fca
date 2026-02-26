@@ -50,6 +50,16 @@ const DEPARTMENTS = [
   "Tecnología y Cs. Aplicadas"
 ].sort();
 
+const CARRERAS = [
+  "Ingeniería Agronómica",
+  "Ingeniería de Paisajes",
+  "Ingeniería de Alimentos",
+  "Tecnicatura Univ. de Paisajes",
+  "Tecnicatura Univ. en Parques y Jardines",
+  "Tecnicatura Univ. en Prod. Vegetal",
+  "Tecnicatura Univ. en Prod. Animal"
+].sort();
+
 const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 400): Promise<string> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -145,6 +155,11 @@ export default function RegisterPage() {
 
     if (!claustro) {
       toast({ variant: "destructive", title: "Debe seleccionar su claustro" });
+      return;
+    }
+
+    if (claustro === "Estudiante" && !carrera) {
+      toast({ variant: "destructive", title: "Debe seleccionar su carrera" });
       return;
     }
 
@@ -344,10 +359,14 @@ export default function RegisterPage() {
                     </div>
                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Carrera</Label>
-                      <div className="relative">
-                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                        <Input placeholder="Ej: Ingeniería Agronómica" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={carrera} onChange={(e) => setCarrera(e.target.value)} />
-                      </div>
+                      <Select value={carrera} onValueChange={setCarrera}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                          <SelectValue placeholder="Seleccione su carrera" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CARRERAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </>
                 )}
