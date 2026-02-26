@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Alert, AlertDescription, AlertTitle } from "@/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
@@ -442,7 +442,7 @@ export default function RegisterPage() {
                 <div className="text-center space-y-3">
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿Ya tiene una cuenta?</p>
                   <Button asChild variant="ghost" className="w-full h-11 rounded-xl text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
-                    <Link href="/login"><LogIn className="w-4 h-4 mr-2" /> Volver al ingreso</Link>
+                    <Link href="/login"><LogIn className="w-4 h-4 ml-2" /> Volver al ingreso</Link>
                   </Button>
                 </div>
               </CardFooter>
