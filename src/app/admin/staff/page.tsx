@@ -96,7 +96,6 @@ export default function StaffAdminPage() {
     setMounted(true);
   }, []);
 
-  // Verificación de Admin
   const adminCheckRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
@@ -112,28 +111,38 @@ export default function StaffAdminPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
-  // Suscripción al Banco de Extensionistas
   const staffQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? query(collection(db, 'staff'), orderBy('lastName', 'asc')) : null,
     [db, user, currentAdminDoc]
   );
   const { data: staffList, isLoading: isStaffLoading } = useCollection<StaffMember>(staffQuery);
 
-  // Suscripción a Usuarios Registrados para vinculación por email y obtención de CV
   const usersQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? collection(db, 'users') : null,
     [db, user, currentAdminDoc]
   );
   const { data: registeredUsers } = useCollection(usersQuery);
 
-  // Crear un mapa de emails registrados a datos de usuario para búsqueda rápida
-  const userMap = useMemo(() => {
-    const map = new Map<string, any>();
-    registeredUsers?.forEach(u => {
-      if (u.email) map.set(u.email.toLowerCase(), u);
+  // Función de vinculación jerárquica: 1. Email, 2. Apellido y Nombre
+  const getLinkedUser = (staff: StaffMember) => {
+    if (!registeredUsers) return null;
+
+    // Prioridad 1: Coincidencia por correo electrónico
+    if (staff.email) {
+      const byEmail = registeredUsers.find(u => u.email?.toLowerCase().trim() === staff.email?.toLowerCase().trim());
+      if (byEmail) return byEmail;
+    }
+
+    // Prioridad 2: Coincidencia por Apellido y Nombre
+    const sFirst = staff.firstName.toLowerCase().trim();
+    const sLast = staff.lastName.toLowerCase().trim();
+    
+    return registeredUsers.find(u => {
+      const uFirst = (u.firstName || "").toLowerCase().trim();
+      const uLast = (u.lastName || "").toLowerCase().trim();
+      return uFirst === sFirst && uLast === sLast;
     });
-    return map;
-  }, [registeredUsers]);
+  };
 
   const filteredStaff = staffList?.filter(s => 
     s.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -375,7 +384,7 @@ export default function StaffAdminPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredStaff.map((person) => {
-                        const linkedUser = person.email ? userMap.get(person.email.toLowerCase()) : null;
+                        const linkedUser = getLinkedUser(person);
                         const isUserLinked = !!linkedUser;
                         const hasCV = linkedUser?.cvUrl;
                         

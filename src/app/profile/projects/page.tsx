@@ -51,6 +51,7 @@ export default function MyProjectsPage() {
   const myProjects = useMemo(() => {
     if (!allProjects || !profile) return { asDirector: [], asTeam: [] };
 
+    // Normalizar datos del perfil para búsqueda robusta por nombre (segunda instancia)
     const firstName = (profile.firstName || "").toLowerCase().trim();
     const lastName = (profile.lastName || "").toLowerCase().trim();
 
@@ -60,7 +61,7 @@ export default function MyProjectsPage() {
     );
 
     const asTeam = allProjects.filter(p => {
-      // Evitar duplicados si es director e integrante a la vez (aunque no debería ocurrir por lógica institucional)
+      // Evitar duplicados si es director e integrante a la vez
       const isDir = p.director?.firstName?.toLowerCase().trim() === firstName && 
                     p.director?.lastName?.toLowerCase().trim() === lastName;
       
