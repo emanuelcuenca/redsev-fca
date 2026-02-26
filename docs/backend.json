@@ -44,7 +44,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Staff",
       "type": "object",
-      "description": "Institutional teaching staff register (Padrón Docente).",
+      "description": "Institutional extension staff register (Banco de Extensionistas).",
       "properties": {
         "id": { "type": "string" },
         "firstName": { "type": "string" },
@@ -82,7 +82,7 @@
     },
     "/staff/{staffId}": {
       "schema": { "$ref": "#/backend/entities/Staff" },
-      "description": "Institutional staff register for reference."
+      "description": "Banco de Extensionistas para referencia institucional."
     },
     "/documents/{documentId}": {
       "schema": { "$ref": "#/backend/entities/Document" },

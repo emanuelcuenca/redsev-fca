@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,7 +41,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
             aria-expanded={open}
             className="w-full justify-between h-12 rounded-xl font-bold bg-white text-left overflow-hidden"
           >
-            {value ? value : placeholder || "Buscar docente por apellido..."}
+            {value ? value : placeholder || "Buscar extensionista por apellido..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -51,7 +52,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
               className="h-11 border-none focus:ring-0"
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No se encontraron docentes en el padrón.</CommandEmpty>
+              <CommandEmpty>No se encontraron extensionistas en el banco.</CommandEmpty>
               <CommandGroup>
                 {staffList?.map((person) => (
                   <CommandItem

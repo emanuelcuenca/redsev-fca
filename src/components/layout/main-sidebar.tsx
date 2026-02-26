@@ -57,7 +57,7 @@ export function MainSidebar() {
   const ADMIN_ITEMS = [
     { icon: UploadCloud, label: "Cargar Registro", href: "/upload" },
     { icon: BellRing, label: "Solicitudes", href: "/admin/requests" },
-    { icon: Contact, label: "Padrón Docente", href: "/admin/staff" },
+    { icon: Contact, label: "Banco de Extensionistas", href: "/admin/staff" },
     { icon: Users, label: "Gestión Usuarios", href: "/admin" },
   ];
 

@@ -13,9 +13,9 @@ Este documento detalla las reglas de negocio personalizadas implementadas en el 
 - **Responsables**: Inicia con un (1) responsable institucional por defecto, con opción de añadir más.
 - **Vigencia**: El sistema calcula la vigencia basándose en la fecha de firma y los años de duración, a menos que tenga "Renovación Automática".
 
-## 3. Gestión de Personas (Padrón Docente)
-- **Sincronización Automática**: Cualquier Director o integrante de Equipo Técnico ingresado manualmente que no exista en el padrón, se guarda automáticamente en la colección `staff`.
-- **Buscador Inteligente**: Los campos de personas incluyen un componente de autocompletado que busca por Apellido en el padrón docente en tiempo real.
+## 3. Gestión de Personas (Banco de Extensionistas)
+- **Sincronización Automática**: Cualquier Director o integrante de Equipo Técnico ingresado manualmente que no exista en el banco, se guarda automáticamente en la colección `staff`.
+- **Buscador Inteligente**: Los campos de personas incluyen un componente de autocompletado que busca por Apellido en el banco de extensionistas en tiempo real.
 
 ## 4. Movilidad y Pasantías
 - **Terminología**: Se utiliza "Estado/Provincia" y "País" para destinos internacionales y nacionales.

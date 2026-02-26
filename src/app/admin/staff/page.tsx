@@ -134,10 +134,10 @@ export default function StaffAdminPage() {
 
     if (editingId) {
       updateDocumentNonBlocking(doc(db, 'staff', editingId), data);
-      toast({ title: "Docente actualizado", description: "Los cambios han sido guardados." });
+      toast({ title: "Extensionista actualizado", description: "Los cambios han sido guardados." });
     } else {
       addDocumentNonBlocking(collection(db, 'staff'), data);
-      toast({ title: "Docente guardado", description: "El padrón docente ha sido actualizado." });
+      toast({ title: "Extensionista guardado", description: "El banco de extensionistas ha sido actualizado." });
     }
 
     setIsSaving(false);
@@ -147,7 +147,7 @@ export default function StaffAdminPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("¿Está seguro de eliminar a este docente del padrón?")) {
+    if (confirm("¿Está seguro de eliminar a este integrante del banco de extensionistas?")) {
       deleteDocumentNonBlocking(doc(db, 'staff', id));
       toast({ title: "Registro eliminado" });
     }
@@ -167,7 +167,7 @@ export default function StaffAdminPage() {
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
-          <div className="flex-1 text-center font-headline font-bold text-primary uppercase">Padrón Docente</div>
+          <div className="flex-1 text-center font-headline font-bold text-primary uppercase">Banco de Extensionistas</div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
@@ -176,8 +176,8 @@ export default function StaffAdminPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Gestión de Docentes</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos de docentes FCA</p>
+                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Gestión de Extensionistas</h2>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos de extensionistas FCA</p>
               </div>
             </div>
 
@@ -190,13 +190,13 @@ export default function StaffAdminPage() {
             }}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl bg-primary h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
-                  <UserPlus className="w-4 h-4 mr-2" /> Agregar Docente
+                  <UserPlus className="w-4 h-4 mr-2" /> Agregar Extensionista
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-3xl sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle className="font-headline font-bold uppercase text-primary">
-                    {editingId ? "Editar Docente" : "Nuevo Docente"}
+                    {editingId ? "Editar Extensionista" : "Nuevo Extensionista"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
@@ -229,7 +229,7 @@ export default function StaffAdminPage() {
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isSaving} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest">
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Docente")}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Extensionista")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -242,7 +242,7 @@ export default function StaffAdminPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Buscar docente por Apellido o Nombre..." 
+                  placeholder="Buscar extensionista por Apellido o Nombre..." 
                   className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -258,7 +258,7 @@ export default function StaffAdminPage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Docente (Apellido y Nombre)</TableHead>
+                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Extensionista (Apellido y Nombre)</TableHead>
                       <TableHead className="font-black text-[10px] uppercase tracking-widest">Cargo / Escalafón</TableHead>
                       <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
                     </TableRow>
