@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { 
   Info, 
   Mail, 
-  Phone, 
   MapPin, 
   Globe, 
   Users, 
   Building2, 
-  Landmark,
-  Loader2,
+  Loader2, 
   ChevronRight,
-  UserCheck,
   User
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -22,21 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
-
-// Icono de WhatsApp personalizado (SVG)
-const WhatsAppIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-  </svg>
-);
 
 export default function ContactPage() {
   const { user, isUserLoading } = useUser();
@@ -133,13 +115,6 @@ export default function ContactPage() {
                     <div>
                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Correo Institucional</p>
                       <p className="font-bold text-sm md:text-base break-all">sev@agrarias.unca.edu.ar</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 p-6 bg-white rounded-3xl border border-muted shadow-sm group transition-all hover:border-primary/30">
-                    <div className="bg-primary/10 p-3 rounded-2xl text-primary"><WhatsAppIcon className="w-5 h-5" /></div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Atención WhatsApp</p>
-                      <p className="font-bold text-sm md:text-base">3834268080</p>
                     </div>
                   </div>
                 </div>
