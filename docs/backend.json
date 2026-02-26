@@ -40,6 +40,23 @@
         "resolvedAt": { "type": "string" }
       }
     },
+    "ContactRequest": {
+      "title": "ContactRequest",
+      "type": "object",
+      "description": "Messages and proposals sent to the Secretary from the dashboard.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["proposal", "contact"] },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileDataUri": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved"] },
+        "createdAt": { "type": "string" }
+      }
+    },
     "Staff": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Staff",
@@ -94,6 +111,10 @@
     "/access_requests/{requestId}": {
       "schema": { "$ref": "#/backend/entities/AccessRequest" },
       "description": "Requests for document access."
+    },
+    "/contact_requests/{requestId}": {
+      "schema": { "$ref": "#/backend/entities/ContactRequest" },
+      "description": "Messages and proposals from users."
     },
     "/roles_admin/{userId}": {
       "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },

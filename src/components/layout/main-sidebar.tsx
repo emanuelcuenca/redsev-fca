@@ -14,7 +14,8 @@ import {
   Plane,
   GraduationCap,
   ScrollText,
-  Info
+  Info,
+  Mail
 } from "lucide-react";
 import {
   Sidebar,
@@ -56,6 +57,7 @@ export function MainSidebar() {
 
   const ADMIN_ITEMS = [
     { icon: UploadCloud, label: "Cargar Registro", href: "/upload" },
+    { icon: Mail, label: "Mensajes Recibidos", href: "/admin/messages" },
     { icon: BellRing, label: "Solicitudes", href: "/admin/requests" },
     { icon: Contact, label: "Banco de Extensionistas", href: "/admin/staff" },
     { icon: Users, label: "Gestión Usuarios", href: "/admin" },
