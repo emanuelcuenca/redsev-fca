@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -142,10 +141,10 @@ export default function RegisterPage() {
     setError(null);
     
     const cleanEmail = email.trim().toLowerCase();
-    const isInstitutional = cleanEmail.endsWith('@unca.edu.ar') || cleanEmail.endsWith('@est.unca.edu.ar');
+    const isInstitutional = cleanEmail.endsWith('@unca.edu.ar') || cleanEmail.endsWith('@agrarias.unca.edu.ar');
     
     if (!isInstitutional) {
-      const msg = "Solo se permiten correos institucionales de la UNCA (@unca.edu.ar).";
+      const msg = "Solo se permiten correos institucionales de la UNCA (@unca.edu.ar o @agrarias.unca.edu.ar).";
       setError(msg);
       toast({
         variant: "destructive",
@@ -219,8 +218,8 @@ export default function RegisterPage() {
           <Link href="/" className="bg-primary w-16 h-16 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-sm md:text-xl font-headline text-black uppercase tracking-tighter text-center mt-1">
+          <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter font-normal text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-sm md:text-xl font-headline text-black uppercase tracking-tighter font-normal text-center mt-1">
             FCA - UNCA
           </p>
         </div>
