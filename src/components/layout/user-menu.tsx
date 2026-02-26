@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { User, Briefcase, LogOut, Copy, Check, Fingerprint, ShieldCheck, UserCircle, BarChart3, BellRing, UserCheck, Mail, FileUser } from "lucide-react";
+import { User, Briefcase, LogOut, Copy, Check, Fingerprint, ShieldCheck, UserCircle, BarChart3, BellRing, UserCheck, Mail, FileUser, FolderHeart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,6 +103,10 @@ export function UserMenu() {
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
+            <Link href="/profile/projects"><FolderHeart className="w-4 h-4" /><span className="text-sm">Mis Proyectos</span></Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
             <Link href="/profile/cv"><FileUser className="w-4 h-4" /><span className="text-sm">CV</span></Link>
           </DropdownMenuItem>
           
@@ -114,6 +118,7 @@ export function UserMenu() {
 
           {isAdmin && (
             <>
+              <DropdownMenuSeparator className="mx-2" />
               <DropdownMenuItem asChild className="rounded-xl gap-3 py-2.5 font-bold cursor-pointer transition-colors">
                 <Link href="/admin/messages"><Mail className="w-4 h-4" /><span className="text-sm">Mensajes Recibidos</span></Link>
               </DropdownMenuItem>
