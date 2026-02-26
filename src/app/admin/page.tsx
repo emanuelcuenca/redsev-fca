@@ -10,10 +10,12 @@ import {
   UserCog, 
   Search,
   Loader2,
-  CheckCircle2,
-  XCircle,
   Calendar,
-  Clock
+  Clock,
+  UserCheck,
+  ChevronDown,
+  Lock,
+  UserPlus
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -30,7 +32,13 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { collection, doc, query, orderBy, Timestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 
@@ -39,12 +47,7 @@ interface AppUser {
   name: string;
   email: string;
   createdAt: string;
-  role: string;
-}
-
-interface AdminRole {
-  id: string;
-  assignedAt?: string | Timestamp;
+  role: "Admin" | "Authority" | "User";
 }
 
 export default function AdminUsersPage() {
@@ -77,7 +80,6 @@ export default function AdminUsersPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
-  // Solo realizar la consulta si estamos seguros de que es administrador
   const usersQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? query(collection(db, 'users'), orderBy('name', 'asc')) : null,
     [db, user, currentAdminDoc]
@@ -88,51 +90,53 @@ export default function AdminUsersPage() {
     (user && currentAdminDoc) ? collection(db, 'roles_admin') : null, 
     [db, user, currentAdminDoc]
   );
-  const { data: adminRoles } = useCollection<AdminRole>(adminsQuery);
+  const { data: adminRoles } = useCollection(adminsQuery);
 
-  const adminMap = new Map(adminRoles?.map(a => [a.id, a.assignedAt]) || []);
+  const authorityQuery = useMemoFirebase(() => 
+    (user && currentAdminDoc) ? collection(db, 'roles_authority') : null, 
+    [db, user, currentAdminDoc]
+  );
+  const { data: authorityRoles } = useCollection(authorityQuery);
+
+  const adminIds = new Set(adminRoles?.map(a => a.id) || []);
+  const authorityIds = new Set(authorityRoles?.map(a => a.id) || []);
 
   const filteredUsers = allUsers?.filter(u => 
     u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  const toggleAdminRole = (userId: string, isCurrentlyAdmin: boolean) => {
-    const roleRef = doc(db, 'roles_admin', userId);
-    
-    if (isCurrentlyAdmin) {
-      if (userId === user?.uid) {
-        toast({
-          variant: "destructive",
-          title: "Acción no permitida",
-          description: "No puedes quitarte tus propios permisos de administrador.",
-        });
-        return;
-      }
-      deleteDocumentNonBlocking(roleRef);
-      toast({
-        title: "Permisos revocados",
-        description: "El usuario ya no es administrador.",
-      });
-    } else {
-      setDocumentNonBlocking(roleRef, { assignedAt: new Date().toISOString() }, { merge: true });
-      toast({
-        title: "Permisos otorgados",
-        description: "El usuario ahora es administrador.",
-      });
+  const changeUserRole = (userId: string, newRole: "Admin" | "Authority" | "User") => {
+    if (userId === user?.uid) {
+      toast({ variant: "destructive", title: "Acción no permitida", description: "No puedes cambiar tu propio rol." });
+      return;
     }
+
+    const adminRef = doc(db, 'roles_admin', userId);
+    const authRef = doc(db, 'roles_authority', userId);
+    const userProfileRef = doc(db, 'users', userId);
+
+    // Limpiar roles actuales en colecciones de permisos
+    deleteDocumentNonBlocking(adminRef);
+    deleteDocumentNonBlocking(authRef);
+
+    // Asignar nuevo rol
+    if (newRole === "Admin") {
+      setDocumentNonBlocking(adminRef, { assignedAt: new Date().toISOString() }, { merge: true });
+    } else if (newRole === "Authority") {
+      setDocumentNonBlocking(authRef, { assignedAt: new Date().toISOString() }, { merge: true });
+    }
+
+    // Actualizar campo role en el perfil del usuario para lógica UI
+    updateDocumentNonBlocking(userProfileRef, { role: newRole });
+
+    toast({ title: "Rol actualizado", description: `El usuario ahora tiene el nivel: ${newRole}` });
   };
 
-  const formatDate = (dateValue: any) => {
-    if (!dateValue) return 'Fecha no registrada';
-    try {
-      if (dateValue instanceof Timestamp) {
-        return dateValue.toDate().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-      return new Date(dateValue).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch (e) {
-      return 'Formato inválido';
-    }
+  const getRoleLabel = (id: string) => {
+    if (adminIds.has(id)) return "Administrador";
+    if (authorityIds.has(id)) return "Autoridad";
+    return "Usuario";
   };
 
   if (!mounted || isUserLoading || isAdminCheckLoading) {
@@ -148,33 +152,20 @@ export default function AdminUsersPage() {
       <MainSidebar />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <SidebarTrigger />
+          <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
+          <div className="flex-1 flex justify-center text-center">
+            <span className="text-[12px] md:text-xl font-headline text-primary uppercase font-bold tracking-tight">Gestión de Usuarios y Roles</span>
           </div>
-          <div className="flex-1 flex justify-center overflow-hidden px-2">
-            <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal whitespace-nowrap">
-                SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN
-              </span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal whitespace-nowrap">
-                FCA - UNCA
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <UserMenu />
-          </div>
+          <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
         <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2.5 rounded-xl">
-                <UserCog className="w-6 h-6 text-primary" />
-              </div>
+              <div className="bg-primary/10 p-2.5 rounded-xl"><UserCog className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold tracking-tight uppercase">Gestión de Usuarios</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Control de accesos y roles institucionales</p>
+                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Control de Accesos</h2>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Asignación de jerarquías institucionales</p>
               </div>
             </div>
           </div>
@@ -201,60 +192,59 @@ export default function AdminUsersPage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest text-muted-foreground">Usuario</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Rol Institucional</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Fecha de Registro</TableHead>
-                      <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest text-muted-foreground">Acciones</TableHead>
+                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Usuario</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Nivel de Permisos</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Fecha Registro</TableHead>
+                      <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((u) => {
-                      const assignedAt = adminMap.get(u.id);
-                      const isAdmin = adminMap.has(u.id);
+                      const roleLabel = getRoleLabel(u.id);
                       const isMe = u.id === user?.uid;
                       
                       return (
                         <TableRow key={u.id} className="group transition-colors hover:bg-primary/[0.02]">
                           <TableCell className="py-5 pl-8">
                             <div className="flex flex-col">
-                              <span className="font-bold text-base group-hover:text-primary transition-colors">
-                                {u.name || 'Sin nombre'} {isMe && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-2">TÚ</span>}
+                              <span className="font-bold text-base">
+                                {u.name || 'Sin nombre'} {isMe && <Badge className="bg-primary/20 text-primary ml-2 text-[8px]">TÚ</Badge>}
                               </span>
                               <span className="text-xs text-muted-foreground font-medium">{u.email}</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            {isAdmin ? (
-                              <div className="flex flex-col gap-1">
-                                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 font-black text-[9px] uppercase tracking-widest px-3 w-fit">
-                                  <ShieldCheck className="w-3 h-3 mr-1.5" /> Administrador
-                                </Badge>
-                                <span className="text-[9px] text-muted-foreground font-bold flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> Asignado: {formatDate(assignedAt)}
-                                </span>
-                              </div>
-                            ) : (
-                              <Badge variant="outline" className="text-muted-foreground font-black text-[9px] uppercase tracking-widest px-3">
-                                <XCircle className="w-3 h-3 mr-1.5" /> Usuario Común
-                              </Badge>
-                            )}
+                            <Badge className={`font-black text-[9px] uppercase tracking-widest px-3 border-none ${
+                              roleLabel === 'Administrador' ? 'bg-primary/10 text-primary' : 
+                              roleLabel === 'Autoridad' ? 'bg-accent/10 text-accent-foreground' : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {roleLabel === 'Administrador' && <ShieldCheck className="w-3 h-3 mr-1.5" />}
+                              {roleLabel === 'Autoridad' && <UserCheck className="w-3 h-3 mr-1.5" />}
+                              {roleLabel}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-xs font-bold text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-3 h-3" />
-                              {u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                            </div>
+                            {u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                           </TableCell>
                           <TableCell className="pr-8 text-right">
-                            <Button 
-                              variant={isAdmin ? "destructive" : "default"} 
-                              size="sm"
-                              className="rounded-xl h-8 text-[9px] font-black uppercase tracking-widest px-4 transition-all"
-                              onClick={() => toggleAdminRole(u.id, isAdmin)}
-                              disabled={isMe}
-                            >
-                              {isAdmin ? "Quitar Admin" : "Hacer Admin"}
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="rounded-xl h-8 text-[9px] font-black uppercase" disabled={isMe}>
+                                  Cambiar Rol <ChevronDown className="w-3 h-3 ml-1" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="rounded-xl">
+                                <DropdownMenuItem className="font-bold gap-2" onClick={() => changeUserRole(u.id, "Admin")}>
+                                  <ShieldCheck className="w-4 h-4 text-primary" /> Administrador
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="font-bold gap-2" onClick={() => changeUserRole(u.id, "Authority")}>
+                                  <UserCheck className="w-4 h-4 text-accent" /> Autoridad
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="font-bold gap-2" onClick={() => changeUserRole(u.id, "User")}>
+                                  <Lock className="w-4 h-4 text-muted-foreground" /> Usuario
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
@@ -262,26 +252,21 @@ export default function AdminUsersPage() {
                   </TableBody>
                 </Table>
               )}
-              {filteredUsers.length === 0 && !isUsersLoading && (
-                <div className="py-20 text-center border-t border-dashed">
-                  <Users className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-                  <p className="font-bold text-muted-foreground uppercase tracking-tight">No se encontraron usuarios</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
-          <section className="bg-primary/5 border border-primary/10 rounded-2xl p-6 md:p-8 flex items-start gap-6">
-            <div className="bg-primary/10 p-3 rounded-xl shrink-0">
-              <ShieldAlert className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-headline font-bold text-primary uppercase mb-2">Sobre los roles de administración</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                Los administradores de la Secretaría tienen acceso total al repositorio institucional, pudiendo cargar, editar y eliminar documentos. 
-                Utilice esta herramienta con precaución: otorgue permisos de administrador únicamente al personal autorizado de la Secretaría de Extensión y Vinculación.
-              </p>
-            </div>
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: "Administrador", desc: "Acceso total. Carga, edición, eliminación y gestión de todos los usuarios.", icon: ShieldCheck, color: "text-primary" },
+              { title: "Autoridad", desc: "Acceso a registros, visualización directa de archivos y panel de estadísticas.", icon: UserCheck, color: "text-accent" },
+              { title: "Usuario", desc: "Solo visualiza metadatos. Debe solicitar permiso expreso para ver archivos adjuntos.", icon: Lock, color: "text-muted-foreground" }
+            ].map((role, i) => (
+              <div key={i} className="bg-white border p-6 rounded-2xl shadow-sm">
+                <role.icon className={`w-8 h-8 ${role.color} mb-4`} />
+                <h4 className="font-headline font-bold uppercase text-sm mb-2">{role.title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed font-medium">{role.desc}</p>
+              </div>
+            ))}
           </section>
         </main>
       </SidebarInset>

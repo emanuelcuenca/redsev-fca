@@ -14,7 +14,7 @@ import {
   Plane,
   GraduationCap,
   Contact,
-  User
+  BellRing
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,7 +41,6 @@ export function MainSidebar() {
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
   );
-  
   const { data: adminDoc } = useDoc(adminCheckRef);
   const isAdmin = !!adminDoc;
 
@@ -56,9 +55,10 @@ export function MainSidebar() {
   ];
 
   const ADMIN_ITEMS = [
-    { icon: UploadCloud, label: "Cargar Documento", href: "/upload" },
+    { icon: UploadCloud, label: "Cargar Registro", href: "/upload" },
+    { icon: BellRing, label: "Solicitudes", href: "/admin/requests" },
     { icon: Contact, label: "Padrón Docente", href: "/admin/staff" },
-    { icon: Users, label: "Gestión de Usuarios", href: "/admin" },
+    { icon: Users, label: "Gestión Usuarios", href: "/admin" },
   ];
 
   const handleItemClick = () => {
@@ -135,7 +135,7 @@ export function MainSidebar() {
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <div className="px-4 py-2 text-[10px] text-muted-foreground font-bold italic group-data-[collapsible=icon]:hidden">
-              REDSEV FCA v1.0
+              REDSEV FCA v1.5
             </div>
           </SidebarMenuItem>
         </SidebarMenu>

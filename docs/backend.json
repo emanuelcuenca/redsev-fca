@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -14,11 +15,27 @@
         "photoUrl": { "type": "string", "format": "uri" },
         "academicRank": { "type": "string" },
         "department": { "type": "string" },
-        "role": { "type": "string", "default": "Viewer" },
+        "role": { "type": "string", "enum": ["Admin", "Authority", "User"], "default": "User" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "firstName", "lastName"]
+    },
+    "AccessRequest": {
+      "title": "AccessRequest",
+      "type": "object",
+      "description": "Request to view a document file by a common user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "documentId": { "type": "string" },
+        "documentTitle": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "denied"] },
+        "createdAt": { "type": "string" },
+        "resolvedAt": { "type": "string" }
+      }
     },
     "Staff": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -68,9 +85,17 @@
       "schema": { "$ref": "#/backend/entities/Document" },
       "description": "Central document repository."
     },
+    "/access_requests/{requestId}": {
+      "schema": { "$ref": "#/backend/entities/AccessRequest" },
+      "description": "Requests for document access."
+    },
     "/roles_admin/{userId}": {
       "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
-      "description": "Administrative roles assignment."
+      "description": "Administrative roles (Full access)."
+    },
+    "/roles_authority/{userId}": {
+      "schema": { "type": "object", "properties": { "assignedAt": { "type": "string" } } },
+      "description": "Authority roles (Stats + File access)."
     }
   }
 }

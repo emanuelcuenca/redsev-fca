@@ -3,36 +3,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // REPOSITORIO DE DOCUMENTOS REDSEV
-    // Se permite lectura y escritura a cualquier usuario registrado (autenticado).
-    // Esto incluye personal de la Secretaría y docentes con cuenta institucional.
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    function isAuthority() {
+      return request.auth != null && (isAdmin() || exists(/databases/$(database)/documents/roles_authority/$(request.auth.uid)));
+    }
+
+    // REPOSITORIO DE DOCUMENTOS
     match /documents/{documentId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // PERFILES DE USUARIO
-    // Un usuario puede leer cualquier perfil pero solo escribir en el suyo.
-    // Los administradores también tienen permiso de escritura sobre perfiles para gestión.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)));
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-    // ROLES ADMINISTRATIVOS
-    // Lectura para todos los registrados. Escritura limitada a administradores.
+    // ROLES
     match /roles_admin/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      allow write: if isAdmin();
+    }
+    match /roles_authority/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    // PADRÓN DOCENTE (Solo para referencia y autocompletado)
-    // Lectura para todos los registrados, escritura para administradores.
+    // PADRÓN DOCENTE
     match /staff/{staffId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      allow write: if isAdmin();
+    }
+
+    // SOLICITUDES DE ACCESO
+    match /access_requests/{requestId} {
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
     }
     
-    // Identificador de Despliegue de Seguridad: REDSEV-FIX-AUTH-WRITE-V16
-    // Este comentario fuerza la actualización de las reglas en el servidor de Firebase.
+    // REDSEV-RULES-V17-HIERARCHY
   }
 }
