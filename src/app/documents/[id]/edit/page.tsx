@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -214,6 +215,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docRef) return;
+
+    // Validaciones obligatorias para Resolución de Aprobación
+    if (formData.type === "Proyecto" && formData.extensionDocType === "Resolución de aprobación") {
+      if (!formData.resolutionNumber.trim()) {
+        toast({ variant: "destructive", title: "Número de Resolución obligatorio" });
+        return;
+      }
+      if (!signingDay || !signingMonth || !signingYearSelect) {
+        toast({ variant: "destructive", title: "Fecha de Resolución obligatoria" });
+        return;
+      }
+    }
+
     setIsSaving(true);
     
     let finalDate = formData.date;
@@ -533,7 +547,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                     {isResolucionAprobacion && (
                       <div className="space-y-4 mb-6 animate-in slide-in-from-top-2">
                         <Label className="font-black uppercase text-[10px] tracking-widest text-primary ml-1 flex items-center gap-2">
-                          <Calendar className="w-4 h-4" /> Fecha de la Resolución
+                          <Calendar className="w-4 h-4" /> Fecha de la Resolución *
                         </Label>
                         <div className="grid grid-cols-3 gap-1 max-w-sm">
                           <Select value={signingDay} onValueChange={setSigningDay}>
@@ -598,7 +612,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       <>
                         <div className="flex items-center justify-between gap-4 mb-4">
                           <Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">
-                            {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución" : "Descripción / Resumen"}
+                            {formData.extensionDocType === "Resolución de aprobación" ? "Número de Resolución *" : "Descripción / Resumen"}
                           </Label>
                         </div>
                         {formData.extensionDocType === "Resolución de aprobación" ? (
