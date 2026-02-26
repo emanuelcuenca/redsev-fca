@@ -13,7 +13,8 @@ import {
   Landmark,
   Loader2,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  User
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -22,6 +23,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+
+// Icono de WhatsApp personalizado (SVG)
+const WhatsAppIcon = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+);
 
 export default function ContactPage() {
   const { user, isUserLoading } = useUser();
@@ -48,22 +64,18 @@ export default function ContactPage() {
 
   const AUTHORITIES = [
     {
-      role: "Decano",
-      name: "Ing. Agr. Oscar Arellano",
-      institution: "FCA - UNCA",
-      icon: Landmark
-    },
-    {
-      role: "Vicedecana",
-      name: "Dra. Silvana de la Orden",
-      institution: "FCA - UNCA",
-      icon: UserCheck
-    },
-    {
-      role: "Secretaria de Extensión y Vinculación",
-      name: "Ing. Agr. (Dra.) Lucas Martínez",
+      role: "Secretario de Extensión y Vinculación",
+      name: "Ing. Agr. (Mgter.) Emanuel Cuenca",
+      email: "ecuenca@unca.edu.ar",
       institution: "Secretaría SEyV",
       icon: Users
+    },
+    {
+      role: "Director/a de Extensión",
+      name: "A designar",
+      email: "",
+      institution: "Secretaría SEyV",
+      icon: User
     }
   ];
 
@@ -88,7 +100,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
             {AUTHORITIES.map((auth, idx) => (
               <Card key={idx} className="rounded-[2rem] border-none shadow-xl bg-white overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                 <CardHeader className="bg-primary/5 p-6 border-b border-primary/10">
@@ -97,7 +109,14 @@ export default function ContactPage() {
                     <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase tracking-widest px-2 py-0.5">{auth.institution}</Badge>
                   </div>
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none mb-1">{auth.role}</p>
-                  <CardTitle className="text-lg font-headline font-bold uppercase text-primary leading-tight">{auth.name}</CardTitle>
+                  <CardTitle className="text-lg font-headline font-bold uppercase text-primary leading-tight">
+                    {auth.name}
+                  </CardTitle>
+                  {auth.email && (
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1 lowercase">
+                      {auth.email}
+                    </p>
+                  )}
                 </CardHeader>
               </Card>
             ))}
@@ -114,14 +133,14 @@ export default function ContactPage() {
                     <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Mail className="w-5 h-5" /></div>
                     <div>
                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Correo Institucional</p>
-                      <p className="font-bold text-sm md:text-base break-all">extension@agrarias.unca.edu.ar</p>
+                      <p className="font-bold text-sm md:text-base break-all">sev@agrarias.unca.edu.ar</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-6 bg-white rounded-3xl border border-muted shadow-sm group transition-all hover:border-primary/30">
-                    <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Phone className="w-5 h-5" /></div>
+                    <div className="bg-primary/10 p-3 rounded-2xl text-primary"><WhatsAppIcon className="w-5 h-5" /></div>
                     <div>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Teléfono Directo</p>
-                      <p className="font-bold text-sm md:text-base">+54 383 4426604</p>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Atención WhatsApp</p>
+                      <p className="font-bold text-sm md:text-base">3834268080</p>
                     </div>
                   </div>
                 </div>
@@ -135,7 +154,11 @@ export default function ContactPage() {
                   <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Building2 className="w-5 h-5" /></div>
                   <div>
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Dirección de la Secretaría</p>
-                    <p className="font-bold text-sm md:text-base leading-snug">Av. Belgrano y Maestro Quiroga.<br />Edificio Centenario, Planta Alta.<br />San Fernando del Valle de Catamarca.</p>
+                    <p className="font-bold text-sm md:text-base leading-snug">
+                      Maestro Quiroga 35.<br />
+                      Planta Baja.<br />
+                      San Fernando del Valle de Catamarca.
+                    </p>
                   </div>
                 </div>
               </div>
