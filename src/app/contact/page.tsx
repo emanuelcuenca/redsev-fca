@@ -76,7 +76,7 @@ export default function ContactPage() {
           <div className="flex items-center gap-3 mb-8 md:mb-12">
             <div className="bg-primary/10 p-2.5 rounded-xl"><Info className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Estructura Institucional</h2>
+              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Autoridades y Contacto</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Secretaría de Extensión y Vinculación</p>
             </div>
           </div>
