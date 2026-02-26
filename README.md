@@ -2,12 +2,15 @@
 
 Sistema de gestión de documentos para la Secretaría de Extensión y Vinculación de la Facultad de Ciencias Agrarias - UNCA.
 
+## 🚀 Arquitectura del Proyecto
+Este sitio está desarrollado con **Next.js 15**. No busques un archivo `index.html` en la raíz; las páginas se generan dinámicamente desde la carpeta `src/app`. El servidor se encarga de "construir" el sitio automáticamente.
+
 ## 🔄 Flujo de Trabajo y Actualización (IMPORTANTE)
 Este proyecto está vinculado directamente con GitHub. Sigue este ciclo para mantener el sistema actualizado:
 
 1. **Realizar Cambios**: Solicita cambios o mejoras aquí en Firebase Studio.
 2. **Sincronizar (GitHub Sync)**: 
-   - Ve a la pestaña de **Git** en el menú izquierdo de Firebase Studio.
+   - Ve a la pestaña de **Git** en el menú izquierdo de Firebase Studio (icono de dos flechas).
    - Escribe un mensaje breve sobre los cambios realizados (ej: "Mejora en formulario de extensión").
    - Presiona `Sync Changes` (o `Ctrl + Enter`). Esto subirá el código automáticamente a tu repositorio en GitHub.
 3. **Visualización de Avances (Para Jefes/Autoridades)**:
