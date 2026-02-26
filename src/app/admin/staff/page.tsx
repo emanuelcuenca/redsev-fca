@@ -11,7 +11,9 @@ import {
   UserPlus, 
   Briefcase,
   Pencil,
-  GraduationCap
+  GraduationCap,
+  Landmark,
+  UserCircle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -59,6 +61,16 @@ import { toast } from "@/hooks/use-toast";
 import { StaffMember } from "@/lib/mock-data";
 
 const ACADEMIC_RANKS = ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"];
+const CLAUSTROS = ["Docente", "Egresado", "Estudiante", "No docente"];
+const CARRERAS = [
+  "Ingeniería Agronómica",
+  "Ingeniería de Paisajes",
+  "Ingeniería de Alimentos",
+  "Tecnicatura Univ. de Paisajes",
+  "Tecnicatura Univ. en Parques y Jardines",
+  "Tecnicatura Univ. en Prod. Vegetal",
+  "Tecnicatura Univ. en Prod. Animal"
+].sort();
 
 export default function StaffAdminPage() {
   const router = useRouter();
@@ -73,7 +85,11 @@ export default function StaffAdminPage() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    claustro: "Docente",
     academicRank: "Auxiliar",
+    department: "Cs. Agrarias",
+    carrera: "",
+    profession: "",
     email: ""
   });
 
@@ -112,7 +128,11 @@ export default function StaffAdminPage() {
     setFormData({
       firstName: member.firstName,
       lastName: member.lastName,
+      claustro: member.claustro || "Docente",
       academicRank: member.academicRank || "Auxiliar",
+      department: member.department || "Cs. Agrarias",
+      carrera: member.carrera || "",
+      profession: member.profession || "",
       email: member.email || ""
     });
     setIsDialogOpen(true);
@@ -120,7 +140,7 @@ export default function StaffAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.lastName) {
+    if (!formData.firstName || !formData.lastName || !formData.claustro) {
       toast({ variant: "destructive", title: "Campos incompletos" });
       return;
     }
@@ -128,22 +148,21 @@ export default function StaffAdminPage() {
     setIsSaving(true);
     const data = {
       ...formData,
-      category: "Docente",
       updatedAt: new Date().toISOString()
     };
 
     if (editingId) {
       updateDocumentNonBlocking(doc(db, 'staff', editingId), data);
-      toast({ title: "Extensionista actualizado", description: "Los cambios han sido guardados." });
+      toast({ title: "Extensionista actualizado" });
     } else {
       addDocumentNonBlocking(collection(db, 'staff'), data);
-      toast({ title: "Extensionista guardado", description: "El banco de extensionistas ha sido actualizado." });
+      toast({ title: "Extensionista guardado" });
     }
 
     setIsSaving(false);
     setIsDialogOpen(false);
     setEditingId(null);
-    setFormData({ firstName: "", lastName: "", academicRank: "Auxiliar", email: "" });
+    setFormData({ firstName: "", lastName: "", claustro: "Docente", academicRank: "Auxiliar", department: "Cs. Agrarias", carrera: "", profession: "", email: "" });
   };
 
   const handleDelete = (id: string) => {
@@ -161,6 +180,11 @@ export default function StaffAdminPage() {
     );
   }
 
+  const isDocente = formData.claustro === "Docente";
+  const isNoDocente = formData.claustro === "No docente";
+  const isEstudiante = formData.claustro === "Estudiante";
+  const isEgresado = formData.claustro === "Egresado";
+
   return (
     <SidebarProvider>
       <MainSidebar />
@@ -177,7 +201,7 @@ export default function StaffAdminPage() {
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
                 <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Gestión de Extensionistas</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos de extensionistas FCA</p>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Personal de la Facultad de Ciencias Agrarias</p>
               </div>
             </div>
 
@@ -185,18 +209,18 @@ export default function StaffAdminPage() {
               setIsDialogOpen(open);
               if (!open) {
                 setEditingId(null);
-                setFormData({ firstName: "", lastName: "", academicRank: "Auxiliar", email: "" });
+                setFormData({ firstName: "", lastName: "", claustro: "Docente", academicRank: "Auxiliar", department: "Cs. Agrarias", carrera: "", profession: "", email: "" });
               }
             }}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl bg-primary h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
-                  <UserPlus className="w-4 h-4 mr-2" /> Agregar Extensionista
+                  <UserPlus className="w-4 h-4 mr-2" /> Agregar al Banco
                 </Button>
               </DialogTrigger>
-              <DialogContent className="rounded-3xl sm:max-w-[425px]">
+              <DialogContent className="rounded-3xl sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-headline font-bold uppercase text-primary">
-                    {editingId ? "Editar Extensionista" : "Nuevo Extensionista"}
+                    {editingId ? "Editar Extensionista" : "Nuevo Registro"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
@@ -210,23 +234,82 @@ export default function StaffAdminPage() {
                       <Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="h-12 rounded-xl" required />
                     </div>
                   </div>
+
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest">Cargo (Escalafón)</Label>
-                    <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
+                    <Label className="text-[10px] font-black uppercase tracking-widest">Claustro</Label>
+                    <Select value={formData.claustro} onValueChange={(v) => setFormData({...formData, claustro: v})}>
                       <SelectTrigger className="h-12 rounded-xl">
-                        <SelectValue placeholder="Seleccione cargo" />
+                        <SelectValue placeholder="Seleccione claustro" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ACADEMIC_RANKS.map(rank => (
-                          <SelectItem key={rank} value={rank}>{rank}</SelectItem>
-                        ))}
+                        {CLAUSTROS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {isDocente && (
+                      <>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest">Cargo (Escalafón)</Label>
+                          <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="Seleccione cargo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ACADEMIC_RANKS.map(rank => (
+                                <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest">Dependencia</Label>
+                          <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                        </div>
+                      </>
+                    )}
+
+                    {isNoDocente && (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Dependencia</Label>
+                        <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                      </div>
+                    )}
+
+                    {isEstudiante && (
+                      <>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest">Facultad</Label>
+                          <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest">Carrera</Label>
+                          <Select value={formData.carrera} onValueChange={(v) => setFormData({...formData, carrera: v})}>
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="Seleccione carrera" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CARRERAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
+
+                    {isEgresado && (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">Profesión</Label>
+                        <Input value={formData.profession} onChange={(e) => setFormData({...formData, profession: e.target.value})} placeholder="Ej: Ingeniero Agrónomo" className="h-12 rounded-xl" />
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest">Email (Opcional)</Label>
                     <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 rounded-xl" />
                   </div>
+
                   <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isSaving} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest">
                       {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Extensionista")}
@@ -242,7 +325,7 @@ export default function StaffAdminPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Buscar extensionista por Apellido o Nombre..." 
+                  placeholder="Buscar por Apellido o Nombre..." 
                   className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -258,8 +341,9 @@ export default function StaffAdminPage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Extensionista (Apellido y Nombre)</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Cargo / Escalafón</TableHead>
+                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Extensionista</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Claustro / Cargo</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Referencia</TableHead>
                       <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -268,10 +352,19 @@ export default function StaffAdminPage() {
                       <TableRow key={person.id} className="group hover:bg-primary/[0.02]">
                         <TableCell className="py-5 pl-8 font-bold">{person.lastName}, {person.firstName}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5">
-                            <GraduationCap className="w-3 h-3 mr-1.5" />
-                            {person.academicRank || "Auxiliar"}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5 w-fit">
+                              {person.claustro || "Docente"}
+                            </Badge>
+                            {person.academicRank && (
+                              <span className="text-[10px] text-muted-foreground font-bold pl-1">{person.academicRank}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                            {person.claustro === 'Estudiante' ? person.carrera : person.claustro === 'Egresado' ? person.profession : person.department}
+                          </span>
                         </TableCell>
                         <TableCell className="pr-8 text-right">
                           <div className="flex justify-end gap-2">

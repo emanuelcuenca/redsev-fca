@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -143,7 +144,8 @@ export default function UploadPage() {
       addDocumentNonBlocking(collection(db, 'staff'), {
         firstName: formatText(person.firstName),
         lastName: formatText(person.lastName),
-        category: "Docente", 
+        claustro: "Docente",
+        department: "Cs. Agrarias",
         updatedAt: new Date().toISOString()
       });
     }

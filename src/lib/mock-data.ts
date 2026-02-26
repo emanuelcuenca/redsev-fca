@@ -1,3 +1,4 @@
+
 export interface PersonName {
   firstName: string;
   lastName: string;
@@ -5,8 +6,11 @@ export interface PersonName {
 
 export interface StaffMember extends PersonName {
   id: string;
-  category: 'Docente' | 'Estudiante' | 'No Docente' | 'Externo';
+  claustro: 'Docente' | 'No docente' | 'Estudiante' | 'Egresado';
   academicRank?: string;
+  department?: string;
+  carrera?: string;
+  profession?: string;
   email?: string;
   updatedAt?: string;
 }

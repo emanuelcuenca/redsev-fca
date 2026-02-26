@@ -49,12 +49,15 @@
         "id": { "type": "string" },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
+        "claustro": { "type": "string", "enum": ["Docente", "No docente", "Estudiante", "Egresado"] },
         "academicRank": { "type": "string" },
-        "category": { "type": "string", "enum": ["Docente"] },
+        "department": { "type": "string" },
+        "carrera": { "type": "string" },
+        "profession": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["firstName", "lastName", "category"]
+      "required": ["firstName", "lastName", "claustro"]
     },
     "Document": {
       "$schema": "http://json-schema.org/draft-07/schema#",
