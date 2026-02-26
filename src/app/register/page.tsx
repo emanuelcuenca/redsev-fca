@@ -15,7 +15,7 @@ import {
   Briefcase, 
   Landmark,
   UserRound,
-  Image as ImageIcon,
+  ImageIcon,
   AlertCircle,
   GraduationCap,
   BookOpen
@@ -310,9 +310,9 @@ export default function RegisterPage() {
                         <SelectContent>
                           <SelectItem value="Auxiliar">Auxiliar</SelectItem>
                           <SelectItem value="JTP">JTP</SelectItem>
-                          <SelectItem value="Adjunto">Adjunto</SelectItem>
-                          <SelectItem value="Asociado">Asociado</SelectItem>
-                          <SelectItem value="Titular">Titular</SelectItem>
+                          <SelectItem value="Prof. Adjunto">Prof. Adjunto</SelectItem>
+                          <SelectItem value="Prof. Asociado">Prof. Asociado</SelectItem>
+                          <SelectItem value="Prof. Titular">Prof. Titular</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

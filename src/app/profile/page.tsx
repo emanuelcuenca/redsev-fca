@@ -16,7 +16,7 @@ import {
   UserCircle,
   ShieldAlert,
   UserRound,
-  Image as ImageIcon,
+  ImageIcon,
   GraduationCap,
   BookOpen
 } from "lucide-react";
@@ -267,7 +267,7 @@ export default function ProfilePage() {
                       <Select value={formData.academicRank} onValueChange={(v) => setFormData({...formData, academicRank: v})}>
                         <SelectTrigger className="h-12 rounded-xl bg-white font-bold"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                          {["Auxiliar", "JTP", "Prof. Adjunto", "Prof. Asociado", "Prof. Titular"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>

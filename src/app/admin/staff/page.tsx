@@ -60,7 +60,7 @@ import { collection, doc, query, orderBy } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { StaffMember } from "@/lib/mock-data";
 
-const ACADEMIC_RANKS = ["Auxiliar", "JTP", "Adjunto", "Asociado", "Titular"];
+const ACADEMIC_RANKS = ["Auxiliar", "JTP", "Prof. Adjunto", "Prof. Asociado", "Prof. Titular"];
 const CLAUSTROS = ["Docente", "Egresado", "Estudiante", "No docente"];
 const CARRERAS = [
   "Ingeniería Agronómica",
