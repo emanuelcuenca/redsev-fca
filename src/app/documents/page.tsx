@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -123,6 +122,7 @@ export default function DocumentsListPage() {
         (doc.student?.lastName || '')
       ).toLowerCase();
       
+      if (!searchQuery) return true;
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
       // 4. Filtros adicionales
@@ -146,21 +146,27 @@ export default function DocumentsListPage() {
       }
 
       return true;
+    }).filter(doc => {
+      // Si no es admin y es extensión, solo mostrar "Proyecto de Extensión"
+      if (!isAdmin && category === 'extension') {
+        return doc.extensionDocType === 'Proyecto de Extensión';
+      }
+      return true;
     });
   }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin, filterDirector, filterExtensionType]);
 
   const handleDelete = (docId: string) => {
     if (!isAdmin) return;
-    if (confirm("¿Está seguro de eliminar este registro?")) {
+    if (confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.")) {
       deleteDocumentNonBlocking(doc(db, 'documents', docId));
-      toast({ title: "Registro eliminado" });
+      toast({ title: "Registro eliminado correctamente" });
     }
   };
 
   const years = useMemo(() => {
     if (!rawDocs) return [];
     const allYears = rawDocs.map(d => {
-      const dateToUse = (category === 'extension' ? d.uploadDate : (doc.date || doc.uploadDate));
+      const dateToUse = (category === 'extension' ? d.uploadDate : (d.date || d.uploadDate));
       return dateToUse ? new Date(dateToUse).getFullYear() : null;
     }).filter(Boolean);
     return Array.from(new Set(allYears)).sort((a, b) => (b as number) - (a as number));
@@ -341,14 +347,26 @@ export default function DocumentsListPage() {
                     </TableCell>
                     <TableCell className="text-right pr-12">
                       <div className="flex justify-end gap-2">
-                        <Button asChild variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/10"><Link href={`/documents/${doc.id}`}><Eye className="w-5 h-5" /></Link></Button>
                         {isAdmin && (
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="rounded-xl h-10 w-10"><MoreVertical className="w-5 h-5" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
+                                <MoreVertical className="w-5 h-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="rounded-xl">
-                              <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer"><Link href={`/documents/${doc.id}/edit`}><Pencil className="w-4 h-4" /> Editar</Link></DropdownMenuItem>
+                              <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer">
+                                <Link href={`/documents/${doc.id}/edit`}>
+                                  <Pencil className="w-4 h-4" /> Editar
+                                </Link>
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={() => handleDelete(doc.id)}><Trash2 className="w-4 h-4" /> Eliminar</DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" 
+                                onClick={() => handleDelete(doc.id)}
+                              >
+                                <Trash2 className="w-4 h-4" /> Eliminar
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
