@@ -306,12 +306,12 @@ export default function DocumentsListPage() {
                   <TableHead className="py-7 pl-12 font-black text-[12px] uppercase tracking-widest">Documento / Trámite</TableHead>
                   <TableHead className="font-black text-[12px] uppercase tracking-widest">Código / Categoría</TableHead>
                   <TableHead className="font-black text-[12px] uppercase tracking-widest">Fecha</TableHead>
-                  <TableHead className="pr-12 text-right font-black text-[12px] uppercase tracking-widest">Acciones</TableHead>
+                  {isAdmin && <TableHead className="pr-12 text-right font-black text-[12px] uppercase tracking-widest">Acciones</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={4} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
                 ) : filteredDocs.map((docItem) => (
                   <TableRow 
                     key={docItem.id} 
@@ -348,8 +348,8 @@ export default function DocumentsListPage() {
                     <TableCell className="text-muted-foreground font-bold">
                       {new Date((category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
-                    <TableCell className="text-right pr-12">
-                      {isAdmin && (
+                    {isAdmin && (
+                      <TableCell className="text-right pr-12">
                         <div className="flex justify-end gap-2">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -373,12 +373,12 @@ export default function DocumentsListPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      )}
-                    </TableCell>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {!isLoading && filteredDocs.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros con los filtros seleccionados</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={isAdmin ? 4 : 3} className="py-32 text-center text-muted-foreground font-bold uppercase tracking-widest text-xs">No se encontraron registros con los filtros seleccionados</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
