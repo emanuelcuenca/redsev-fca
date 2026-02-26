@@ -18,7 +18,8 @@ import {
   ImageIcon,
   AlertCircle,
   GraduationCap,
-  BookOpen
+  BookOpen,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 const CLAUSTROS = ["Docente", "Egresado", "Estudiante", "No docente"];
@@ -95,6 +96,7 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [isCompresing, setIsCompresing] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -158,11 +160,6 @@ export default function RegisterPage() {
       return;
     }
 
-    if (claustro === "Estudiante" && !carrera) {
-      toast({ variant: "destructive", title: "Debe seleccionar su carrera" });
-      return;
-    }
-
     setLoading(true);
     
     const formattedFirstName = formatName(firstName);
@@ -184,12 +181,17 @@ export default function RegisterPage() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      // Enviar correo de verificación
+      await sendEmailVerification(userCredential.user);
+      
       toast({
         title: "Cuenta creada",
-        description: `Bienvenido al sistema, ${formattedFirstName}.`,
+        description: "Verifique su correo para activar el acceso.",
       });
-      router.push("/");
+      
+      setVerificationSent(true);
+      setLoading(false);
     } catch (error: any) {
       setLoading(false);
       let message = "No se pudo crear la cuenta. Intente nuevamente.";
@@ -224,194 +226,224 @@ export default function RegisterPage() {
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden w-full">
-          <CardHeader className="space-y-1 pt-8 px-8 text-center">
-            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear cuenta</CardTitle>
-            <CardDescription className="font-medium">
-              Forme parte del Repositorio Digital de Extensión y Vinculación.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-8 pb-4 pt-4">
-            <form onSubmit={handleRegister} className="space-y-6">
-              {error && (
-                <Alert variant="destructive" className="rounded-xl">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error de Registro</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex flex-col items-center justify-center space-y-3 mb-4">
-                <div 
-                  className="relative group cursor-pointer"
-                  onClick={() => !isCompresing && fileInputRef.current?.click()}
-                >
-                  <div className="w-28 h-28 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
-                    {isCompresing ? (
-                      <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
-                    ) : (
-                      <Avatar className="w-full h-full rounded-none">
-                        <AvatarImage src={photoUrl} className="object-cover" />
-                        <AvatarFallback className="bg-transparent">
-                          <UserRound className="w-14 h-14 text-primary/20" strokeWidth={1.2} />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ImageIcon className="w-6 h-6 text-white mb-1" />
-                      <span className="text-[8px] text-white font-black uppercase tracking-widest">Subir Foto</span>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
-                    <Camera className="w-4 h-4" />
-                  </div>
-                </div>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleFileChange} 
-                />
+          {verificationSent ? (
+            <CardContent className="px-8 pb-12 pt-12 text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
+              <div className="bg-primary/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-primary/20">
+                <Mail className="w-12 h-12 text-primary" />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
-                  <Input id="firstName" placeholder="Juan" className="h-12 rounded-xl bg-white/50 font-bold" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Apellido</Label>
-                  <Input id="lastName" placeholder="Pérez" className="h-12 rounded-xl bg-white/50 font-bold" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Claustro</Label>
-                <Select value={claustro} onValueChange={setClaustro}>
-                  <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                    <SelectValue placeholder="Seleccione su claustro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CLAUSTROS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <h2 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">¡Confirme su registro!</h2>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                  Hemos enviado un enlace de verificación a: <br />
+                  <span className="font-bold text-foreground text-base">{email}</span>
+                </p>
               </div>
+              <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl text-left shadow-sm">
+                <div className="flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-amber-900 font-black uppercase tracking-tight">Acción Requerida</p>
+                    <p className="text-xs text-amber-800 font-medium leading-snug">
+                      Debe hacer clic en el enlace del correo para activar su cuenta. Si no lo ve en su bandeja de entrada, revise la carpeta de <span className="font-bold">Spam</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Button asChild className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 transition-all shadow-xl shadow-primary/20">
+                <Link href="/login">Volver al Ingreso <LogIn className="w-4 h-4 ml-2" /></Link>
+              </Button>
+            </CardContent>
+          ) : (
+            <>
+              <CardHeader className="space-y-1 pt-8 px-8 text-center">
+                <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear cuenta</CardTitle>
+                <CardDescription className="font-medium">
+                  Forme parte del Repositorio Digital de Extensión y Vinculación.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-8 pb-4 pt-4">
+                <form onSubmit={handleRegister} className="space-y-6">
+                  {error && (
+                    <Alert variant="destructive" className="rounded-xl">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error de Registro</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
 
-              {/* Campos condicionales según Claustro */}
-              <div className="grid grid-cols-1 gap-4">
-                {claustro === "Docente" && (
-                  <>
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargo Docente</Label>
-                      <Select value={academicRank} onValueChange={setAcademicRank}>
-                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                          <SelectValue placeholder="Seleccione cargo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Auxiliar">Auxiliar</SelectItem>
-                          <SelectItem value="JTP">JTP</SelectItem>
-                          <SelectItem value="Prof. Adjunto">Prof. Adjunto</SelectItem>
-                          <SelectItem value="Prof. Asociado">Prof. Asociado</SelectItem>
-                          <SelectItem value="Prof. Titular">Prof. Titular</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="flex flex-col items-center justify-center space-y-3 mb-4">
+                    <div 
+                      className="relative group cursor-pointer"
+                      onClick={() => !isCompresing && fileInputRef.current?.click()}
+                    >
+                      <div className="w-28 h-28 rounded-full border-4 border-primary/20 flex items-center justify-center bg-white overflow-hidden shadow-inner transition-all group-hover:border-primary/40">
+                        {isCompresing ? (
+                          <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+                        ) : (
+                          <Avatar className="w-full h-full rounded-none">
+                            <AvatarImage src={photoUrl} className="object-cover" />
+                            <AvatarFallback className="bg-transparent">
+                              <UserRound className="w-14 h-14 text-primary/20" strokeWidth={1.2} />
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ImageIcon className="w-6 h-6 text-white mb-1" />
+                          <span className="text-[8px] text-white font-black uppercase tracking-widest">Subir Foto</span>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white">
+                        <Camera className="w-4 h-4" />
+                      </div>
                     </div>
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
-                      <Select value={department} onValueChange={setDepartment}>
-                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                          <SelectValue placeholder="Seleccione dependencia" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileChange} 
+                    />
+                  </div>
 
-                {claustro === "No docente" && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
-                    <Select value={department} onValueChange={setDepartment}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nombre</Label>
+                      <Input id="firstName" placeholder="Juan" className="h-12 rounded-xl bg-white/50 font-bold" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Apellido</Label>
+                      <Input id="lastName" placeholder="Pérez" className="h-12 rounded-xl bg-white/50 font-bold" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Claustro</Label>
+                    <Select value={claustro} onValueChange={setClaustro}>
                       <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                        <SelectValue placeholder="Seleccione dependencia" />
+                        <SelectValue placeholder="Seleccione su claustro" />
                       </SelectTrigger>
                       <SelectContent>
-                        {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                        {CLAUSTROS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
 
-                {claustro === "Estudiante" && (
-                  <>
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Facultad</Label>
-                      <Select value={department} onValueChange={setDepartment}>
-                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                          <SelectValue placeholder="Seleccione facultad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Carrera</Label>
-                      <Select value={carrera} onValueChange={setCarrera}>
-                        <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
-                          <SelectValue placeholder="Seleccione su carrera" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CARRERAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
+                  <div className="grid grid-cols-1 gap-4">
+                    {claustro === "Docente" && (
+                      <>
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargo Docente</Label>
+                          <Select value={academicRank} onValueChange={setAcademicRank}>
+                            <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                              <SelectValue placeholder="Seleccione cargo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Auxiliar">Auxiliar</SelectItem>
+                              <SelectItem value="JTP">JTP</SelectItem>
+                              <SelectItem value="Prof. Adjunto">Prof. Adjunto</SelectItem>
+                              <SelectItem value="Prof. Asociado">Prof. Asociado</SelectItem>
+                              <SelectItem value="Prof. Titular">Prof. Titular</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
+                          <Select value={department} onValueChange={setDepartment}>
+                            <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                              <SelectValue placeholder="Seleccione dependencia" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
 
-                {claustro === "Egresado" && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profesión</Label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                      <Input placeholder="Su título profesional" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={profession} onChange={(e) => setProfession(e.target.value)} />
+                    {claustro === "No docente" && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Dependencia</Label>
+                        <Select value={department} onValueChange={setDepartment}>
+                          <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                            <SelectValue placeholder="Seleccione dependencia" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {claustro === "Estudiante" && (
+                      <>
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Facultad</Label>
+                          <Select value={department} onValueChange={setDepartment}>
+                            <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                              <SelectValue placeholder="Seleccione facultad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Carrera</Label>
+                          <Select value={carrera} onValueChange={setCarrera}>
+                            <SelectTrigger className="h-12 rounded-xl bg-white/50 font-bold">
+                              <SelectValue placeholder="Seleccione su carrera" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CARRERAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
+
+                    {claustro === "Egresado" && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profesión</Label>
+                        <div className="relative">
+                          <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                          <Input placeholder="Su título profesional" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={profession} onChange={(e) => setProfession(e.target.value)} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Correo Institucional</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                      <Input id="email" type="email" placeholder="usuario@unca.edu.ar" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                   </div>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Correo Institucional</Label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input id="email" type="email" placeholder="usuario@unca.edu.ar" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <div className="space-y-2">
+                    <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                      <Input id="password" type="password" placeholder="Mínimo 6 caracteres" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <Button type="submit" className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary shadow-lg shadow-primary/20 mt-2" disabled={loading || isCompresing}>
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2">Registrarse <ArrowRight className="w-4 h-4" /></span>}
+                  </Button>
+                </form>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-4 px-8 pb-8 pt-2">
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
+                <div className="text-center space-y-3">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿Ya tiene una cuenta?</p>
+                  <Button asChild variant="ghost" className="w-full h-11 rounded-xl text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
+                    <Link href="/login"><LogIn className="w-4 h-4 mr-2" /> Volver al ingreso</Link>
+                  </Button>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contraseña</Label>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input id="password" type="password" placeholder="Mínimo 6 caracteres" className="pl-11 h-12 rounded-xl bg-white/50 font-bold" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary shadow-lg shadow-primary/20 mt-2" disabled={loading || isCompresing}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2">Registrarse <ArrowRight className="w-4 h-4" /></span>}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4 px-8 pb-8 pt-2">
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
-            <div className="text-center space-y-3">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">¿Ya tiene una cuenta?</p>
-              <Button asChild variant="ghost" className="w-full h-11 rounded-xl text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5">
-                <Link href="/login"><LogIn className="w-4 h-4 mr-2" /> Volver al ingreso</Link>
-              </Button>
-            </div>
-          </CardFooter>
+              </CardFooter>
+            </>
+          )}
         </Card>
       </div>
     </div>

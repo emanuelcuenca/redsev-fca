@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -27,7 +27,16 @@ export default function LoginPage() {
     setLoginError(null);
     
     try {
-      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      
+      // Verificar si el correo está validado
+      if (!userCredential.user.emailVerified) {
+        setLoginError("Su correo electrónico aún no ha sido verificado. Por favor, confirme su cuenta desde el enlace enviado a su casilla institucional.");
+        await signOut(auth); // Desconectar sesión si no está verificado
+        setLoading(false);
+        return;
+      }
+
       toast({
         title: "Acceso concedido",
         description: "Bienvenido al repositorio institucional.",
@@ -41,7 +50,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden">
-      {/* Contenedor de decoraciones para evitar desbordamiento lateral */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl" />
@@ -99,8 +107,8 @@ export default function LoginPage() {
                   />
                 </div>
                 {loginError && (
-                  <div className="flex items-center gap-2 mt-2 animate-in fade-in slide-in-from-top-1 px-1">
-                    <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0" />
+                  <div className="flex items-start gap-2 mt-3 animate-in fade-in slide-in-from-top-1 px-1 bg-destructive/5 p-3 rounded-xl border border-destructive/10">
+                    <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                     <p className="text-[11px] font-bold text-destructive leading-tight">
                       {loginError}
                     </p>
