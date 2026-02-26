@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/alert";
 import { useAuth } from "@/firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
@@ -181,6 +181,10 @@ export default function RegisterPage() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      
+      // Establecer idioma a Español para que el mensaje llegue como "Validar correo electrónico"
+      auth.languageCode = 'es';
+      
       // Enviar correo de verificación
       await sendEmailVerification(userCredential.user);
       
@@ -231,9 +235,10 @@ export default function RegisterPage() {
                 <Mail className="w-12 h-12 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">¡Confirme su registro!</h2>
+                <h2 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Validar correo electrónico</h2>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">REDSEV FCA</p>
                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                  Hemos enviado un enlace de verificación a: <br />
+                  Hemos enviado un enlace de confirmación a: <br />
                   <span className="font-bold text-foreground text-base">{email}</span>
                 </p>
               </div>
