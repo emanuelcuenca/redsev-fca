@@ -137,6 +137,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const displayDate = documentData.date || documentData.uploadDate;
   const isConvenio = documentData.type === 'Convenio';
   const isProyecto = documentData.type === 'Proyecto';
+  const isExtensionProyecto = isProyecto && documentData.extensionDocType === "Proyecto de Extensión";
   const isMobilityLike = ['Movilidad Estudiantil', 'Movilidad Docente', 'Pasantía'].includes(documentData.type);
   
   const objectiveContext = (isProyecto && documentData.extensionDocType === "Proyecto de Extensión") ? documentData.objetivoGeneral : masterProject?.objetivoGeneral;
@@ -232,7 +233,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className={cn("grid grid-cols-1 gap-10", !isExtensionProyecto && "md:grid-cols-2")}>
               <div className="space-y-6">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b pb-2">Gestión Institucional</h3>
                 <div className="space-y-4">
@@ -255,20 +256,22 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b pb-2">Instituciones y Ubicación</h3>
-                <div className="space-y-3">
-                  {isMobilityLike && (
-                    <div className="p-4 bg-muted/20 rounded-xl space-y-2 border border-muted">
-                      <div className="flex gap-2 items-center"><Building2 className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{documentData.mobilityInstitution || 'No especificada'}</p></div>
-                      <div className="flex gap-2 items-center"><MapPin className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{documentData.mobilityState}, {documentData.mobilityCountry}</p></div>
-                    </div>
-                  )}
-                  {documentData.counterparts?.map((cp, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 bg-muted/10 rounded-xl"><Building2 className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{cp}</p></div>
-                  ))}
+              {!isExtensionProyecto && (
+                <div className="space-y-6">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b pb-2">Instituciones y Ubicación</h3>
+                  <div className="space-y-3">
+                    {isMobilityLike && (
+                      <div className="p-4 bg-muted/20 rounded-xl space-y-2 border border-muted">
+                        <div className="flex gap-2 items-center"><Building2 className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{documentData.mobilityInstitution || 'No especificada'}</p></div>
+                        <div className="flex gap-2 items-center"><MapPin className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{documentData.mobilityState}, {documentData.mobilityCountry}</p></div>
+                      </div>
+                    )}
+                    {documentData.counterparts?.map((cp, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-muted/10 rounded-xl"><Building2 className="w-4 h-4 text-primary/60" /><p className="font-bold text-xs">{cp}</p></div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
 
@@ -313,7 +316,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               
               <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Título unificado del proyecto al inicio - VISIBLE UNA SOLA VEZ */}
+                  {/* Título unificado del proyecto al inicio */}
                   <div className="bg-primary/5 p-8 md:p-12 border-b">
                     <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Título del Proyecto</p>
                     <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary leading-tight">
@@ -376,7 +379,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                             </div>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 pl-2">
-                              {/* Informes muestran responsables y períodos */}
                               {isInforme && (
                                 <>
                                   {rel.director && (
@@ -402,7 +404,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                                 </>
                               )}
 
-                              {/* Resoluciones solo muestran número y fecha de doc */}
                               {isResolucion && (
                                 <>
                                   {rel.resolutionNumber && (
@@ -421,7 +422,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               )}
                             </div>
                             
-                            {/* Resúmenes para Informes */}
                             {isInforme && rel.description && (
                               <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 mb-8 italic text-sm text-muted-foreground leading-relaxed">
                                 <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Información / Resumen</p>
