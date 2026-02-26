@@ -323,13 +323,13 @@ export default function DocumentsListPage() {
                       className="hover:bg-primary/[0.03] group transition-all duration-300"
                     >
                       <TableCell className="py-4 md:py-8 pl-4 md:pl-12">
-                        <div className="flex items-center gap-3 md:gap-6">
-                          <div className="bg-primary/10 p-2 md:p-4 rounded-lg md:rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
+                        <div className="flex items-start gap-3 md:gap-6">
+                          <div className="bg-primary/10 p-2 md:p-4 rounded-lg md:rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0 mt-1">
                             {getDocIcon(docItem.type)}
                           </div>
-                          <div className="max-w-xs md:max-w-md">
+                          <div className="flex-1">
                             <Link href={`/documents/${docItem.id}`} className="block w-fit">
-                              <p className="font-black text-sm md:text-lg leading-tight text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                              <p className="font-black text-sm md:text-lg leading-tight text-foreground hover:text-primary transition-colors cursor-pointer break-words">
                                 {docItem.title}
                               </p>
                             </Link>
