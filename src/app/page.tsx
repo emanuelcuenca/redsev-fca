@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -75,8 +76,6 @@ export default function Dashboard() {
   );
   const { data: userProfile } = useDoc(userProfileRef);
 
-  // Consultar todos los documentos para calcular estadísticas
-  // Simplificamos la consulta eliminando el orderBy temporalmente para evitar errores de índice o permisos
   const allDocsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return collection(db, 'documents');
@@ -84,7 +83,6 @@ export default function Dashboard() {
   
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
-  // Calcular estadísticas
   const stats = useMemo(() => {
     if (!allDocuments) return null;
     return {
@@ -95,7 +93,6 @@ export default function Dashboard() {
     };
   }, [allDocuments]);
 
-  // Tomar los últimos 6 basándonos en la fecha de subida
   const recentDocuments = useMemo(() => {
     if (!allDocuments) return [];
     return [...allDocuments]
@@ -103,7 +100,7 @@ export default function Dashboard() {
       .slice(0, 6);
   }, [allDocuments]);
 
-  const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0].toUpperCase() || '');
+  const formattedName = userProfile?.firstName ? userProfile.firstName.toUpperCase() : (user?.displayName?.split(' ')[0]?.toUpperCase() || '');
   const isProfileIncomplete = userProfile && (!userProfile.academicRank || !userProfile.department);
 
   if (!mounted || isUserLoading) {
