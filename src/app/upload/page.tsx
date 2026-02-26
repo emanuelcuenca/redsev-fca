@@ -245,7 +245,6 @@ export default function UploadPage() {
       return;
     }
 
-    // Validaciones obligatorias para Resolución de Aprobación
     if (type === "Proyecto" && extensionDocType === "Resolución de aprobación") {
       if (!resolutionNumber.trim()) {
         toast({ variant: "destructive", title: "Número de Resolución obligatorio" });
@@ -377,7 +376,7 @@ export default function UploadPage() {
                   { id: "Movilidad Estudiantil", label: "Mov. Estudiantil", icon: Plane },
                   { id: "Movilidad Docente", label: "Mov. Docente", icon: Plane },
                   { id: "Pasantía", label: "Práctica/Pasantía", icon: GraduationCap },
-                  { id: "Resolución", label: "Resolución", icon: ScrollText }
+                  { id: "Resolución", label: "Resolución y Reg.", icon: ScrollText }
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -761,7 +760,7 @@ export default function UploadPage() {
 
             {type === "Resolución" && (
               <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-muted animate-in fade-in space-y-8">
-                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><input placeholder="Título de la resolución" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+                <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Título</Label><input placeholder="Título de la resolución o reglamento" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
                 <div className="space-y-2"><Label className="font-black uppercase text-[10px] tracking-widest text-muted-foreground ml-1">Fecha de Aprobación</Label>
                   <div className="grid grid-cols-3 gap-1 max-w-sm">
                     <Select value={signingDay} onValueChange={setSigningDay}>

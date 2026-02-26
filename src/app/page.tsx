@@ -21,7 +21,8 @@ import {
   Plane,
   GraduationCap,
   Send,
-  Mail
+  Mail,
+  ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -78,7 +79,6 @@ export default function Dashboard() {
   
   const { data: allDocuments, isLoading: isDocsLoading } = useCollection<AgriculturalDocument>(allDocsQuery);
 
-  // Mostrar todos los documentos sin restricciones de jerarquía
   const visibleDocuments = useMemo(() => {
     if (!allDocuments) return [];
     return allDocuments;
@@ -338,7 +338,9 @@ function DocumentCard({ document, isMounted }: { document: AgriculturalDocument,
           <Badge variant="secondary" className="bg-primary/10 text-primary shadow-sm font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none">
             {document.extensionDocType || document.type}
           </Badge>
-          <div className="text-primary/40"><FileText className="w-5 h-5" /></div>
+          <div className="text-primary/40">
+            {document.type === 'Resolución' ? <ScrollText className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+          </div>
         </div>
         <CardTitle className="text-lg md:text-xl font-headline font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
           {document.title}

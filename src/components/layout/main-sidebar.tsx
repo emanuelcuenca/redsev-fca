@@ -12,7 +12,8 @@ import {
   Contact,
   BellRing,
   Plane,
-  GraduationCap
+  GraduationCap,
+  ScrollText
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,7 +48,8 @@ export function MainSidebar() {
     { icon: ArrowLeftRight, label: "Extensión", href: "/documents?category=extension" },
     { icon: Handshake, label: "Convenios", href: "/documents?category=convenios" },
     { icon: Plane, label: "Movilidad", href: "/documents?category=movilidad" },
-    { icon: GraduationCap, label: "Pasantías", href: "/documents?category=pasantias" },
+    { icon: GraduationCap, label: "Prácticas y Pasantías", href: "/documents?category=pasantias" },
+    { icon: ScrollText, label: "Resoluciones y Reglamentos", href: "/documents?category=resoluciones" },
   ];
 
   const ADMIN_ITEMS = [

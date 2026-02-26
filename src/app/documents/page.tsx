@@ -92,6 +92,7 @@ export default function DocumentsListPage() {
       if (category === 'extension' && doc.type !== 'Proyecto' && doc.type !== 'Resolución') return false;
       if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
       if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
+      if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
 
       // 2. Búsqueda por texto
       const searchableString = (
@@ -136,7 +137,8 @@ export default function DocumentsListPage() {
       case 'convenios': return { title: 'Convenios', icon: Handshake };
       case 'extension': return { title: 'Extensión y Proyectos', icon: ArrowLeftRight };
       case 'movilidad': return { title: 'Movilidad Estudiantil/Docente', icon: Plane };
-      case 'pasantias': return { title: 'Pasantías y Prácticas', icon: GraduationCap };
+      case 'pasantias': return { title: 'Prácticas y Pasantías', icon: GraduationCap };
+      case 'resoluciones': return { title: 'Resoluciones y Reglamentos', icon: ScrollText };
       default: return { title: 'Repositorio Institucional', icon: FileText };
     }
   };
