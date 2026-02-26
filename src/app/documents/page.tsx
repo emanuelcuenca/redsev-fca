@@ -8,7 +8,6 @@ import {
   Search, 
   User, 
   MoreVertical,
-  Eye,
   Handshake,
   Loader2,
   ArrowLeftRight,
@@ -97,69 +96,74 @@ export default function DocumentsListPage() {
   const filteredDocs = useMemo(() => {
     if (!rawDocs) return [];
     
-    return rawDocs.filter(doc => {
+    return rawDocs.filter(docItem => {
       // 1. Filtro jerárquico para no administradores
       if (!isAdmin) {
-        if (doc.type === 'Proyecto' && doc.extensionDocType !== 'Proyecto de Extensión') {
+        if (docItem.type === 'Proyecto' && docItem.extensionDocType !== 'Proyecto de Extensión') {
           return false;
         }
       }
 
       // 2. Filtro por categoría de sidebar
-      if (category === 'convenios' && doc.type !== 'Convenio') return false;
-      if (category === 'extension' && doc.type !== 'Proyecto') return false;
-      if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(doc.type)) return false;
-      if (category === 'pasantias' && doc.type !== 'Pasantía') return false;
-      if (category === 'resoluciones' && doc.type !== 'Resolución') return false;
+      if (category === 'convenios' && docItem.type !== 'Convenio') return false;
+      if (category === 'extension' && docItem.type !== 'Proyecto') return false;
+      if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(docItem.type)) return false;
+      if (category === 'pasantias' && docItem.type !== 'Pasantía') return false;
+      if (category === 'resoluciones' && docItem.type !== 'Resolución') return false;
 
       // 3. Búsqueda por texto
       const searchableString = (
-        (doc.title || "") + 
-        (doc.projectCode || '') + 
-        (doc.resolutionNumber || '') +
-        (doc.authors?.map(a => a.lastName).join(' ') || '') +
-        (doc.director?.lastName || '') +
-        (doc.student?.lastName || '')
+        (docItem.title || "") + 
+        (docItem.projectCode || '') + 
+        (docItem.resolutionNumber || '') +
+        (docItem.authors?.map(a => a.lastName).join(' ') || '') +
+        (docItem.director?.lastName || '') +
+        (docItem.student?.lastName || '')
       ).toLowerCase();
       
       if (!searchQuery) return true;
       if (!searchableString.includes(searchQuery.toLowerCase())) return false;
 
       // 4. Filtros adicionales
-      const dateToUse = (category === 'extension' ? doc.uploadDate : (doc.date || doc.uploadDate));
+      const dateToUse = (category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate));
       const docYear = dateToUse ? new Date(dateToUse).getFullYear().toString() : null;
       if (filterYear !== "all" && docYear !== filterYear) return false;
       
       if (category === 'convenios' && filterVigente !== "all") {
-        const isVig = isDocumentVigente(doc);
+        const isVig = isDocumentVigente(docItem);
         if (isVig !== (filterVigente === "vigente")) return false;
       }
 
       // 5. Filtro de Director (Extensión)
       if (category === 'extension' && filterDirector !== "all") {
-        if (formatPersonName(doc.director) !== filterDirector) return false;
+        if (formatPersonName(docItem.director) !== filterDirector) return false;
       }
 
       // 6. Filtro de Tipo de Extensión (Solo Admin)
       if (isAdmin && category === 'extension' && filterExtensionType !== "all") {
-        if (doc.extensionDocType !== filterExtensionType) return false;
+        if (docItem.extensionDocType !== filterExtensionType) return false;
       }
 
       return true;
-    }).filter(doc => {
+    }).filter(docItem => {
       // Si no es admin y es extensión, solo mostrar "Proyecto de Extensión"
       if (!isAdmin && category === 'extension') {
-        return doc.extensionDocType === 'Proyecto de Extensión';
+        return docItem.extensionDocType === 'Proyecto de Extensión';
       }
       return true;
     });
   }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin, filterDirector, filterExtensionType]);
 
   const handleDelete = (docId: string) => {
-    if (!isAdmin) return;
-    if (confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.")) {
+    if (!isAdmin) {
+      toast({ variant: "destructive", title: "Acceso denegado" });
+      return;
+    }
+    
+    // Confirmación explícita
+    if (window.confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.")) {
       deleteDocumentNonBlocking(doc(db, 'documents', docId));
-      toast({ title: "Registro eliminado correctamente" });
+      toast({ title: "Registro eliminado", description: "El documento ha sido borrado correctamente." });
     }
   };
 
@@ -309,45 +313,45 @@ export default function DocumentsListPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow><TableCell colSpan={4} className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></TableCell></TableRow>
-                ) : filteredDocs.map((doc) => (
+                ) : filteredDocs.map((docItem) => (
                   <TableRow 
-                    key={doc.id} 
+                    key={docItem.id} 
                     className="hover:bg-primary/[0.03] group transition-all duration-300"
                   >
                     <TableCell className="py-8 pl-12">
                       <div className="flex items-center gap-6">
                         <div className="bg-primary/10 p-4 rounded-[1.25rem] group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
-                          {getDocIcon(doc.type)}
+                          {getDocIcon(docItem.type)}
                         </div>
                         <div className="max-w-md">
-                          <Link href={`/documents/${doc.id}`} className="block w-fit">
-                            <p className="font-black text-lg leading-tight text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">{doc.title}</p>
+                          <Link href={`/documents/${docItem.id}`} className="block w-fit">
+                            <p className="font-black text-lg leading-tight text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">{docItem.title}</p>
                           </Link>
                           <p className="text-sm text-muted-foreground mt-1 font-bold flex items-center gap-2">
                             <User className="w-4 h-4 text-primary/60" /> 
-                            {formatPersonName(doc.director) !== 'Sin asignar' ? formatPersonName(doc.director) : 
-                             (doc.student && formatPersonName(doc.student) !== 'Sin asignar') ? formatPersonName(doc.student) :
-                             (doc.authors && doc.authors.length > 0) ? formatPersonName(doc.authors[0]) : 'Responsable SEyV'}
+                            {formatPersonName(docItem.director) !== 'Sin asignar' ? formatPersonName(docItem.director) : 
+                             (docItem.student && formatPersonName(docItem.student) !== 'Sin asignar') ? formatPersonName(docItem.student) :
+                             (docItem.authors && docItem.authors.length > 0) ? formatPersonName(docItem.authors[0]) : 'Responsable SEyV'}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{doc.extensionDocType || doc.type}</Badge>
-                        {(doc.projectCode || doc.resolutionNumber) && (
+                        <Badge variant="secondary" className="font-black text-[10px] uppercase px-3 py-1 bg-secondary text-primary w-fit">{docItem.extensionDocType || docItem.type}</Badge>
+                        {(docItem.projectCode || docItem.resolutionNumber) && (
                           <span className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
-                            <Fingerprint className="w-3 h-3" /> {doc.projectCode || doc.resolutionNumber}
+                            <Fingerprint className="w-3 h-3" /> {docItem.projectCode || docItem.resolutionNumber}
                           </span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground font-bold">
-                      {new Date((category === 'extension' ? doc.uploadDate : (doc.date || doc.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date((category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate)) || 0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-right pr-12">
-                      <div className="flex justify-end gap-2">
-                        {isAdmin && (
+                      {isAdmin && (
+                        <div className="flex justify-end gap-2">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10">
@@ -356,21 +360,24 @@ export default function DocumentsListPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="rounded-xl">
                               <DropdownMenuItem asChild className="gap-2 font-bold cursor-pointer">
-                                <Link href={`/documents/${doc.id}/edit`}>
+                                <Link href={`/documents/${docItem.id}/edit`}>
                                   <Pencil className="w-4 h-4" /> Editar
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
                                 className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" 
-                                onClick={() => handleDelete(doc.id)}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  handleDelete(docItem.id);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" /> Eliminar
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
