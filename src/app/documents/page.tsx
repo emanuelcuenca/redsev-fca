@@ -97,21 +97,18 @@ export default function DocumentsListPage() {
     if (!rawDocs) return [];
     
     return rawDocs.filter(docItem => {
-      // 1. Filtro jerárquico para no administradores
       if (!isAdmin) {
         if (docItem.type === 'Proyecto' && docItem.extensionDocType !== 'Proyecto de Extensión') {
           return false;
         }
       }
 
-      // 2. Filtro por categoría de sidebar
       if (category === 'convenios' && docItem.type !== 'Convenio') return false;
       if (category === 'extension' && docItem.type !== 'Proyecto') return false;
       if (category === 'movilidad' && !['Movilidad Estudiantil', 'Movilidad Docente'].includes(docItem.type)) return false;
       if (category === 'pasantias' && docItem.type !== 'Pasantía') return false;
       if (category === 'resoluciones' && docItem.type !== 'Resolución') return false;
 
-      // 3. Búsqueda por texto
       const searchableString = (
         (docItem.title || "") + 
         (docItem.projectCode || '') + 
@@ -121,10 +118,8 @@ export default function DocumentsListPage() {
         (docItem.student?.lastName || '')
       ).toLowerCase();
       
-      if (!searchQuery) return true;
-      if (!searchableString.includes(searchQuery.toLowerCase())) return false;
+      if (searchQuery && !searchableString.includes(searchQuery.toLowerCase())) return false;
 
-      // 4. Filtros adicionales
       const dateToUse = (category === 'extension' ? docItem.uploadDate : (docItem.date || docItem.uploadDate));
       const docYear = dateToUse ? new Date(dateToUse).getFullYear().toString() : null;
       if (filterYear !== "all" && docYear !== filterYear) return false;
@@ -134,22 +129,14 @@ export default function DocumentsListPage() {
         if (isVig !== (filterVigente === "vigente")) return false;
       }
 
-      // 5. Filtro de Director (Extensión)
       if (category === 'extension' && filterDirector !== "all") {
         if (formatPersonName(docItem.director) !== filterDirector) return false;
       }
 
-      // 6. Filtro de Tipo de Extensión (Solo Admin)
       if (isAdmin && category === 'extension' && filterExtensionType !== "all") {
         if (docItem.extensionDocType !== filterExtensionType) return false;
       }
 
-      return true;
-    }).filter(docItem => {
-      // Si no es admin y es extensión, solo mostrar "Proyecto de Extensión"
-      if (!isAdmin && category === 'extension') {
-        return docItem.extensionDocType === 'Proyecto de Extensión';
-      }
       return true;
     });
   }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin, filterDirector, filterExtensionType]);
@@ -160,11 +147,14 @@ export default function DocumentsListPage() {
       return;
     }
     
-    // Confirmación explícita
-    if (window.confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.")) {
-      deleteDocumentNonBlocking(doc(db, 'documents', docId));
-      toast({ title: "Registro eliminado", description: "El documento ha sido borrado correctamente." });
-    }
+    // Usamos setTimeout para asegurar que el menú dropdown se cierre antes de abrir el confirm del sistema
+    setTimeout(() => {
+      const confirmed = window.confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.");
+      if (confirmed) {
+        deleteDocumentNonBlocking(doc(db, 'documents', docId));
+        toast({ title: "Registro eliminado", description: "El documento ha sido borrado correctamente." });
+      }
+    }, 100);
   };
 
   const years = useMemo(() => {
@@ -367,10 +357,7 @@ export default function DocumentsListPage() {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
                                 className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" 
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  handleDelete(docItem.id);
-                                }}
+                                onSelect={() => handleDelete(docItem.id)}
                               >
                                 <Trash2 className="w-4 h-4" /> Eliminar
                               </DropdownMenuItem>
