@@ -17,7 +17,8 @@ import {
   Plane,
   GraduationCap,
   ScrollText,
-  UserCheck
+  UserCheck,
+  AlertTriangle
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -47,6 +48,16 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
 import { AgriculturalDocument, isDocumentVigente, formatPersonName } from "@/lib/mock-data";
@@ -60,6 +71,9 @@ export default function DocumentsListPage() {
   const [filterYear, setFilterYear] = useState<string>("all");
   const [filterDirector, setFilterDirector] = useState<string>("all");
   const [filterExtensionType, setFilterExtensionType] = useState<string>("all");
+  
+  // Estado para gestionar la eliminación con el diálogo profesional
+  const [docIdToDelete, setDocIdToDelete] = useState<string | null>(null);
   
   useEffect(() => {
     setMounted(true);
@@ -141,20 +155,15 @@ export default function DocumentsListPage() {
     });
   }, [rawDocs, searchQuery, category, filterVigente, filterYear, isAdmin, filterDirector, filterExtensionType]);
 
-  const handleDelete = (docId: string) => {
-    if (!isAdmin) {
-      toast({ variant: "destructive", title: "Acceso denegado" });
-      return;
-    }
+  const confirmDelete = () => {
+    if (!isAdmin || !docIdToDelete) return;
     
-    // Usamos setTimeout para asegurar que el menú dropdown se cierre antes de abrir el confirm del sistema
-    setTimeout(() => {
-      const confirmed = window.confirm("¿Está seguro de que desea eliminar este registro permanentemente? Esta acción no se puede deshacer.");
-      if (confirmed) {
-        deleteDocumentNonBlocking(doc(db, 'documents', docId));
-        toast({ title: "Registro eliminado", description: "El documento ha sido borrado correctamente." });
-      }
-    }, 100);
+    deleteDocumentNonBlocking(doc(db, 'documents', docIdToDelete));
+    toast({ 
+      title: "Registro eliminado", 
+      description: "El documento ha sido borrado correctamente del sistema." 
+    });
+    setDocIdToDelete(null);
   };
 
   const years = useMemo(() => {
@@ -357,7 +366,7 @@ export default function DocumentsListPage() {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
                                 className="gap-2 text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer" 
-                                onSelect={() => handleDelete(docItem.id)}
+                                onSelect={() => setDocIdToDelete(docItem.id)}
                               >
                                 <Trash2 className="w-4 h-4" /> Eliminar
                               </DropdownMenuItem>
@@ -375,6 +384,30 @@ export default function DocumentsListPage() {
             </Table>
           </div>
         </main>
+
+        {/* Diálogo de Confirmación de Eliminación */}
+        <AlertDialog open={!!docIdToDelete} onOpenChange={(open) => !open && setDocIdToDelete(null)}>
+          <AlertDialogContent className="rounded-[2rem] max-w-md">
+            <AlertDialogHeader className="items-center text-center">
+              <div className="bg-destructive/10 p-4 rounded-full mb-4">
+                <AlertTriangle className="w-10 h-10 text-destructive" />
+              </div>
+              <AlertDialogTitle className="font-headline font-bold uppercase text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground font-medium pt-2">
+                Esta acción es permanente y eliminará este registro de la base de datos institucional. No se podrá recuperar.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="sm:justify-center gap-3 mt-6">
+              <AlertDialogCancel className="rounded-xl font-bold uppercase text-[10px] tracking-widest h-12 px-6">Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDelete}
+                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-black uppercase text-[10px] tracking-widest h-12 px-8"
+              >
+                Eliminar Registro
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarInset>
     </SidebarProvider>
   );
