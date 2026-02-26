@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -148,7 +147,7 @@ export default function ContactPage() {
 
               <div>
                 <h3 className="text-xl font-headline font-bold uppercase text-primary mb-6 flex items-center gap-3">
-                  <MapPin className="w-5 h-5" /> Ubicación Física
+                  <MapPin className="w-5 h-5" /> Dirección
                 </h3>
                 <div className="flex items-start gap-4 p-6 bg-white rounded-3xl border border-muted shadow-sm group transition-all hover:border-primary/30">
                   <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Building2 className="w-5 h-5" /></div>
