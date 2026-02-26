@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Contact, 
@@ -9,7 +8,9 @@ import {
   Loader2, 
   Trash2, 
   UserPlus, 
-  Pencil
+  Pencil,
+  Mail,
+  UserCheck
 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/layout/main-sidebar";
@@ -93,6 +94,7 @@ export default function StaffAdminPage() {
     setMounted(true);
   }, []);
 
+  // Verificación de Admin
   const adminCheckRef = useMemoFirebase(() => 
     user ? doc(db, 'roles_admin', user.uid) : null, 
     [db, user]
@@ -108,15 +110,29 @@ export default function StaffAdminPage() {
     }
   }, [user, currentAdminDoc, isUserLoading, isAdminCheckLoading, mounted, router]);
 
+  // Suscripción al Banco de Extensionistas
   const staffQuery = useMemoFirebase(() => 
     (user && currentAdminDoc) ? query(collection(db, 'staff'), orderBy('lastName', 'asc')) : null,
     [db, user, currentAdminDoc]
   );
   const { data: staffList, isLoading: isStaffLoading } = useCollection<StaffMember>(staffQuery);
 
+  // Suscripción a Usuarios Registrados para vinculación por email
+  const usersQuery = useMemoFirebase(() => 
+    (user && currentAdminDoc) ? collection(db, 'users') : null,
+    [db, user, currentAdminDoc]
+  );
+  const { data: registeredUsers } = useCollection(usersQuery);
+
+  // Crear un set de emails registrados para búsqueda rápida
+  const registeredEmails = useMemo(() => {
+    return new Set(registeredUsers?.map(u => u.email?.toLowerCase()) || []);
+  }, [registeredUsers]);
+
   const filteredStaff = staffList?.filter(s => 
     s.firstName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.lastName.toLowerCase().includes(searchQuery.toLowerCase())
+    s.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.email?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
   const handleEdit = (member: StaffMember) => {
@@ -144,6 +160,7 @@ export default function StaffAdminPage() {
     setIsSaving(true);
     const data = {
       ...formData,
+      email: formData.email.trim().toLowerCase(),
       updatedAt: new Date().toISOString()
     };
 
@@ -196,13 +213,13 @@ export default function StaffAdminPage() {
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
         </header>
 
-        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <main className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-20">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Gestión de Extensionistas</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Personal de la Facultad de Ciencias Agrarias</p>
+                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Banco de Extensionistas</h2>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos institucional integrada</p>
               </div>
             </div>
 
@@ -228,11 +245,11 @@ export default function StaffAdminPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest">Apellido</Label>
-                      <Input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="h-12 rounded-xl" required />
+                      <input value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" required />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest">Nombre</Label>
-                      <Input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="h-12 rounded-xl" required />
+                      <input value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" required />
                     </div>
                   </div>
 
@@ -266,7 +283,7 @@ export default function StaffAdminPage() {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest">Dependencia</Label>
-                          <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                          <input value="Cs. Agrarias" readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted px-3 py-2 text-sm font-bold" />
                         </div>
                       </>
                     )}
@@ -274,7 +291,7 @@ export default function StaffAdminPage() {
                     {isNoDocente && (
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest">Dependencia</Label>
-                        <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                        <input value="Cs. Agrarias" readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted px-3 py-2 text-sm font-bold" />
                       </div>
                     )}
 
@@ -282,7 +299,7 @@ export default function StaffAdminPage() {
                       <>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest">Facultad</Label>
-                          <Input value="Cs. Agrarias" readOnly className="h-12 rounded-xl bg-muted font-bold" />
+                          <input value="Cs. Agrarias" readOnly className="flex h-12 w-full rounded-xl border border-input bg-muted px-3 py-2 text-sm font-bold" />
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest">Carrera</Label>
@@ -301,14 +318,14 @@ export default function StaffAdminPage() {
                     {isEgresado && (
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest">Profesión</Label>
-                        <Input value={formData.profession} onChange={(e) => setFormData({...formData, profession: e.target.value})} placeholder="Ej: Ingeniero Agrónomo" className="h-12 rounded-xl" />
+                        <input value={formData.profession} onChange={(e) => setFormData({...formData, profession: e.target.value})} placeholder="Ej: Ingeniero Agrónomo" className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                       </div>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest">Email (Opcional)</Label>
-                    <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest">Email Institucional</Label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" placeholder="usuario@unca.edu.ar" />
                   </div>
 
                   <DialogFooter className="pt-4">
@@ -321,12 +338,12 @@ export default function StaffAdminPage() {
             </Dialog>
           </div>
 
-          <Card className="rounded-[2rem] border-muted shadow-xl overflow-hidden mb-8">
+          <Card className="rounded-[2.5rem] border-muted shadow-xl overflow-hidden mb-8">
             <CardHeader className="bg-muted/30">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Buscar por Apellido o Nombre..." 
+                  placeholder="Buscar por Apellido, Nombre o Email..." 
                   className="pl-11 h-12 rounded-xl border-muted-foreground/20 bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -339,48 +356,80 @@ export default function StaffAdminPage() {
                   <Loader2 className="w-10 h-10 animate-spin text-primary" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader className="bg-muted/10">
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest">Extensionista</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Claustro / Cargo</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase tracking-widest">Referencia</TableHead>
-                      <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredStaff.map((person) => (
-                      <TableRow key={person.id} className="group hover:bg-primary/[0.02]">
-                        <TableCell className="py-5 pl-8 font-bold">{person.lastName}, {person.firstName}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5 w-fit">
-                              {person.claustro || "Docente"}
-                            </Badge>
-                            {person.academicRank && (
-                              <span className="text-[10px] text-muted-foreground font-bold pl-1">{person.academicRank}</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
-                            {person.claustro === 'Estudiante' ? person.carrera : person.claustro === 'Egresado' ? person.profession : person.department}
-                          </span>
-                        </TableCell>
-                        <TableCell className="pr-8 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="rounded-xl text-primary hover:bg-primary/10" onClick={() => handleEdit(person)}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/10">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Extensionista</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Email / Estado</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Claustro / Cargo</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Referencia</TableHead>
+                        <TableHead className="pr-8 text-right font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Acciones</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredStaff.map((person) => {
+                        const isUserLinked = person.email && registeredEmails.has(person.email.toLowerCase());
+                        
+                        return (
+                          <TableRow key={person.id} className="group hover:bg-primary/[0.02] transition-colors">
+                            <TableCell className="py-5 pl-8">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-sm md:text-base leading-tight">{person.lastName}, {person.firstName}</span>
+                                {isUserLinked && (
+                                  <Badge className="w-fit bg-primary/10 text-primary border-none text-[8px] font-black uppercase tracking-widest px-1.5 h-4 mt-1">
+                                    <UserCheck className="w-2.5 h-2.5 mr-1" /> Vinculado
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-3 h-3 text-muted-foreground shrink-0" />
+                                <span className="text-[11px] md:text-xs font-medium text-muted-foreground lowercase truncate max-w-[180px]">
+                                  {person.email || 'Sin correo'}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="outline" className="font-black text-[9px] uppercase tracking-widest px-3 border-primary/20 text-primary bg-primary/5 w-fit">
+                                  {person.claustro || "Docente"}
+                                </Badge>
+                                {person.academicRank && (
+                                  <span className="text-[10px] text-muted-foreground font-bold pl-1">{person.academicRank}</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                                {person.claustro === 'Estudiante' ? person.carrera : person.claustro === 'Egresado' ? person.profession : person.department}
+                              </span>
+                            </TableCell>
+                            <TableCell className="pr-8 text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button variant="ghost" size="icon" className="rounded-xl text-primary hover:bg-primary/10" onClick={() => handleEdit(person)}>
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10" onClick={() => handleDelete(person.id)}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {filteredStaff.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="py-20 text-center">
+                            <Contact className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                            <p className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Sin registros encontrados</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
