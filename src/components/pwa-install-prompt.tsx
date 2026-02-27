@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
 import { Button } from '@/components/ui/button';
-import { Download, X, Share, PlusSquare } from 'lucide-react';
+import { Download, X, Share, SquarePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -65,7 +64,7 @@ export function PwaInstallPrompt() {
                   </div>
                   <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight">
                     <span className="flex items-center justify-center w-4 h-4 rounded-full bg-white text-primary text-[8px]">2</span>
-                    Elegí <PlusSquare className="w-3.5 h-3.5 mx-0.5" /> "Añadir a inicio"
+                    Elegí <SquarePlus className="w-3.5 h-3.5 mx-0.5" /> "Añadir a inicio"
                   </div>
                 </div>
               ) : (

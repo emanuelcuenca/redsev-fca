@@ -1,5 +1,6 @@
+// Service Worker básico para soporte PWA en REDSEV FCA
+const CACHE_NAME = 'redsev-cache-v1';
 
-// Service Worker mínimo para cumplir con los requisitos de PWA (Instalabilidad)
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -9,6 +10,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Estrategia de red primero para asegurar que los datos estén siempre actualizados
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  // Estrategia: Network first, falling back to cache
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
+  );
 });
