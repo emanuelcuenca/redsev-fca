@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -136,7 +135,6 @@ export default function AdminStatsPage() {
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Categorías</CardDescription>
                 <CardTitle className="text-4xl font-black text-accent">{statsByType.length}</CardTitle>
               </CardHeader>
-            </Card>
             <Card className="rounded-3xl border-l-4 border-muted-foreground shadow-lg overflow-hidden">
               <CardHeader className="pb-2">
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Registros por Año</CardDescription>
