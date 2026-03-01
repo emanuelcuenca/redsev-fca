@@ -105,8 +105,8 @@ export default function AdminStatsPage() {
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-semibold whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-semibold whitespace-nowrap">FCA - UNCA</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold whitespace-nowrap">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
@@ -141,8 +141,7 @@ export default function AdminStatsPage() {
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Registros por Año</CardDescription>
                 <CardTitle className="text-4xl font-black text-muted-foreground">{statsByYear.length}</CardTitle>
               </CardHeader>
-            </Card>
-          </div>
+            </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6">
