@@ -210,7 +210,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-3">
                 <div className="bg-accent p-2 rounded-xl"><AlertTriangle className="w-5 h-5 text-accent-foreground" /></div>
                 <div>
-                  <h4 className="font-headline font-black uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
+                  <h4 className="font-bold uppercase text-xs tracking-tight text-accent-foreground">Perfil Institucional Incompleto</h4>
                   <p className="text-xs text-muted-foreground font-medium">Por favor, complete sus datos de cargo y dependencia en su perfil.</p>
                 </div>
               </div>
@@ -221,7 +221,7 @@ export default function Dashboard() {
           <div className="mb-8 md:mb-12">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="bg-primary/10 p-2.5 rounded-xl"><LayoutDashboard className="w-6 h-6 text-primary" /></div>
-              <h2 className="text-xl md:text-2xl font-headline font-bold tracking-tight uppercase">BIENVENIDO{formattedName ? `, ${formattedName}` : ''}</h2>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight uppercase">BIENVENIDO{formattedName ? `, ${formattedName}` : ''}</h2>
               {isAdmin && (
                 <Badge className="bg-primary/20 text-primary border-primary/30 font-black text-[9px] uppercase tracking-widest px-3 py-1 animate-pulse">
                   <ShieldCheck className="w-3 h-3 mr-1.5" /> Modo Administrador
@@ -242,13 +242,13 @@ export default function Dashboard() {
 
           <section className="mb-12 md:mb-20 bg-primary/5 p-6 md:p-12 rounded-[2.5rem] border border-primary/10">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight text-center md:text-left">Estrategias para el Desarrollo Sustentable</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-primary mb-4 md:mb-6 uppercase tracking-tight leading-tight text-center md:text-left">Estrategias para el Desarrollo Sustentable</h2>
               <p className="text-sm md:text-lg text-muted-foreground font-bold mb-10 uppercase tracking-tight text-center md:text-left">La FCA-UNCA trabaja bajo cuatro ejes fundamentales para asegurar la transferencia efectiva del conocimiento.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><ArrowLeftRight className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3><p className="text-sm text-muted-foreground leading-relaxed">Interacción dialéctica entre la Universidad y los demás componentes del cuerpo social.</p></div></div>
-                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Handshake className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Vinculación</h3><p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad y el medio socio-productivo.</p></div></div>
-                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><BookOpen className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Formación</h3><p className="text-sm text-muted-foreground leading-relaxed">Capacitación continua para profesionales y técnicos.</p></div></div>
-                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Leaf className="w-6 h-6 text-primary" /></div><div><h3 className="font-headline font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Sustentabilidad</h3><p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><ArrowLeftRight className="w-6 h-6 text-primary" /></div><div><h3 className="font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Extensión</h3><p className="text-sm text-muted-foreground leading-relaxed">Interacción dialéctica entre la Universidad y los demás componentes del cuerpo social.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Handshake className="w-6 h-6 text-primary" /></div><div><h3 className="font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Vinculación</h3><p className="text-sm text-muted-foreground leading-relaxed">Puente estratégico entre la Universidad y el medio socio-productivo.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><BookOpen className="w-6 h-6 text-primary" /></div><div><h3 className="font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Formación</h3><p className="text-sm text-muted-foreground leading-relaxed">Capacitación continua para profesionales y técnicos.</p></div></div>
+                <div className="flex gap-4"><div className="bg-primary/10 p-3 rounded-2xl shrink-0 h-fit"><Leaf className="w-6 h-6 text-primary" /></div><div><h3 className="font-bold text-primary uppercase tracking-tight mb-1 text-base md:text-lg">Sustentabilidad</h3><p className="text-sm text-muted-foreground leading-relaxed">Prácticas que garantizan la salud del ecosistema a largo plazo.</p></div></div>
               </div>
             </div>
           </section>
@@ -257,7 +257,7 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl md:text-4xl font-headline font-bold uppercase tracking-tight mb-6 leading-tight">Impulsemos juntos el desarrollo regional</h2>
+              <h2 className="text-2xl md:text-4xl font-bold uppercase tracking-tight mb-6 leading-tight">Impulsemos juntos el desarrollo regional</h2>
               <p className="text-sm md:text-lg font-medium opacity-95 mb-10 leading-relaxed">
                 ¿Tenés una idea de proyecto o buscás una alianza estratégica?
                 <br />
@@ -273,7 +273,7 @@ export default function Dashboard() {
                   </DialogTrigger>
                   <DialogContent className="rounded-3xl sm:max-w-[500px]">
                     <DialogHeader>
-                      <DialogTitle className="font-headline font-bold uppercase text-primary">Nueva Propuesta Institucional</DialogTitle>
+                      <DialogTitle className="font-bold uppercase text-primary">Nueva Propuesta Institucional</DialogTitle>
                       <DialogDescription className="text-xs uppercase font-bold tracking-tight">Presente su iniciativa a la Secretaría de Extensión y Vinculación.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -320,7 +320,7 @@ export default function Dashboard() {
                   </DialogTrigger>
                   <DialogContent className="rounded-3xl sm:max-w-[500px]">
                     <DialogHeader>
-                      <DialogTitle className="font-headline font-bold uppercase text-primary">Consulta Directa</DialogTitle>
+                      <DialogTitle className="font-bold uppercase text-primary">Consulta Directa</DialogTitle>
                       <DialogDescription className="text-xs uppercase font-bold tracking-tight">Envíe su consulta administrativa o técnica.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -363,7 +363,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string, value: n
   return (
     <div className="flex flex-col items-center text-center p-4 transition-transform hover:scale-105 duration-300">
       <div className={cn("mb-3", color)}><Icon className="w-12 h-12" /></div>
-      <div className="text-4xl font-black font-headline tracking-tighter leading-none mb-1 text-primary">{value}</div>
+      <div className="text-4xl font-black tracking-tighter leading-none mb-1 text-primary">{value}</div>
       <div className="text-[10px] font-bold uppercase tracking-widest leading-tight text-muted-foreground max-w-[120px]">{label}</div>
     </div>
   );
