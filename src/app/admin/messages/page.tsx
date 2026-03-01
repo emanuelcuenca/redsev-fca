@@ -126,7 +126,7 @@ export default function AdminMessagesPage() {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><Mail className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Bandeja de Entrada</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Bandeja de Entrada</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Iniciativas y consultas externas</p>
             </div>
           </div>

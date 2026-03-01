@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -94,7 +95,7 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
-  const [isCompresing, setIsCompresing] = useState(false);
+  const [isCompresing, setLoadingCompresing] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -124,14 +125,14 @@ export default function RegisterPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsCompresing(true);
+      setLoadingCompresing(true);
       try {
         const compressed = await compressImage(file);
         setPhotoUrl(compressed);
       } catch (err) {
         toast({ variant: "destructive", title: "Error al cargar imagen" });
       } finally {
-        setIsCompresing(false);
+        setLoadingCompresing(false);
       }
     }
   };
@@ -260,7 +261,7 @@ export default function RegisterPage() {
           ) : (
             <>
               <CardHeader className="space-y-1 pt-8 px-8 text-center">
-                <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Crear cuenta</CardTitle>
+                <CardTitle className="text-2xl font-bold uppercase tracking-tight">Crear cuenta</CardTitle>
                 <CardDescription className="font-medium">
                   Forme parte del Repositorio Digital de Extensión y Vinculación.
                 </CardDescription>

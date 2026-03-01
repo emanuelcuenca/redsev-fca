@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden w-full">
           <CardHeader className="space-y-1 pt-8 px-8 text-center">
-            <CardTitle className="text-2xl font-headline font-bold uppercase tracking-tight">Ingreso al Sistema</CardTitle>
+            <CardTitle className="text-2xl font-bold uppercase tracking-tight">Ingreso al Sistema</CardTitle>
             <CardDescription className="font-medium">
               Acceda al repositorio digital institucional.
             </CardDescription>

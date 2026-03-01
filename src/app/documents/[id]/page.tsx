@@ -131,7 +131,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8 text-center rounded-[2rem] bg-destructive/5 border-destructive/20">
           <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-headline font-bold uppercase mb-2">Error de Acceso</h2>
+          <h2 className="text-xl font-bold uppercase mb-2">Error de Acceso</h2>
           <p className="text-sm text-muted-foreground mb-6">No tiene permisos para ver este registro.</p>
           <Button asChild className="w-full rounded-xl bg-destructive"><Link href="/documents">Volver</Link></Button>
         </Card>
@@ -189,7 +189,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <div className="bg-white/20 p-2 rounded-lg"><Files className="w-5 h-5" /></div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">Expediente Digital Unificado</p>
-                  <h2 className="text-lg font-headline font-bold uppercase tracking-tight">{documentData.projectCode}</h2>
+                  <h2 className="text-lg font-bold uppercase tracking-tight">{documentData.projectCode}</h2>
                 </div>
               </div>
               <div className="hidden md:block text-right">
@@ -204,7 +204,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex items-center gap-4">
                 <div className="bg-primary/10 p-4 rounded-2xl text-primary">{getDocIcon()}</div>
                 <div>
-                  <h1 className="text-xl md:text-3xl font-headline font-bold text-primary leading-tight">{documentData.title}</h1>
+                  <h1 className="text-xl md:text-3xl font-bold text-primary leading-tight">{documentData.title}</h1>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <Badge className="bg-primary/10 text-primary uppercase font-black text-[9px] px-3">{documentData.extensionDocType || documentData.type}</Badge>
                     {isConvenio && <Badge className={`text-[9px] font-black uppercase ${isDocumentVigente(documentData) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{isDocumentVigente(documentData) ? 'Vigente' : 'Vencido'}</Badge>}
@@ -317,7 +317,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               <div className="flex items-center gap-3 border-b-2 border-primary/10 pb-4">
                 <div className="bg-primary/10 p-2.5 rounded-xl"><History className="w-6 h-6 text-primary" /></div>
                 <div>
-                  <h3 className="text-xl font-headline font-bold uppercase tracking-tight text-primary">Resumen del Expediente</h3>
+                  <h3 className="text-xl font-bold uppercase tracking-tight text-primary">Resumen del Expediente</h3>
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Código institucional: {documentData.projectCode}</p>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   {/* Título unificado del proyecto al inicio */}
                   <div className="bg-primary/5 p-8 md:p-12 border-b">
                     <p className="text-[9px] font-black uppercase text-primary/60 tracking-[0.2em] mb-2">Título del Proyecto</p>
-                    <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary leading-tight">
+                    <h2 className="text-2xl md:text-3xl font-bold text-primary leading-tight">
                       {masterProject?.title || documentData.title}
                     </h2>
                   </div>

@@ -320,7 +320,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><Pencil className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Editar Registro</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Editar Registro</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Actualización de datos institucionales</p>
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
           <form onSubmit={handleSubmit} className="space-y-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
               <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
-                <CardTitle className="text-xl font-headline font-bold uppercase text-primary flex items-center gap-3">Información General</CardTitle>
+                <CardTitle className="text-xl font-bold uppercase text-primary flex items-center gap-3">Información General</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -389,10 +389,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase text-muted-foreground">{formData.type === 'Pasantía' ? 'Institución/Empresa' : 'Institución/Universidad'}</Label>
-                            <input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setMobilityInstitution(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
+                            <input placeholder="Nombre" value={formData.mobilityInstitution} onChange={(e) => setFormData({...formData, mobilityInstitution: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" />
                           </div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setMobilityState(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
-                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setMobilityCountry(e.target.value)} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Estado/Provincia</Label><input placeholder="Provincia" value={formData.mobilityState} onChange={(e) => setFormData({...formData, mobilityState: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
+                          <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">País</Label><input placeholder="País" value={formData.mobilityCountry} onChange={(e) => setFormData({...formData, mobilityCountry: e.target.value})} className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm font-bold" /></div>
                         </div>
                       </div>
                     </div>

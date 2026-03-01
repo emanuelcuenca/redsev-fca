@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><UserCog className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Control de Accesos</h2>
+                <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Control de Accesos</h2>
                 <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Asignación de jerarquías institucionales</p>
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function AdminUsersPage() {
             ].map((role, i) => (
               <div key={i} className="bg-white border p-6 rounded-2xl shadow-sm">
                 <role.icon className={`w-8 h-8 ${role.color} mb-4`} />
-                <h4 className="font-headline font-bold uppercase text-sm mb-2">{role.title}</h4>
+                <h4 className="font-bold uppercase text-sm mb-2">{role.title}</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">{role.desc}</p>
               </div>
             ))}

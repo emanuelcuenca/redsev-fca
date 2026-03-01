@@ -118,7 +118,7 @@ export default function RequestsAdminPage() {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><BellRing className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Solicitudes de Acceso</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Solicitudes de Acceso</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Autorización de visualización de archivos</p>
             </div>
           </div>

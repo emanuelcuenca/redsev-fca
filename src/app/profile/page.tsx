@@ -212,14 +212,14 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><UserCircle className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Mi Perfil</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Mi Perfil</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">{formData.claustro || "Usuario FCA"}</p>
             </div>
           </div>
 
           <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white/50 backdrop-blur-sm mb-8">
             <CardHeader className="bg-primary/5 p-8 border-b border-primary/10">
-              <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Información Profesional</CardTitle>
+              <CardTitle className="text-xl font-bold uppercase text-primary">Información Profesional</CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="flex flex-col items-center justify-center mb-8 pb-8 border-b border-dashed">

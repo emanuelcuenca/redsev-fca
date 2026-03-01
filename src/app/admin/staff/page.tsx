@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -233,7 +234,7 @@ export default function StaffAdminPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Banco de Extensionistas</h2>
+                <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Banco de Extensionistas</h2>
                 <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos institucional integrada</p>
               </div>
             </div>
@@ -252,7 +253,7 @@ export default function StaffAdminPage() {
               </DialogTrigger>
               <DialogContent className="rounded-3xl sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="font-headline font-bold uppercase text-primary">
+                  <DialogTitle className="font-bold uppercase text-primary">
                     {editingId ? "Editar Extensionista" : "Nuevo Registro"}
                   </DialogTitle>
                 </DialogHeader>

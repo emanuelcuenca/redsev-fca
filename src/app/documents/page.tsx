@@ -228,7 +228,7 @@ export default function DocumentsListPage() {
             <div className="bg-primary/10 p-2 rounded-xl">
               <PageIcon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
-            <h2 className="text-lg md:text-3xl font-headline font-bold tracking-tight uppercase">{pageTitle}</h2>
+            <h2 className="text-lg md:text-3xl font-bold tracking-tight uppercase">{pageTitle}</h2>
           </div>
           
           <div className="space-y-3 mb-6 md:mb-8">
@@ -411,7 +411,7 @@ export default function DocumentsListPage() {
               <div className="bg-destructive/10 p-3 md:p-4 rounded-full mb-3 md:mb-4">
                 <AlertTriangle className="w-8 h-8 md:w-10 md:h-10 text-destructive" />
               </div>
-              <AlertDialogTitle className="font-headline font-bold uppercase text-lg md:text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
+              <AlertDialogTitle className="font-bold uppercase text-lg md:text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
               <AlertDialogDescription className="text-muted-foreground font-medium pt-2 text-xs md:text-sm">
                 Esta acción es permanente y eliminará este registro de la base de datos institucional. No se podrá recuperar.
               </AlertDialogDescription>

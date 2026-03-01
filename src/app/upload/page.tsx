@@ -371,14 +371,14 @@ export default function UploadPage() {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><FileUp className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Cargar Registro</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Cargar Registro</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Ingreso de documentación SEyV</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <section className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
-              <h2 className="text-lg font-headline font-bold uppercase tracking-tight">Categoría Institucional</h2>
+              <h2 className="text-lg font-bold uppercase tracking-tight">Categoría Institucional</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                 {[
                   { id: "Proyecto", label: "Extensión", icon: ArrowLeftRight },
@@ -443,7 +443,7 @@ export default function UploadPage() {
                   <div className="p-8 bg-muted/20 border-2 border-dashed border-primary/20 rounded-[2rem] space-y-6 animate-in zoom-in-95">
                     <div className="text-center space-y-2">
                       <SearchCode className="w-12 h-12 text-primary/40 mx-auto" />
-                      <h3 className="font-headline font-bold text-primary uppercase">Vincular Proyecto de Extensión</h3>
+                      <h3 className="font-bold text-primary uppercase">Vincular Proyecto de Extensión</h3>
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Ingrese el código institucional para continuar</p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-3 max-w-lg mx-auto">
@@ -488,7 +488,7 @@ export default function UploadPage() {
                         <div className="bg-primary/10 p-3 rounded-2xl"><LinkIcon className="w-6 h-6 text-primary" /></div>
                         <div>
                           <p className="text-[9px] font-black uppercase text-primary tracking-widest">Proyecto Vinculado</p>
-                          <h4 className="font-headline font-bold text-lg">{linkedProject.projectCode}</h4>
+                          <h4 className="font-bold text-lg">{linkedProject.projectCode}</h4>
                         </div>
                       </div>
                       <Button variant="ghost" className="text-destructive font-bold text-[10px] uppercase h-9" onClick={() => setLinkedProject(null)}>Cambiar</Button>

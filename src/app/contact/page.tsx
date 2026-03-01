@@ -80,7 +80,7 @@ export default function ContactPage() {
           <div className="flex items-center gap-3 mb-8 md:mb-12">
             <div className="bg-primary/10 p-2.5 rounded-xl"><Info className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Autoridades y Contacto</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Autoridades y Contacto</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Secretaría de Extensión y Vinculación</p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function ContactPage() {
                     <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase tracking-widest px-2 py-0.5">{auth.institution}</Badge>
                   </div>
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none mb-1">{auth.role}</p>
-                  <CardTitle className="text-lg font-headline font-bold uppercase text-primary leading-tight">
+                  <CardTitle className="text-lg font-bold uppercase text-primary leading-tight">
                     {auth.name}
                   </CardTitle>
                   {auth.email && (
@@ -110,7 +110,7 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <section className="space-y-8">
               <div>
-                <h3 className="text-xl font-headline font-bold uppercase text-primary mb-6 flex items-center gap-3">
+                <h3 className="text-xl font-bold uppercase text-primary mb-6 flex items-center gap-3">
                   <Mail className="w-5 h-5" /> Canales de Consulta
                 </h3>
                 <div className="space-y-4">
@@ -125,7 +125,7 @@ export default function ContactPage() {
               </div>
 
               <div>
-                <h3 className="text-xl font-headline font-bold uppercase text-primary mb-6 flex items-center gap-3">
+                <h3 className="text-xl font-bold uppercase text-primary mb-6 flex items-center gap-3">
                   <MapPin className="w-5 h-5" /> Dirección
                 </h3>
                 <div className="flex items-start gap-4 p-6 bg-white rounded-3xl border border-muted shadow-sm group transition-all hover:border-primary/30">
@@ -147,7 +147,7 @@ export default function ContactPage() {
                 <div className="bg-primary w-16 h-16 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center mx-auto lg:mx-0 mb-4">
                   <Globe className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl md:text-3xl font-headline font-bold uppercase text-primary tracking-tight">Presencia Digital</h2>
+                <h2 className="text-2xl md:text-3xl font-bold uppercase text-primary tracking-tight">Presencia Digital</h2>
                 <p className="text-muted-foreground font-medium leading-relaxed uppercase text-xs tracking-wide">
                   La Facultad de Ciencias Agrarias de la Universidad Nacional de Catamarca promueve el acceso a la información y la vinculación permanente con el medio socio-productivo.
                 </p>

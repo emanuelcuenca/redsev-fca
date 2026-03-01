@@ -119,7 +119,7 @@ export default function AdminStatsPage() {
               <BarChart3 className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Panel de Estadísticas</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Panel de Estadísticas</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Visualización de impacto institucional</p>
             </div>
           </div>
@@ -128,19 +128,19 @@ export default function AdminStatsPage() {
             <Card className="rounded-3xl border-l-4 border-primary shadow-lg overflow-hidden">
               <CardHeader className="pb-2">
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Total Registros</CardDescription>
-                <CardTitle className="text-4xl font-black font-headline text-primary">{allDocs?.length || 0}</CardTitle>
+                <CardTitle className="text-4xl font-black text-primary">{allDocs?.length || 0}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="rounded-3xl border-l-4 border-accent shadow-lg overflow-hidden">
               <CardHeader className="pb-2">
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Categorías</CardDescription>
-                <CardTitle className="text-4xl font-black font-headline text-accent">{statsByType.length}</CardTitle>
+                <CardTitle className="text-4xl font-black text-accent">{statsByType.length}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="rounded-3xl border-l-4 border-muted-foreground shadow-lg overflow-hidden">
               <CardHeader className="pb-2">
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Registros por Año</CardDescription>
-                <CardTitle className="text-4xl font-black font-headline text-muted-foreground">{statsByYear.length}</CardTitle>
+                <CardTitle className="text-4xl font-black text-muted-foreground">{statsByYear.length}</CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -148,7 +148,7 @@ export default function AdminStatsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-lg font-headline font-bold uppercase text-primary flex items-center gap-2">
+                <CardTitle className="text-lg font-bold uppercase text-primary flex items-center gap-2">
                   <PieChartIcon className="w-5 h-5" /> Distribución por Tipo
                 </CardTitle>
               </CardHeader>
@@ -178,7 +178,7 @@ export default function AdminStatsPage() {
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-lg font-headline font-bold uppercase text-primary flex items-center gap-2">
+                <CardTitle className="text-lg font-bold uppercase text-primary flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" /> Evolución Temporal
                 </CardTitle>
               </CardHeader>

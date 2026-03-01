@@ -128,14 +128,14 @@ export default function CVUploadPage() {
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary/10 p-2.5 rounded-xl"><FileUser className="w-6 h-6 text-primary" /></div>
             <div>
-              <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Mi Currículum Vitae</h2>
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Mi Currículum Vitae</h2>
               <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Documentación para el Banco de Extensionistas</p>
             </div>
           </div>
 
           <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white mb-8">
             <CardHeader className="bg-primary/5 p-8 border-b border-primary/10 text-center">
-              <CardTitle className="text-xl font-headline font-bold uppercase text-primary">Gestión de CV</CardTitle>
+              <CardTitle className="text-xl font-bold uppercase text-primary">Gestión de CV</CardTitle>
               <CardDescription className="text-[10px] font-black uppercase tracking-widest mt-2">Formatos aceptados: PDF (Máx. 5MB)</CardDescription>
             </CardHeader>
             <CardContent className="p-8">

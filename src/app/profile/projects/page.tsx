@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -106,7 +107,7 @@ export default function MyProjectsPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><FolderHeart className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-headline font-bold uppercase tracking-tight">Mis Proyectos</h2>
+                <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Mis Proyectos</h2>
                 <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Participación en la SEyV FCA-UNCA</p>
               </div>
             </div>
@@ -189,7 +190,7 @@ function ProjectList({ projects, emptyMessage }: { projects: AgriculturalDocumen
               
               <div className="p-8 flex-1 flex flex-col justify-between gap-6">
                 <div>
-                  <h3 className="text-xl font-headline font-bold text-foreground leading-tight mb-4 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl font-bold text-foreground leading-tight mb-4 group-hover:text-primary transition-colors">
                     {project.title}
                   </h3>
                   {project.description && (
