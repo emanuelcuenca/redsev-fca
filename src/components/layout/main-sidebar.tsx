@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -76,7 +75,7 @@ export function MainSidebar() {
           <span className="font-black text-xl tracking-tighter">SEV</span>
         </div>
         <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden overflow-hidden">
-          <span className="font-headline font-black text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
+          <span className="font-body font-semibold text-2xl tracking-tighter uppercase text-primary leading-none mb-1">
             FCA - UNCA
           </span>
           <span className="text-[15px] text-muted-foreground font-black uppercase tracking-tighter leading-tight">
