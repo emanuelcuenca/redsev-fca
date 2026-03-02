@@ -201,7 +201,7 @@ export default function DocumentsListPage() {
 
   if (isUserLoading || !mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background" suppressHydrationWarning>
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
@@ -215,8 +215,8 @@ export default function DocumentsListPage() {
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold whitespace-nowrap">FCA - UNCA</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-primary uppercase tracking-tighter text-center leading-none mb-1">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-black uppercase tracking-tighter text-center leading-none">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>

@@ -1,4 +1,3 @@
-
 export interface PersonName {
   firstName: string;
   lastName: string;
@@ -47,7 +46,7 @@ export interface AgriculturalDocument {
   mobilityCountry?: string;
 }
 
-export function isDocumentVigente(doc: AgriculturalDocument): boolean {
+export function isDocumentVigente(doc: AgriculturalDocument, referenceDate?: Date): boolean {
   if (doc.type !== 'Convenio') return true;
   if (doc.hasAutomaticRenewal) return true;
   if (!doc.date || !doc.durationYears) return true;
@@ -56,7 +55,9 @@ export function isDocumentVigente(doc: AgriculturalDocument): boolean {
   const expiryDate = new Date(signingDate);
   expiryDate.setFullYear(signingDate.getFullYear() + doc.durationYears);
   
-  return expiryDate > new Date();
+  // Usamos una fecha de referencia si se provee (útil para evitar errores de hidratación)
+  const now = referenceDate || new Date();
+  return expiryDate > now;
 }
 
 export function formatPersonName(person?: PersonName): string {
