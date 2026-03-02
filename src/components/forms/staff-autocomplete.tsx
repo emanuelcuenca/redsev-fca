@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
-import { StaffMember } from "@/lib/mock-data";
+import { StaffMember } from "@/lib/mask-data";
 import { Command, CommandGroup, CommandItem, CommandList, CommandInput, CommandEmpty } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
             aria-expanded={open}
             className="w-full justify-between h-12 rounded-xl font-bold bg-white text-left overflow-hidden"
           >
-            {value ? value : placeholder || "Buscar extensionista por apellido..."}
+            {value ? value : placeholder || "Buscar autor por apellido..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -52,7 +52,7 @@ export function StaffAutocomplete({ onSelect, label, placeholder, className, def
               className="h-11 border-none focus:ring-0"
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No se encontraron extensionistas en el banco.</CommandEmpty>
+              <CommandEmpty>No se encontraron autores registrados.</CommandEmpty>
               <CommandGroup>
                 {staffList?.map((person) => (
                   <CommandItem

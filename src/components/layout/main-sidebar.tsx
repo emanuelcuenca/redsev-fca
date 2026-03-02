@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -58,7 +59,7 @@ export function MainSidebar() {
     { icon: UploadCloud, label: "Cargar Registro", href: "/upload" },
     { icon: Mail, label: "Mensajes Recibidos", href: "/admin/messages" },
     { icon: BellRing, label: "Solicitudes", href: "/admin/requests" },
-    { icon: Contact, label: "Banco de Extensionistas", href: "/admin/staff" },
+    { icon: Contact, label: "Autores de Proyectos", href: "/admin/staff" },
     { icon: Users, label: "Gestión Usuarios", href: "/admin" },
   ];
 

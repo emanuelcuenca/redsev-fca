@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -181,10 +182,10 @@ export default function StaffAdminPage() {
 
     if (editingId) {
       updateDocumentNonBlocking(doc(db, 'staff', editingId), data);
-      toast({ title: "Extensionista actualizado" });
+      toast({ title: "Autor actualizado" });
     } else {
       addDocumentNonBlocking(collection(db, 'staff'), data);
-      toast({ title: "Extensionista guardado" });
+      toast({ title: "Autor guardado" });
     }
 
     setIsSaving(false);
@@ -194,7 +195,7 @@ export default function StaffAdminPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("¿Está seguro de eliminar a este integrante del banco de extensionistas?")) {
+    if (confirm("¿Está seguro de eliminar a este autor del registro?")) {
       deleteDocumentNonBlocking(doc(db, 'staff', id));
       toast({ title: "Registro eliminado" });
     }
@@ -221,8 +222,8 @@ export default function StaffAdminPage() {
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
             <div className="flex flex-col items-center leading-none text-center gap-1 w-full">
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
-              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold whitespace-nowrap">FCA - UNCA</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-primary uppercase tracking-tighter whitespace-nowrap">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</span>
+              <span className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-black uppercase tracking-tighter whitespace-nowrap">FCA - UNCA</span>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0"><UserMenu /></div>
@@ -233,8 +234,8 @@ export default function StaffAdminPage() {
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 p-2.5 rounded-xl"><Contact className="w-6 h-6 text-primary" /></div>
               <div>
-                <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Banco de Extensionistas</h2>
-                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Base de datos institucional integrada</p>
+                <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight">Autores de Proyectos</h2>
+                <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">Registro institucional de autores y responsables</p>
               </div>
             </div>
 
@@ -247,13 +248,13 @@ export default function StaffAdminPage() {
             }}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl bg-primary h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
-                  <UserPlus className="w-4 h-4 mr-2" /> Agregar al Banco
+                  <UserPlus className="w-4 h-4 mr-2" /> Agregar Autor
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-3xl sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-bold uppercase text-primary">
-                    {editingId ? "Editar Extensionista" : "Nuevo Registro"}
+                    {editingId ? "Editar Autor" : "Nuevo Registro"}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSave} className="space-y-4 pt-4">
@@ -345,7 +346,7 @@ export default function StaffAdminPage() {
 
                   <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isSaving} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest">
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Extensionista")}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingId ? "Actualizar Registro" : "Guardar Autor")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -375,7 +376,7 @@ export default function StaffAdminPage() {
                   <Table>
                     <TableHeader className="bg-muted/10">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Extensionista</TableHead>
+                        <TableHead className="pl-8 font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Autor / Integrante</TableHead>
                         <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Email / Estado</TableHead>
                         <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Claustro / Cargo</TableHead>
                         <TableHead className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Referencia</TableHead>
@@ -426,7 +427,7 @@ export default function StaffAdminPage() {
                             <TableCell className="pr-8 text-right">
                               <div className="flex justify-end gap-2">
                                 {hasCV && (
-                                  <Button variant="ghost" size="icon" className="rounded-xl text-amber-600 hover:bg-amber-50" asChild title="Ver CV del Extensionista">
+                                  <Button variant="ghost" size="icon" className="rounded-xl text-amber-600 hover:bg-amber-50" asChild title="Ver CV del Autor">
                                     <a href={linkedUser.cvUrl} target="_blank" rel="noopener noreferrer"><FileText className="w-4 h-4" /></a>
                                   </Button>
                                 )}
