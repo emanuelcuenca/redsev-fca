@@ -1,8 +1,6 @@
-
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { Toaster } from '@/firebase/error-emitter'; // Note: Toaster is usually in components/ui but maintaining consistency
 import { Toaster as ShadcnToaster } from '@/components/ui/toaster';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import Script from 'next/script';
@@ -40,14 +38,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased" suppressHydrationWarning>
+      <body className="font-body antialiased">
         <FirebaseClientProvider>
           {children}
           <ShadcnToaster />
           <PwaInstallPrompt />
         </FirebaseClientProvider>
         
-        {/* Registro del Service Worker para soporte PWA */}
         <Script id="register-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {

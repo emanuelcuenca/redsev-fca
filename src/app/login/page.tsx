@@ -13,6 +13,7 @@ import { signInWithEmailAndPassword, signOut, sendEmailVerification, User } from
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const auth = useAuth();
 
   useEffect(() => {
+    setMounted(true);
     setCurrentYear(new Date().getFullYear().toString());
   }, []);
 
@@ -36,7 +38,6 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       
-      // Verificar si el correo está validado
       if (!userCredential.user.emailVerified) {
         setLoginError("Su correo institucional aún no ha sido verificado.");
         setUnverifiedUser(userCredential.user);
@@ -66,7 +67,6 @@ export default function LoginPage() {
         title: "Enlace enviado",
         description: "Se ha reenviado el correo de confirmación a su casilla.",
       });
-      // Después de enviar, cerramos la sesión para limpiar el estado
       await signOut(auth);
       setUnverifiedUser(null);
       setLoginError("Nuevo enlace enviado. Por favor, revise su casilla (incluyendo Spam).");
@@ -81,6 +81,11 @@ export default function LoginPage() {
     }
   };
 
+  // Prevenir desajustes de hidratación (Hydration Mismatch)
+  if (!mounted) {
+    return <div className="min-h-screen w-full bg-background" />;
+  }
+
   return (
     <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -93,8 +98,8 @@ export default function LoginPage() {
           <Link href="/" className="bg-primary w-20 h-20 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold text-center mt-1">
+          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-primary uppercase tracking-tighter text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-black uppercase tracking-tighter text-center mt-1">
             FCA - UNCA
           </p>
         </div>

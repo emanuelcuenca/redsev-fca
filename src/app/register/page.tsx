@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -94,6 +93,7 @@ const compressImage = (file: File, maxWidth: number = 400, maxHeight: number = 4
 };
 
 export default function RegisterPage() {
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCompresing, setLoadingCompresing] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
@@ -112,6 +112,10 @@ export default function RegisterPage() {
   
   const router = useRouter();
   const auth = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const formatName = (text: string) => {
     return text
@@ -207,6 +211,10 @@ export default function RegisterPage() {
     }
   };
 
+  if (!mounted) {
+    return <div className="min-h-screen w-full bg-background" />;
+  }
+
   return (
     <div className="min-h-[100svh] w-full flex items-center justify-center p-4 bg-gradient-to-br from-background via-secondary to-background relative overflow-x-hidden py-10 md:py-16">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -220,8 +228,8 @@ export default function RegisterPage() {
             <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-            <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold mt-1">
+            <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-primary uppercase tracking-tighter leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+            <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body font-semibold text-black uppercase tracking-tighter font-semibold mt-1">
               FCA - UNCA
             </p>
           </div>
