@@ -141,7 +141,8 @@ export default function AdminStatsPage() {
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest">Registros por Año</CardDescription>
                 <CardTitle className="text-4xl font-black text-muted-foreground">{statsByYear.length}</CardTitle>
               </CardHeader>
-            </div>
+            </Card>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6">

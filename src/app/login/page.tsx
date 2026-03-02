@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2, ArrowRight, UserPlus, AlertCircle, Send } from "lucide-react";
@@ -19,8 +19,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [unverifiedUser, setUnverifiedUser] = useState<User | null>(null);
+  const [currentYear, setCurrentYear] = useState("");
   const router = useRouter();
   const auth = useAuth();
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear().toString());
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +193,7 @@ export default function LoginPage() {
         </Card>
         
         <p className="text-[10px] text-muted-foreground text-center mt-8 font-bold uppercase tracking-widest opacity-60">
-          REDSEV FCA - UNCA © {new Date().getFullYear()}
+          REDSEV FCA - UNCA © {currentYear}
         </p>
       </div>
     </div>
