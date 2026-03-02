@@ -3,56 +3,88 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // --- FUNCIONES DE SEGURIDAD NÚCLEO (CAPA DE IDENTIDAD) ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Asegura que el usuario haya hecho clic en el link de confirmación de su mail
+    function isVerified() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+
+    // Solo permite acceso si el dominio pertenece a la UNCA
+    function isInstitutionalEmail() {
+      let email = request.auth.token.email;
+      return isAuthenticated() && (email.hasSuffix('@unca.edu.ar') || email.hasSuffix('@agrarias.unca.edu.ar'));
+    }
+
+    // Verifica rol administrativo mediante colección de permisos dedicada
     function isAdmin() {
-      return request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isAuthenticated() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
+    // Verifica rol de autoridad o administrador
     function isAuthority() {
-      return request.auth != null && (isAdmin() || exists(/databases/$(database)/documents/roles_authority/$(request.auth.uid)));
+      return isAuthenticated() && (isAdmin() || exists(/databases/$(database)/documents/roles_authority/$(request.auth.uid)));
     }
 
-    // REPOSITORIO DE DOCUMENTOS
+    // --- REGLAS DE PROTECCIÓN POR COLECCIÓN ---
+
+    // REPOSITORIO DE DOCUMENTOS: Lectura para internos, Escritura solo ADMIN VERIFICADO
     match /documents/{documentId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isVerified();
     }
 
-    // PERFILES DE USUARIO
+    // PERFILES DE USUARIO: Prevención de escalada de privilegios e inyección
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read: if isAuthenticated();
+      // Permite creación inicial solo del propio perfil
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Protege campos críticos contra edición manual maliciosa
+      allow update: if (request.auth.uid == userId || isAdmin()) && 
+                    isVerified() &&
+                    !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'role', 'email']);
+      allow delete: if isAdmin() && isVerified();
     }
 
-    // ROLES
+    // GESTIÓN DE ROLES: Sistema inaccesible para usuarios comunes
     match /roles_admin/{userId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isVerified();
     }
     match /roles_authority/{userId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isVerified();
     }
 
-    // PADRÓN DOCENTE
+    // BANCO DE EXTENSIONISTAS: Integridad de datos oficiales
     match /staff/{staffId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isVerified();
     }
 
-    // SOLICITUDES DE ACCESO
+    // SOLICITUDES DE ACCESO: Prevención de suplantación (Anti-Spoofing)
     match /access_requests/{requestId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && 
+                    isVerified() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin() && isVerified();
     }
 
-    // CONTACTO Y PROPUESTAS
+    // CONTACTO Y PROPUESTAS: Protección contra SPAM
     match /contact_requests/{requestId} {
-      allow read: if isAdmin();
-      allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
+      allow read: if isAuthority() && isVerified();
+      allow create: if isAuthenticated() && 
+                    isVerified() &&
+                    request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin() && isVerified();
     }
     
-    // REDSEV-RULES-V18-HIERARCHY
+    // REDSEV-RULES-V20-TOTAL-SHIELD
   }
 }

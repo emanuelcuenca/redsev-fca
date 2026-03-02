@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -181,11 +182,7 @@ export default function RegisterPage() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-      
-      // Establecer idioma a Español para que el mensaje llegue como "Validar correo electrónico"
       auth.languageCode = 'es';
-      
-      // Enviar correo de verificación
       await sendEmailVerification(userCredential.user);
       
       toast({
@@ -222,10 +219,12 @@ export default function RegisterPage() {
           <Link href="/" className="bg-primary w-16 h-16 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-sm md:text-xl font-body text-primary uppercase tracking-tighter font-semibold text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-sm md:text-xl font-body text-black uppercase tracking-tighter font-semibold text-center mt-1">
-            FCA - UNCA
-          </p>
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+            <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold mt-1">
+              FCA - UNCA
+            </p>
+          </div>
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-[2.5rem] overflow-hidden w-full">
