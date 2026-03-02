@@ -180,7 +180,7 @@ export default function Dashboard() {
 
   if (!mounted || isUserLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" suppressHydrationWarning>
+      <div className="min-h-screen flex items-center justify-center bg-background" suppressHydrationWarning={true}>
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
@@ -189,9 +189,9 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <SidebarProvider>
+    <SidebarProvider suppressHydrationWarning={true}>
       <MainSidebar />
-      <SidebarInset className="bg-background">
+      <SidebarInset className="bg-background" suppressHydrationWarning={true}>
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center border-b bg-background/80 backdrop-blur-md px-4 md:px-6">
           <div className="flex items-center gap-2 md:gap-4 shrink-0"><SidebarTrigger /></div>
           <div className="flex-1 flex justify-center overflow-hidden px-2">
