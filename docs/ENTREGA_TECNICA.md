@@ -29,31 +29,31 @@ El sistema utiliza un flujo de Integración Continua simplificado a través de l
    pm2 restart redsev
    ```
 
-## 💻 Desarrollo Local (Visual Studio Code)
-Para trabajar en el código desde tu computadora personal:
-1. Descarga el ZIP del proyecto o clona tu repositorio de GitHub.
-2. Instala [Node.js](https://nodejs.org/) (v20+).
-3. En la terminal de VS Code:
-   ```bash
-   npm install
-   npm run dev
-   ```
-4. Abre `http://localhost:9002` en tu navegador.
+## 🔑 Configuración de Variables de Entorno (Sin archivo .env)
+Si los administradores del servidor prohíben el uso de archivos `.env`, las claves deben configurarse directamente en el entorno de ejecución (ej. PM2, Docker o Bash).
 
-## 📱 Funcionamiento PWA (Instalable)
-El sistema es una **Progressive Web App (PWA)**. 
-- **Instalación**: En Chrome (Android) o Safari (iOS), aparecerá la opción "Instalar" o "Agregar a la pantalla de inicio".
-- **Actualización Transparente**: Al actualizar el servidor y reconstruir (`build`), el Service Worker detectará la nueva versión. El usuario verá los cambios la próxima vez que abra la app.
+### Configuración con PM2:
+Si usa PM2 para gestionar el proceso, cree un archivo `ecosystem.config.js`:
+```js
+module.exports = {
+  apps : [{
+    name: "redsev",
+    script: "npm start",
+    env: {
+      GEMINI_API_KEY: "TU_CLAVE_AQUI",
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: "studio-1591734897-74b97",
+      NEXT_PUBLIC_FIREBASE_APP_ID: "1:957661959248:web:408cc98776a9d5889ced55"
+      // ... otras variables
+    }
+  }]
+}
+```
 
-## 🔑 Variables de Envío (.env)
-Configurar estas variables en el servidor de producción:
-```env
-GEMINI_API_KEY="TU_CLAVE_AQUI"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="studio-1591734897-74b97"
-NEXT_PUBLIC_FIREBASE_APP_ID="1:957661959248:web:408cc98776a9d5889ced55"
-NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyDZZAdRqDm-SxSuVXlBoWqlX4WvbhMSI5w"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="studio-1591734897-74b97.firebaseapp.com"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="957661959248"
+### Configuración en Linux (Bash):
+Agregue las variables a su perfil de usuario o ejecute el comando antes de iniciar:
+```bash
+export GEMINI_API_KEY="TU_CLAVE_AQUI"
+npm start
 ```
 
 ---
