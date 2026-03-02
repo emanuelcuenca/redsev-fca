@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -223,8 +222,8 @@ export default function RegisterPage() {
           <Link href="/" className="bg-primary w-16 h-16 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-2xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-sm md:text-xl font-headline text-primary uppercase tracking-tighter font-normal text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-sm md:text-xl font-headline text-black uppercase tracking-tighter font-normal text-center mt-1">
+          <h1 className="text-sm md:text-xl font-body text-primary uppercase tracking-tighter font-semibold text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-sm md:text-xl font-body text-black uppercase tracking-tighter font-semibold text-center mt-1">
             FCA - UNCA
           </p>
         </div>
@@ -236,7 +235,7 @@ export default function RegisterPage() {
                 <Mail className="w-12 h-12 text-primary" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-headline font-bold uppercase tracking-tight text-primary">Validar correo electrónico</h2>
+                <h2 className="text-2xl font-body font-bold uppercase tracking-tight text-primary">Validar correo electrónico</h2>
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">REDSEV FCA</p>
                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                   Hemos enviado un enlace de confirmación a: <br />

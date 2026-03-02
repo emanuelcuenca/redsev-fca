@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -89,8 +88,8 @@ export default function LoginPage() {
           <Link href="/" className="bg-primary w-20 h-20 rounded-none shadow-lg shadow-primary/20 mb-4 hover:scale-105 transition-transform flex items-center justify-center">
             <span className="text-3xl font-black text-primary-foreground tracking-tighter">SEV</span>
           </Link>
-          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-primary uppercase tracking-tighter font-normal text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
-          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-headline text-black uppercase tracking-tighter font-normal text-center mt-1">
+          <h1 className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-primary uppercase tracking-tighter font-semibold text-center leading-tight">SECRETARÍA DE EXTENSIÓN Y VINCULACIÓN</h1>
+          <p className="text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] md:text-2xl font-body text-black uppercase tracking-tighter font-semibold text-center mt-1">
             FCA - UNCA
           </p>
         </div>
