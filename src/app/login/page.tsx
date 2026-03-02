@@ -83,7 +83,7 @@ export default function LoginPage() {
 
   // Prevenir desajustes de hidratación (Hydration Mismatch)
   if (!mounted) {
-    return <div className="min-h-screen w-full bg-background" />;
+    return <div className="min-h-screen w-full bg-background" suppressHydrationWarning />;
   }
 
   return (
